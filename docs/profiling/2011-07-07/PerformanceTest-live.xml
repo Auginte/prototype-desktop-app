@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExportedView Name="Live Profiling Results" type="table">
+ <TableData NumRows="73" NumColumns="4">
+  <TableHeader>   <TableColumn><![CDATA[Hot Spots - Method]]></TableColumn>
+   <TableColumn><![CDATA[Self time [%]]]></TableColumn>
+   <TableColumn><![CDATA[Self time]]></TableColumn>
+   <TableColumn><![CDATA[Invocations]]></TableColumn>
+  </TableHeader>
+  <TableBody>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel.updateFont()]]></TableColumn>
+    <TableColumn><![CDATA[17.85%]]></TableColumn>
+    <TableColumn><![CDATA[1749.965 ms]]></TableColumn>
+    <TableColumn><![CDATA[65050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel.<init>(String)]]></TableColumn>
+    <TableColumn><![CDATA[13.80%]]></TableColumn>
+    <TableColumn><![CDATA[1353.39 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.zoom(double, double, double)]]></TableColumn>
+    <TableColumn><![CDATA[8.81%]]></TableColumn>
+    <TableColumn><![CDATA[863.446 ms]]></TableColumn>
+    <TableColumn><![CDATA[65050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.<init>()]]></TableColumn>
+    <TableColumn><![CDATA[7.11%]]></TableColumn>
+    <TableColumn><![CDATA[696.693 ms]]></TableColumn>
+    <TableColumn><![CDATA[108]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.setSize(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[5.89%]]></TableColumn>
+    <TableColumn><![CDATA[577.825 ms]]></TableColumn>
+    <TableColumn><![CDATA[65050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.setLocation(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[5.72%]]></TableColumn>
+    <TableColumn><![CDATA[560.584 ms]]></TableColumn>
+    <TableColumn><![CDATA[65050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.zoom(double, int, int)]]></TableColumn>
+    <TableColumn><![CDATA[4.80%]]></TableColumn>
+    <TableColumn><![CDATA[470.121 ms]]></TableColumn>
+    <TableColumn><![CDATA[700]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[java.awt.EventDispatchThread.run()]]></TableColumn>
+    <TableColumn><![CDATA[3.90%]]></TableColumn>
+    <TableColumn><![CDATA[382.713 ms]]></TableColumn>
+    <TableColumn><![CDATA[2]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.getComponent()]]></TableColumn>
+    <TableColumn><![CDATA[3.33%]]></TableColumn>
+    <TableColumn><![CDATA[326.234 ms]]></TableColumn>
+    <TableColumn><![CDATA[306050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.translate(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[3.20%]]></TableColumn>
+    <TableColumn><![CDATA[314.044 ms]]></TableColumn>
+    <TableColumn><![CDATA[45050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoublePoint.getX()]]></TableColumn>
+    <TableColumn><![CDATA[3.14%]]></TableColumn>
+    <TableColumn><![CDATA[307.701 ms]]></TableColumn>
+    <TableColumn><![CDATA[110100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel.updateWidth()]]></TableColumn>
+    <TableColumn><![CDATA[2.54%]]></TableColumn>
+    <TableColumn><![CDATA[249.513 ms]]></TableColumn>
+    <TableColumn><![CDATA[65050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel.zoomed()]]></TableColumn>
+    <TableColumn><![CDATA[2.48%]]></TableColumn>
+    <TableColumn><![CDATA[243.529 ms]]></TableColumn>
+    <TableColumn><![CDATA[65050]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.MoveAdapter.isBeingDragged()]]></TableColumn>
+    <TableColumn><![CDATA[2.25%]]></TableColumn>
+    <TableColumn><![CDATA[220.605 ms]]></TableColumn>
+    <TableColumn><![CDATA[110100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoublePoint.getY()]]></TableColumn>
+    <TableColumn><![CDATA[2.19%]]></TableColumn>
+    <TableColumn><![CDATA[214.926 ms]]></TableColumn>
+    <TableColumn><![CDATA[110100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.translate(double, double, boolean)]]></TableColumn>
+    <TableColumn><![CDATA[1.75%]]></TableColumn>
+    <TableColumn><![CDATA[171.675 ms]]></TableColumn>
+    <TableColumn><![CDATA[500]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.getMoveAdapter()]]></TableColumn>
+    <TableColumn><![CDATA[1.74%]]></TableColumn>
+    <TableColumn><![CDATA[170.62 ms]]></TableColumn>
+    <TableColumn><![CDATA[110900]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoublePoint.setLocation(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[1.38%]]></TableColumn>
+    <TableColumn><![CDATA[134.929 ms]]></TableColumn>
+    <TableColumn><![CDATA[111508]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoubleDimension.setSize(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[1.20%]]></TableColumn>
+    <TableColumn><![CDATA[117.86 ms]]></TableColumn>
+    <TableColumn><![CDATA[65850]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoublePoint.transalte(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[1.08%]]></TableColumn>
+    <TableColumn><![CDATA[105.751 ms]]></TableColumn>
+    <TableColumn><![CDATA[45550]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[java.lang.UNIXProcess$1$1.run()]]></TableColumn>
+    <TableColumn><![CDATA[1.03%]]></TableColumn>
+    <TableColumn><![CDATA[100.681 ms]]></TableColumn>
+    <TableColumn><![CDATA[2]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[javax.swing.JComponent$2.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.93%]]></TableColumn>
+    <TableColumn><![CDATA[91.145 ms]]></TableColumn>
+    <TableColumn><![CDATA[34090]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testAddingAndRemoving()]]></TableColumn>
+    <TableColumn><![CDATA[0.75%]]></TableColumn>
+    <TableColumn><![CDATA[73.489 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.addZoomable(java.awt.Component)]]></TableColumn>
+    <TableColumn><![CDATA[0.50%]]></TableColumn>
+    <TableColumn><![CDATA[49.262 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel.constructLabel()]]></TableColumn>
+    <TableColumn><![CDATA[0.42%]]></TableColumn>
+    <TableColumn><![CDATA[41.647 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.addEdgeAdapter(java.awt.Component)]]></TableColumn>
+    <TableColumn><![CDATA[0.39%]]></TableColumn>
+    <TableColumn><![CDATA[37.957 ms]]></TableColumn>
+    <TableColumn><![CDATA[908]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.setMoveAdapter(lt.banelis.aurelijus.dinosy.prototype.MoveAdapter)]]></TableColumn>
+    <TableColumn><![CDATA[0.35%]]></TableColumn>
+    <TableColumn><![CDATA[34.611 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[org.junit.runners.ParentRunner$3.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.19%]]></TableColumn>
+    <TableColumn><![CDATA[18.757 ms]]></TableColumn>
+    <TableColumn><![CDATA[9]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoubleDimension.<init>(java.awt.Dimension)]]></TableColumn>
+    <TableColumn><![CDATA[0.19%]]></TableColumn>
+    <TableColumn><![CDATA[18.143 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.add(java.awt.Component)]]></TableColumn>
+    <TableColumn><![CDATA[0.17%]]></TableColumn>
+    <TableColumn><![CDATA[16.636 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testZooming1()]]></TableColumn>
+    <TableColumn><![CDATA[0.14%]]></TableColumn>
+    <TableColumn><![CDATA[13.31 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel.prepareEditable()]]></TableColumn>
+    <TableColumn><![CDATA[0.13%]]></TableColumn>
+    <TableColumn><![CDATA[12.764 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[sun.awt.AWTAutoShutdown.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.10%]]></TableColumn>
+    <TableColumn><![CDATA[10.047 ms]]></TableColumn>
+    <TableColumn><![CDATA[2]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel$2.<init>(lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel)]]></TableColumn>
+    <TableColumn><![CDATA[0.09%]]></TableColumn>
+    <TableColumn><![CDATA[9.232 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testZooming2()]]></TableColumn>
+    <TableColumn><![CDATA[0.07%]]></TableColumn>
+    <TableColumn><![CDATA[6.748 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.MoveAdapter.<init>(lt.banelis.aurelijus.dinosy.prototype.ZoomPanel, lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent)]]></TableColumn>
+    <TableColumn><![CDATA[0.05%]]></TableColumn>
+    <TableColumn><![CDATA[4.624 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.addMovability()]]></TableColumn>
+    <TableColumn><![CDATA[0.04%]]></TableColumn>
+    <TableColumn><![CDATA[4.017 ms]]></TableColumn>
+    <TableColumn><![CDATA[108]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.recalculateOriginal()]]></TableColumn>
+    <TableColumn><![CDATA[0.04%]]></TableColumn>
+    <TableColumn><![CDATA[3.902 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[java.lang.ApplicationShutdownHooks.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.04%]]></TableColumn>
+    <TableColumn><![CDATA[3.828 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.addMovability(lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent)]]></TableColumn>
+    <TableColumn><![CDATA[0.03%]]></TableColumn>
+    <TableColumn><![CDATA[2.824 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoublePoint.<init>(java.awt.Point)]]></TableColumn>
+    <TableColumn><![CDATA[0.02%]]></TableColumn>
+    <TableColumn><![CDATA[1.867 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testZoomingAndTranslating()]]></TableColumn>
+    <TableColumn><![CDATA[0.02%]]></TableColumn>
+    <TableColumn><![CDATA[1.716 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testAddingAndZooming()]]></TableColumn>
+    <TableColumn><![CDATA[0.02%]]></TableColumn>
+    <TableColumn><![CDATA[1.483 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel$1.<init>(lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel)]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[1.427 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.<init>(java.awt.Component)]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[1.407 ms]]></TableColumn>
+    <TableColumn><![CDATA[800]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.calculateTime()]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[1.149 ms]]></TableColumn>
+    <TableColumn><![CDATA[9]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.remove(int)]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.97 ms]]></TableColumn>
+    <TableColumn><![CDATA[100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.translate(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.956 ms]]></TableColumn>
+    <TableColumn><![CDATA[500]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testAddingAndTranslating()]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.955 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testTranslating()]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.947 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.zoom(double)]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.737 ms]]></TableColumn>
+    <TableColumn><![CDATA[200]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.remove(java.awt.Component)]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.614 ms]]></TableColumn>
+    <TableColumn><![CDATA[100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[sun.awt.SunToolkit$1.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.612 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testUpdateInformation()]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.604 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.enableTranslateEdges()]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.582 ms]]></TableColumn>
+    <TableColumn><![CDATA[108]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.testManyPanels()]]></TableColumn>
+    <TableColumn><![CDATA[0.01%]]></TableColumn>
+    <TableColumn><![CDATA[0.495 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.DoublePoint.<init>(double, double)]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.472 ms]]></TableColumn>
+    <TableColumn><![CDATA[108]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[sun.awt.AppContext$PostShutdownEventRunnable.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.351 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.EdgeAdapter.<init>(lt.banelis.aurelijus.dinosy.prototype.ZoomPanel, int)]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.235 ms]]></TableColumn>
+    <TableColumn><![CDATA[108]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.MoveAdapter.<init>(lt.banelis.aurelijus.dinosy.prototype.ZoomPanel)]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.234 ms]]></TableColumn>
+    <TableColumn><![CDATA[108]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.initialiseComponents()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.164 ms]]></TableColumn>
+    <TableColumn><![CDATA[100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[java.util.logging.LogManager$Cleaner.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.142 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomPanel.validate()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.127 ms]]></TableColumn>
+    <TableColumn><![CDATA[100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[java.awt.Toolkit$DesktopPropertyChangeSupport$1.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.123 ms]]></TableColumn>
+    <TableColumn><![CDATA[34]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel.<clinit>]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.07 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.ZoomableComponent.getSize()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.045 ms]]></TableColumn>
+    <TableColumn><![CDATA[100]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.safeStartTime()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.039 ms]]></TableColumn>
+    <TableColumn><![CDATA[9]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[java.nio.DirectByteBuffer$Deallocator.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.023 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[sun.java2d.Disposer.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.021 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.<init>()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.016 ms]]></TableColumn>
+    <TableColumn><![CDATA[9]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.<clinit>]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.014 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[java.io.Console$1$1.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.009 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+   <TableRow>
+    <TableColumn><![CDATA[sun.awt.X11.XToolkit.run()]]></TableColumn>
+    <TableColumn><![CDATA[0.00%]]></TableColumn>
+    <TableColumn><![CDATA[0.0 ms]]></TableColumn>
+    <TableColumn><![CDATA[1]]></TableColumn>
+  </TableRow>
+  </TableBody> </TableData>
+</ExportedView>

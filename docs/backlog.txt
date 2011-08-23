@@ -1,0 +1,46 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2011-07-01T19:09:39+03:00
+
+====== BackLog ======
+
+[ ] **Zoomable component**
+	[*] Setters getters
+	[*] Zoom
+	[x] Serelializise
+[ ] **Zoomable panel**
+	[*] As Swing component
+	[*] Delagating to zoomable compents
+	[*] Zoom algorythm
+	[*] Mouse scrool
+	[ ] Move objects
+		[*] Move within
+		[ ] Mouse catch
+		[x] Key elements
+	[x] Serializise **(need manual unserialization)**
+		[x] Simple
+		[ ] XML
+	[ ] Adding & delleting
+		[*] Text
+		[ ] Images
+	[ ] Grouping
+	[ ] Connections
+		[ ] Safe, Load
+	[*] Profiling
+		[ ] **with 20 000 objects still usable; need more accurate and still fast font width calculation**
+	* Aditional:
+		[ ] Drop panel
+[ ] **PHP parser integration**
+	[ ] Classes
+		[*] Get data
+		[*] __Format data__
+		[x] ToolTIps **(not working, no manual tooltip)** 
+	[ ] Connections
+	[ ] Netbeans integration 
+
+===== Deadlines =====
+TODO: @dinosy @php-parser
+[*] __PHP class representotions__ [d: 2011-07-09] 
+	[ ] **When small sizes, ZoomableLabel font and height does not fit**
+[ ] Connections [d: 2011-07-10] 
+[ ] Tooltips

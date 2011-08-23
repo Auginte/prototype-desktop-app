@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<d:dinosy xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:d='http://aurelijus.banelis.lt/dinosy'
+   xsi:schemaLocation='http://aurelijus.banelis.lt/dinosy file:/home/aurelijus/Documents/DiNoSy/DataLib/src/lt/dinosy/datalib/dinosy.xsd'>
+    <d:data since="1.2.3">
+        <d:element id="1">Vienas</d:element>
+        <d:element id="2">Du</d:element>
+    </d:data>
+    <d:relations>
+        <d:relation from="1" to="2" type="generalization"/>
+    </d:relations>
+    <d:representations>
+        <d:object dataId="1">
+            <d:position>1 2 3</d:position>
+            <d:size>10 20</d:size>
+        </d:object>
+        <d:object dataId="2">
+            <d:position>3 4 5</d:position>
+            <d:size>40 5</d:size>
+        </d:object>
+    </d:representations>
+</d:dinosy>

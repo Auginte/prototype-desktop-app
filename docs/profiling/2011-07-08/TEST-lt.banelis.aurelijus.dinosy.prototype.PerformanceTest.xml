@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite errors="0" failures="0" hostname="aurelijaus" name="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" tests="9" time="12.833" timestamp="2011-07-07T20:27:47">
+  <properties>
+    <property name="netbeans.autoupdate.country" value="US" />
+    <property name="profiler.settings.sort.results.by.thread.cpu.time" value="false" />
+    <property name="profiler.info.single.file" value="/home/aurelijus/Documents/DiNoSy/Prototipas/test/lt/banelis/aurelijus/dinosy/prototype/PerformanceTest.java" />
+    <property name="javac.test.classpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:build/classes:/usr/share/netbeans/6.9/platform/modules/ext/junit-4.8.jar:/usr/share/netbeans/6.9/platform/modules/ext/hamcrest-core.jar" />
+    <property name="profiler.settings.profiling.type" value="8" />
+    <property name="libs.junit.javadoc" value="" />
+    <property name="profiler.settings.cpu.quick.filterprofiler.simple.filter.value" value="" />
+    <property name="javac.includes" value="lt/banelis/aurelijus/dinosy/prototype/PerformanceTest.java" />
+    <property name="ant.core.lib" value="/usr/share/netbeans/6.9/java/ant/lib/ant.jar" />
+    <property name="libs.swing-app-framework.src" value="" />
+    <property name="javadoc.windowtitle" value="" />
+    <property name="user.dir" value="/home/aurelijus/Documents/DiNoSy/Prototipas" />
+    <property name="java.vm.version" value="20.0-b11" />
+    <property name="profiler.settings.sampling.interval" value="10" />
+    <property name="profiler.session.port.no" value="5140" />
+    <property name="libs.MySQLDriver.classpath" value="/home/aurelijus/.netbeans/6.9/modules/ext/mysql-connector-java-5.1.6-bin.jar" />
+    <property name="javadoc.notree" value="false" />
+    <property name="netbeans.autoupdate.version" value="1.23" />
+    <property name="jdk.home" value="/usr/lib/jvm/java-6-openjdk" />
+    <property name="libs.javac-api.src" value="" />
+    <property name="ant.file.type.DiNoSy_prototipas" value="file" />
+    <property name="javadoc.noindex" value="false" />
+    <property name="sun.os.patch.level" value="unknown" />
+    <property name="do.archive+manifest.available" value="true" />
+    <property name="profiler.info.oomeprotection" value="yes" />
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification" />
+    <property name="nb.show.statistics.ui" value="usageStatisticsEnabled" />
+    <property name="netbeans.autoupdate.variant" value="" />
+    <property name="have.tests" value="true" />
+    <property name="org.xml.sax.driver" value="com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser" />
+    <property name="libs.javac-api.javadoc" value="" />
+    <property name="os.name" value="Linux" />
+    <property name="libs.beans-binding.classpath" value="/usr/share/netbeans/6.9/java/modules/ext/beansbinding-1.2.1.jar" />
+    <property name="libs.JWSAntTasks.maven-pom" value="" />
+    <property name="profiler.info.javaPlatform" value="default_platform" />
+    <property name="profiler.settings.profilingpoints.enabled" value="false" />
+    <property name="java.vendor.url.bug" value="http://java.sun.com/cgi-bin/bugreport.cgi" />
+    <property name="profiler.settings.instr.scheme" value="3" />
+    <property name="libs.jaxb.maven-pom" value="" />
+    <property name="profiler.info.project.dir" value="/home/aurelijus/Documents/DiNoSy/Prototipas" />
+    <property name="os.arch" value="amd64" />
+    <property name="ant.file.DiNoSy_prototipas" value="/home/aurelijus/Documents/DiNoSy/Prototipas/build.xml" />
+    <property name="user.name" value="aurelijus" />
+    <property name="manifest.available+main.class" value="true" />
+    <property name="libs.swing-layout.maven-pom" value="" />
+    <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner lt.banelis.aurelijus.dinosy.prototype.PerformanceTest filtertrace=true haltOnError=false haltOnFailure=false showoutput=true outputtoformatters=true logfailedtests=true logtestlistenerevents=true formatter=org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/home/aurelijus/Documents/DiNoSy/Prototipas/TEST-lt.banelis.aurelijus.dinosy.prototype.PerformanceTest.xml crashfile=/home/aurelijus/Documents/DiNoSy/Prototipas/junitvmwatcher6065942203641442154.properties propsfile=/home/aurelijus/Documents/DiNoSy/Prototipas/junit7710416468251156722.properties" />
+    <property name="build.classes.dir" value="build/classes" />
+    <property name="jnlp.descriptor" value="application" />
+    <property name="build.sysclasspath" value="ignore" />
+    <property name="libs.jaxws21.javadoc" value="/home/Programos/netbeans-6.9.1/java/docs/jaxws-api-doc.zip" />
+    <property name="includes" value="**" />
+    <property name="file.reference.phpParser.jar" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar" />
+    <property name="user.country" value="US" />
+    <property name="manifest.file" value="manifest.mf" />
+    <property name="javadoc.encoding" value="UTF-8" />
+    <property name="javac.classpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar" />
+    <property name="debug-transport" value="dt_socket" />
+    <property name="netbeans.system_http_non_proxy_hosts" value="" />
+    <property name="netbeans.home" value="/usr/share/netbeans/6.9/platform" />
+    <property name="build.compiler.emacs" value="true" />
+    <property name="java.endorsed.dirs" value="/usr/lib/jvm/java-6-openjdk/jre/lib/endorsed" />
+    <property name="netbeans.dynamic.classpath" value="/usr/share/netbeans/6.9/platform/core/core.jar:/usr/share/netbeans/6.9/platform/core/org-openide-filesystems.jar:/usr/share/netbeans/6.9/platform/core/locale/core_zh_CN.jar:/usr/share/netbeans/6.9/platform/core/locale/org-openide-filesystems_zh_CN.jar:/usr/share/netbeans/6.9/platform/core/locale/org-openide-filesystems_ja.jar:/usr/share/netbeans/6.9/platform/core/locale/org-openide-filesystems_pt_BR.jar:/usr/share/netbeans/6.9/platform/core/locale/core_pt_BR.jar:/usr/share/netbeans/6.9/platform/core/locale/core_ja.jar:/usr/share/netbeans/6.9/nb/core/org-netbeans-upgrader.jar:/usr/share/netbeans/6.9/nb/core/locale/org-netbeans-upgrader_zh_CN.jar:/usr/share/netbeans/6.9/nb/core/locale/org-netbeans-upgrader_pt_BR.jar:/usr/share/netbeans/6.9/nb/core/locale/core_nb.jar:/usr/share/netbeans/6.9/nb/core/locale/core_nb_ja.jar:/usr/share/netbeans/6.9/nb/core/locale/core_nb_pt_BR.jar:/usr/share/netbeans/6.9/nb/core/locale/org-netbeans-upgrader_ja.jar:/usr/share/netbeans/6.9/nb/core/locale/core_nb_zh_CN.jar" />
+    <property name="jnlp.enabled" value="false" />
+    <property name="profiler.settings.instrumentation.filter.selectedprofiler.simple.filter.type" value="2" />
+    <property name="java.vm.specification.version" value="1.0" />
+    <property name="libs.jaxws21.src" value="" />
+    <property name="application.title" value="DinNoSy prototipas" />
+    <property name="do.archive" value="true" />
+    <property name="libs.swing-app-framework.classpath" value="/usr/share/netbeans/6.9/java/modules/ext/appframework-1.0.3.jar:/usr/share/netbeans/6.9/java/modules/ext/swing-worker-1.1.jar" />
+    <property name="netbeans.autoupdate.language" value="en" />
+    <property name="ant.file.DiNoSy_prototipas-impl" value="/home/aurelijus/Documents/DiNoSy/Prototipas/nbproject/build-impl.xml" />
+    <property name="profiler.settings.override.jvm.args" value="" />
+    <property name="java.vendor" value="Sun Microsystems Inc." />
+    <property name="javac.debug" value="true" />
+    <property name="javadoc.splitindex" value="true" />
+    <property name="file.separator" value="/" />
+    <property name="libs.junit_4.maven-pom" value="" />
+    <property name="javac.test.processorpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:build/classes:/usr/share/netbeans/6.9/platform/modules/ext/junit-4.8.jar:/usr/share/netbeans/6.9/platform/modules/ext/hamcrest-core.jar" />
+    <property name="netbeans.buildnumber" value="100825-unknown-revn" />
+    <property name="libs.JWSAntTasks.javadoc" value="" />
+    <property name="javax.accessibility.assistive_technologies" value="org.GNOME.Accessibility.JavaBridge" />
+    <property name="build.generated.sources.dir" value="build/generated-sources" />
+    <property name="sun.java.launcher" value="SUN_STANDARD" />
+    <property name="libs.junit.classpath" value="/usr/share/netbeans/6.9/java/modules/ext/junit-3.8.2.jar" />
+    <property name="profiler.settings.obj.alloc.stack.sampling.interval" value="10" />
+    <property name="libs.jaxb.javadoc" value="/home/aurelijus/.netbeans/6.9/docs/jaxb-api-doc.zip" />
+    <property name="profiler.settings.cpu.quick.filterprofiler.filter.type" value="profiler.simple.filter" />
+    <property name="org.openide.awt.SwingBrowserImpl.do-not-block-awt" value="false" />
+    <property name="javac.includes.binary" value="/home/aurelijus/Documents/DiNoSy/Prototipas/build/test/classes/lt/banelis/aurelijus/dinosy/prototype/PerformanceTest.class" />
+    <property name="ant.home" value="/usr/share/netbeans/6.9/java/ant" />
+    <property name="libs.junit_4.src" value="" />
+    <property name="do.archive+manifest.available+main.class+mkdist.available" value="true" />
+    <property name="libs.absolutelayout.maven-pom" value="" />
+    <property name="ant.java.version" value="1.6" />
+    <property name="java.library.path" value="/usr/lib/jvm/java-6-openjdk/jre/lib/amd64/server:/usr/lib/jvm/java-6-openjdk/jre/lib/amd64:/usr/lib/jvm/java-6-openjdk/jre/../lib/amd64:/usr/java/packages/lib/amd64:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib" />
+    <property name="javadoc.author" value="false" />
+    <property name="profiler.settings.run.gc.on.get.results.in.memory.profiling" value="true" />
+    <property name="java.util.logging.config.class" value="org.netbeans.core.startup.TopLogging" />
+    <property name="profiler.settings.instrumentation.filter.selectedprofiler.simple.filter.value" value="lt.banelis.aurelijus.dinosy.prototype." />
+    <property name="libs.PostgreSQLDriver.src" value="" />
+    <property name="sun.arch.data.model" value="64" />
+    <property name="profiler.session.jvm.args" value="" />
+    <property name="basedir" value="/home/aurelijus/Documents/DiNoSy/Prototipas" />
+    <property name="jar.compress" value="false" />
+    <property name="path.separator" value=":" />
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle" />
+    <property name="libs.jaxws21.classpath" value="/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/jaxb-impl.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/jaxb-xjc.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/FastInfoset.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/gmbal-api-only.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/http.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/jaxws-rt.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/jaxws-tools.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/management-api.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/mimepull.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/policy.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/saaj-impl.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/stax-ex.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/streambuffer.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/woodstox.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/api/jaxws-api.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/api/jsr181-api.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/api/jsr250-api.jar:/home/Programos/netbeans-6.9.1/java/modules/ext/jaxws22/api/saaj-api.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/activation.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/api/jaxb-api.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/api/jsr173_api.jar" />
+    <property name="compile.on.save" value="true" />
+    <property name="user.language" value="en" />
+    <property name="ant.file.type.-profiler-impl" value="file" />
+    <property name="profiler.settings.instrumentation.filter.selectedprofiler.filter.type" value="profiler.simple.filter" />
+    <property name="profiler.info.oomeprotection.dumppath" value="/home/aurelijus/Documents/DiNoSy/Prototipas/nbproject/private/profiler" />
+    <property name="application.vendor" value="Aurelijus Banelis" />
+    <property name="profiler.settings.thread.cpu.timer.on" value="false" />
+    <property name="manifest.available" value="true" />
+    <property name="run.test.classpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:build/classes:/usr/share/netbeans/6.9/platform/modules/ext/junit-4.8.jar:/usr/share/netbeans/6.9/platform/modules/ext/hamcrest-core.jar:build/test/classes" />
+    <property name="ant.project.invoked-targets" value="profile-test-single" />
+    <property name="useJavaUtilZip" value="true" />
+    <property name="libs.swing-layout.javadoc" value="" />
+    <property name="libs.swing-app-framework.javadoc" value="" />
+    <property name="https.nonProxyHosts" value="localhost|127.0.0.1|aurelijaus" />
+    <property name="libs.PostgreSQLDriver.maven-pom" value="" />
+    <property name="java.class.version" value="50.0" />
+    <property name="profiler.settings.instrumentation.root.methods.size" value="1" />
+    <property name="netbeans.system_http_proxy" value="DIRECT" />
+    <property name="user.properties.file" value="/home/aurelijus/.netbeans/6.9/build.properties" />
+    <property name="profiler.settings.instrumentation.marker.methods.size" value="0" />
+    <property name="runtime.encoding" value="UTF-8" />
+    <property name="profiler.settings.istrumentation.root.methods-0" value="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest,&lt;all&gt;," />
+    <property name="libs.javac-api.maven-pom" value="" />
+    <property name="file.encoding.pkg" value="sun.io" />
+    <property name="sun.cpu.endian" value="little" />
+    <property name="libs.JWSAntTasks.classpath" value="/usr/share/netbeans/6.9/java/ant/extra/org-netbeans-modules-javawebstart-anttasks.jar" />
+    <property name="empty.dir" value="/home/aurelijus/Documents/DiNoSy/Prototipas/build/empty" />
+    <property name="version-output" value="java version &quot;1.6" />
+    <property name="javadoc.preview" value="true" />
+    <property name="nbplatform.default.harness.dir" value="/usr/share/netbeans/6.9/harness" />
+    <property name="java.home" value="/usr/lib/jvm/java-6-openjdk/jre" />
+    <property name="debug.test.classpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:build/classes:/usr/share/netbeans/6.9/platform/modules/ext/junit-4.8.jar:/usr/share/netbeans/6.9/platform/modules/ext/hamcrest-core.jar:build/test/classes" />
+    <property name="netbeans.importclass" value="org.netbeans.upgrade.AutoUpgrade" />
+    <property name="ant.project.default-target" value="default" />
+    <property name="annotation.processing.run.all.processors" value="true" />
+    <property name="jar.archive.disabled" value="false" />
+    <property name="libs.PostgreSQLDriver.javadoc" value="" />
+    <property name="profiler.settings.instrumentation.filter.selectedprofiler.simple.filter.name" value="Profile only project classes" />
+    <property name="libs.MySQLDriver.maven-pom" value="" />
+    <property name="http.nonProxyHosts" value="localhost|127.0.0.1|aurelijaus" />
+    <property name="libs.junit_4.javadoc" value="" />
+    <property name="profiler.settigns.ispreset" value="false" />
+    <property name="profile.class" value="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" />
+    <property name="run.classpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:build/classes" />
+    <property name="profiler.settings.cpu.exclude.wait.time" value="true" />
+    <property name="profiler.settings.override" value="false" />
+    <property name="annotation.processing.enabled.in.editor" value="false" />
+    <property name="profiler.settings.cpu.quick.filterprofiler.simple.filter.type" value="1" />
+    <property name="profiler.session.args" value="" />
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers" />
+    <property name="javac.deprecation" value="false" />
+    <property name="javadoc.use" value="true" />
+    <property name="jna.boot.library.path" value="/home/aurelijus/.netbeans/6.9/var/cache/jna" />
+    <property name="sun.java2d.noddraw" value="true" />
+    <property name="javac.processorpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar" />
+    <property name="javac.compilerargs" value="" />
+    <property name="ant.file" value="/home/aurelijus/Documents/DiNoSy/Prototipas/build.xml" />
+    <property name="sun.java2d.pmoffscreen" value="false" />
+    <property name="libs.beans-binding.maven-pom" value="" />
+    <property name="jnlp.codebase.type" value="no.codebase" />
+    <property name="sun.awt.exception.handler" value="org.netbeans.core.startup.TopLogging$AWTHandler" />
+    <property name="subversion.native.library" value="/usr/lib/jni/libsvnjavahl-1.so" />
+    <property name="libs.beans-binding.src" value="" />
+    <property name="java.vm.specification.vendor" value="Sun Microsystems Inc." />
+    <property name="libs.swing-layout.src" value="" />
+    <property name="org.openide.major.version" value="IDE/1" />
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM" />
+    <property name="netbeans.user" value="/home/aurelijus/.netbeans/6.9" />
+    <property name="javadoc.additionalparam" value="" />
+    <property name="profiler.session.java.architecture" value="64" />
+    <property name="jnlp.offline-allowed" value="false" />
+    <property name="java.io.tmpdir" value="/tmp" />
+    <property name="java.vendor.url" value="http://java.sun.com/" />
+    <property name="endorsed.classpath.cmd.line.arg" value="" />
+    <property name="profiler.settings.instrument.spawned.threads" value="true" />
+    <property name="sun.boot.library.path" value="/usr/lib/jvm/java-6-openjdk/jre/lib/amd64" />
+    <property name="have.sources" value="true" />
+    <property name="debug.classpath" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:build/classes" />
+    <property name="javadoc.private" value="false" />
+    <property name="test.src.dir" value="test" />
+    <property name="meta.inf.dir" value="src/META-INF" />
+    <property name="javadoc.encoding.used" value="UTF-8" />
+    <property name="dist.jar" value="dist/DiNoSy_prototipas.jar" />
+    <property name="profiler.settings.code.region.cpu.res.buf.size" value="1000" />
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment" />
+    <property name="profiler.info.jvmargs" value=" -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/aurelijus/Documents/DiNoSy/Prototipas/nbproject/private/profiler " />
+    <property name="ant.project.name" value="DiNoSy_prototipas" />
+    <property name="netbeans.hash.code" value="unique=NBUBU0cd9939a0-c899-41e5-9a06-f42ebee664d1_d9812625-dc6a-45bc-b157-3df1b2a6a85e" />
+    <property name="sun.cpu.isalist" value="" />
+    <property name="libs.CopyLibs.javadoc" value="" />
+    <property name="profiler.settings.n.profiled.threads.limit" value="32" />
+    <property name="org.openide.specification.version" value="6.2" />
+    <property name="user.home" value="/home/aurelijus" />
+    <property name="annotation.processing.processors.list" value="" />
+    <property name="debug-args-line" value="-Xdebug" />
+    <property name="libs.JWSAntTasks.src" value="" />
+    <property name="jar.index" value="false" />
+    <property name="libs.CopyLibs.maven-pom" value="" />
+    <property name="libs.absolutelayout.javadoc" value="" />
+    <property name="java.specification.name" value="Java Platform API Specification" />
+    <property name="libs.swing-app-framework.maven-pom" value="" />
+    <property name="profiler.settings.threads.monitoring.enabled" value="true" />
+    <property name="jnlp.mixed.code" value="defaut" />
+    <property name="java.specification.vendor" value="Sun Microsystems Inc." />
+    <property name="libs.javac-api.classpath" value="/usr/share/netbeans/6.9/java/modules/ext/javac-api-nb-7.0-b07.jar" />
+    <property name="java.version" value="1.6.0_22" />
+    <property name="javadoc.version" value="false" />
+    <property name="libs.MySQLDriver.javadoc" value="" />
+    <property name="org.openide.version" value="deprecated" />
+    <property name="source.encoding" value="UTF-8" />
+    <property name="ap.cmd.line.internal" value="" />
+    <property name="libs.junit.maven-pom" value="" />
+    <property name="netbeans.home+have.tests" value="true" />
+    <property name="profiler.info.jvm" value="/usr/lib/jvm/java-6-openjdk/bin/java" />
+    <property name="annotation.processing.processor.options" value="" />
+    <property name="libs.jaxb.src" value="" />
+    <property name="work.dir" value="/home/aurelijus/Documents/DiNoSy/Prototipas" />
+    <property name="libs.jaxb.classpath" value="/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/jaxb-impl.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/jaxb-xjc.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/jaxb1-impl.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/activation.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/api/jaxb-api.jar:/home/aurelijus/.netbeans/6.9/modules/ext/jaxb/api/jsr173_api.jar" />
+    <property name="php.global.include.path" value="" />
+    <property name="do.depend" value="false" />
+    <property name="dist.javadoc.dir" value="dist/javadoc" />
+    <property name="libs.swing-layout.classpath" value="/usr/share/netbeans/6.9/platform/modules/ext/swing-layout-1.0.4.jar" />
+    <property name="build.generated.dir" value="build/generated" />
+    <property name="javac.source" value="1.5" />
+    <property name="profiler.info.dir" value="/home/aurelijus/Documents/DiNoSy/Prototipas" />
+    <property name="line.separator" value="
+" />
+    <property name="profiler.session.working.dir" value="/home/aurelijus" />
+    <property name="java.specification.version" value="1.6" />
+    <property name="profiler.settings.cpu.quick.filterprofiler.simple.filter.name" value="Quick filter..." />
+    <property name="libs.jaxws21.maven-pom" value="" />
+    <property name="java.vm.info" value="mixed mode" />
+    <property name="ant.file.type.DiNoSy_prototipas-impl" value="file" />
+    <property name="sun.boot.class.path" value="/usr/lib/jvm/java-6-openjdk/jre/lib/resources.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/rt.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/sunrsasign.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/jsse.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/jce.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/charsets.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/netx.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/plugin.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/rhino.jar:/usr/lib/jvm/java-6-openjdk/jre/lib/modules/jdk.boot.jar:/usr/lib/jvm/java-6-openjdk/jre/classes:/home/aurelijus/.netbeans/6.9/lib/jfluid-server.jar:/home/aurelijus/.netbeans/6.9/lib/jfluid-server-15.jar" />
+    <property name="javac.target" value="1.5" />
+    <property name="built-jar.properties" value="/home/aurelijus/Documents/DiNoSy/Prototipas/build/built-jar.properties" />
+    <property name="build.test.classes.dir" value="build/test/classes" />
+    <property name="src.dir" value="src" />
+    <property name="annotation.processing.enabled" value="true" />
+    <property name="profiler.settings.instrument.method.invoke" value="true" />
+    <property name="nbplatform.default.netbeans.dest.dir" value="/usr/share/netbeans/6.9" />
+    <property name="profiler.settings.override.working.dir" value="" />
+    <property name="dist.dir" value="dist" />
+    <property name="profiler.settings.istrument.getter.setter.methods" value="true" />
+    <property name="do.archive+manifest.available+main.class" value="true" />
+    <property name="profiler.session.class.name" value="lt.banelis.aurelijus.dinosy.prototype.mainTest" />
+    <property name="profiler.settings.profile.underlying.framework" value="false" />
+    <property name="javac.fork" value="false" />
+    <property name="java.awt.printerjob" value="sun.print.PSPrinterJob" />
+    <property name="profiler.session.java.version" value="jdk16" />
+    <property name="default.javac.source" value="1.6" />
+    <property name="debug-transport-by-os" value="dt_socket" />
+    <property name="libs.MySQLDriver.src" value="" />
+    <property name="sun.jnu.encoding" value="UTF-8" />
+    <property name="profiler.settings.obj.alloc.stack.sampling.depth" value="0" />
+    <property name="java.runtime.version" value="1.6.0_22-b22" />
+    <property name="build.test.results.dir" value="build/test/results" />
+    <property name="manifest.available+main.class+mkdist.available" value="true" />
+    <property name="profiler.session.class.path" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:build/classes" />
+    <property name="default.javac.target" value="1.6" />
+    <property name="libs.junit_4.classpath" value="/usr/share/netbeans/6.9/platform/modules/ext/junit-4.8.jar:/usr/share/netbeans/6.9/platform/modules/ext/hamcrest-core.jar" />
+    <property name="user.timezone" value="Europe/Vilnius" />
+    <property name="application.homepage" value="http://aurelijus.banelis.lt/dinosy" />
+    <property name="do.jar" value="true" />
+    <property name="netbeans.dirs" value="/usr/share/netbeans/6.9/nb:/usr/share/netbeans/6.9/bin/../ergonomics:/usr/share/netbeans/6.9/ide:/usr/share/netbeans/6.9/java:/usr/share/netbeans/6.9/bin/../xml:/usr/share/netbeans/6.9/apisupport:/usr/share/netbeans/6.9/bin/../webcommon:/usr/share/netbeans/6.9/bin/../websvccommon:/usr/share/netbeans/6.9/bin/../enterprise:/usr/share/netbeans/6.9/bin/../mobility:/usr/share/netbeans/6.9/bin/../profiler:/usr/share/netbeans/6.9/bin/../ruby:/usr/share/netbeans/6.9/bin/../python:/usr/share/netbeans/6.9/bin/../php:/usr/share/netbeans/6.9/bin/../visualweb:/usr/share/netbeans/6.9/bin/../soa:/usr/share/netbeans/6.9/bin/../identity:/usr/share/netbeans/6.9/bin/../uml:/usr/share/netbeans/6.9/harness:/usr/share/netbeans/6.9/bin/../cnd:/usr/share/netbeans/6.9/bin/../dlight:/usr/share/netbeans/6.9/bin/../groovy:/usr/share/netbeans/6.9/bin/../extra:/usr/share/netbeans/6.9/bin/../javafx:/usr/share/netbeans/6.9/bin/../javacard:" />
+    <property name="java.ext.dirs" value="/usr/lib/jvm/java-6-openjdk/jre/lib/ext:/usr/java/packages/lib/ext" />
+    <property name="endorsed.classpath" value="" />
+    <property name="libs.absolutelayout.classpath" value="/usr/share/netbeans/6.9/java/modules/ext/AbsoluteLayout.jar" />
+    <property name="excludes" value="" />
+    <property name="java.class.path" value="/home/PAPILDOMI/UNIVERSITETAS/2k1s/OOP/phpParser/dist/phpParser.jar:/home/aurelijus/Documents/DiNoSy/Prototipas/build/classes:/usr/share/netbeans/6.9/platform/modules/ext/junit-4.8.jar:/usr/share/netbeans/6.9/platform/modules/ext/hamcrest-core.jar:/home/aurelijus/Documents/DiNoSy/Prototipas/build/test/classes:/usr/share/netbeans/6.9/java/ant/lib/junit.jar:/usr/share/netbeans/6.9/java/ant/lib/ant-launcher.jar:/usr/share/netbeans/6.9/java/ant/lib/ant.jar:/usr/share/netbeans/6.9/java/ant/lib/ant-junit.jar" />
+    <property name="apple.laf.useScreenMenuBar" value="true" />
+    <property name="do.mkdist" value="true" />
+    <property name="libs.absolutelayout.src" value="" />
+    <property name="profiler.settings.instrument.empty.methods" value="false" />
+    <property name="os.version" value="2.6.38-8-generic" />
+    <property name="application.args" value="" />
+    <property name="profiler.session.java.executable" value="/usr/lib/jvm/java-6-openjdk/bin/java" />
+    <property name="main.class.available" value="true" />
+    <property name="sun.desktop" value="gnome" />
+    <property name="profiler.settings.settings.name" value="ZoomPanelTest" />
+    <property name="libs.beans-binding.javadoc" value="" />
+    <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment" />
+    <property name="profiler.info.jvmargs.agent" value="-agentpath:/home/aurelijus/.netbeans/6.9/lib/deployed/jdk16/linux-amd64/libprofilerinterface.so=/home/aurelijus/.netbeans/6.9/lib,5140,10" />
+    <property name="java.vm.vendor" value="Sun Microsystems Inc." />
+    <property name="libs.CopyLibs.classpath" value="/usr/share/netbeans/6.9/java/ant/extra/org-netbeans-modules-java-j2seproject-copylibstask.jar" />
+    <property name="ant.file.-profiler-impl" value="/home/aurelijus/Documents/DiNoSy/Prototipas/nbproject/profiler-build-impl.xml" />
+    <property name="run.jvmargs" value="" />
+    <property name="libs.PostgreSQLDriver.classpath" value="/home/aurelijus/.netbeans/6.9/modules/ext/postgresql-8.3-603.jdbc3.jar" />
+    <property name="libs.junit.src" value="" />
+    <property name="annotation.processing.source.output" value="build/generated-sources/ap-source-output" />
+    <property name="jnlp.signed" value="false" />
+    <property name="main.class" value="lt.banelis.aurelijus.dinosy.prototype.mainTest" />
+    <property name="libs.CopyLibs.src" value="" />
+    <property name="build.dir" value="build" />
+    <property name="ant.version" value="Apache Ant version 1.8.1 compiled on October 13 2010" />
+    <property name="file.encoding" value="UTF-8" />
+    <property name="build.classes.excludes" value="**/*.java,**/*.form" />
+    <property name="javadoc.nonavbar" value="false" />
+    <property name="platform.active" value="default_platform" />
+    <property name="profiler.settings.cpu.profiling.type" value="0" />
+  </properties>
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testAddingAndRemoving" time="2.073" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testManyPanels" time="0.04" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testZooming1" time="3.836" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testZooming2" time="2.443" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testTranslating" time="0.859" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testZoomingAndTranslating" time="2.074" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testAddingAndZooming" time="0.763" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testAddingAndTranslating" time="0.299" />
+  <testcase classname="lt.banelis.aurelijus.dinosy.prototype.PerformanceTest" name="testUpdateInformation" time="0.181" />
+  <system-out><![CDATA[testAddingAndRemoving
+ 2s 2009 467,824 = 2009467824 = 42552517940637 - 42550508305962
+testManyPanels
+ 0s 39 537,361 = 39537361 = 42552615096705 - 42552575444735
+testZooming1
+ 3s 3836 418,26 = 3836418026 = 42556452264407 - 42552615773816
+testZooming2
+ 2s 2442 3,760 = 2442003760 = 42558895504008 - 42556453422934
+testTranslating
+ 0s 858 958,606 = 858958606 = 42559755294912 - 42558896267024
+testZoomingAndTranslating
+ 2s 2073 630,940 = 2073630940 = 42561829744392 - 42559755994931
+testAddingAndZooming
+ 0s 762 900,89 = 762900089 = 42562596937973 - 42561833968322
+testAddingAndTranslating
+ 0s 298 19,183 = 298019183 = 42562895732045 - 42562597646582
+testUpdateInformation
+ 0s 180 712,716 = 180712716 = 42563077230963 - 42562896445543
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

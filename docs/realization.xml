@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dinosy xmlns:ns0="http://www.w3.org/2001/XMLSchema-instance" ns0:schemaLocation="http://aurelijus.banelis.lt/dinosy file:/home/aurelijus/Documents/DiNoSy/DataLib/src/lt/dinosy/datalib/dinosy.xsd" xmlns="http://aurelijus.banelis.lt/dinosy">
+    <sources since="1.1.1">
+        <event date="2011-08-20T18:50:54" id="184" place=""/>
+        <event date="2011-08-20T10:27:49" id="35" place=""/>
+        <event date="2011-08-20T10:51:32" id="45" place=""/>
+        <event date="2011-08-20T10:07:15" id="5" place=""/>
+        <event date="2011-08-20T18:35:04" id="165" place=""/>
+        <event date="2011-08-20T10:17:10" id="20" place=""/>
+        <event date="2011-08-20T10:13:21" id="14" place=""/>
+        <event date="2011-08-20T18:31:53" id="159" place=""/>
+        <event date="2011-08-20T11:01:38" id="51" place=""/>
+        <event date="2011-08-20T19:01:29" id="198" place=""/>
+        <event date="2011-08-20T11:07:04" id="52" place=""/>
+        <event date="2011-08-20T18:53:05" id="187" place=""/>
+        <event date="2011-08-20T10:30:39" id="40" place=""/>
+        <event date="2011-08-20T19:00:57" id="197" place=""/>
+        <event date="2011-08-20T18:51:41" id="186" place=""/>
+        <event date="2011-08-20T10:16:40" id="19" place=""/>
+        <event date="2011-08-20T18:44:19" id="176" place=""/>
+        <event date="2011-08-20T11:00:07" id="50" place=""/>
+        <event date="2011-08-20T18:39:00" id="169" place=""/>
+        <event date="2011-08-20T10:15:56" id="18" place=""/>
+        <event date="2011-08-20T10:27:27" id="34" place=""/>
+        <event date="2011-08-20T18:41:03" id="170" place=""/>
+        <event date="2011-08-20T10:07:22" id="6" place=""/>
+        <event date="2011-08-20T10:07:26" id="7" place=""/>
+        <event date="2011-08-20T10:21:10" id="23" place=""/>
+        <event date="2011-08-20T19:01:53" id="199" place=""/>
+        <event date="2011-08-20T10:26:30" id="32" place=""/>
+        <event date="2011-08-20T10:24:52" id="29" place=""/>
+        <event date="2011-08-20T18:59:19" id="193" place=""/>
+        <event date="2011-08-20T18:27:29" id="156" place=""/>
+        <event date="2011-08-20T10:25:39" id="30" place=""/>
+        <event date="2011-08-20T10:26:06" id="31" place=""/>
+        <event date="2011-08-20T19:00:21" id="196" place=""/>
+        <event date="2011-08-20T18:46:21" id="177" place=""/>
+        <event date="2011-08-20T18:58:55" id="192" place=""/>
+        <event date="2011-08-20T18:42:51" id="172" place=""/>
+        <event date="2011-08-20T19:02:42" id="200" place=""/>
+        <event date="2011-08-20T10:07:47" id="9" place=""/>
+        <event date="2011-08-20T10:52:12" id="46" place=""/>
+        <event date="2011-08-20T10:26:40" id="33" place=""/>
+        <event date="2011-08-20T18:38:19" id="168" place=""/>
+        <event date="2011-08-20T18:34:11" id="164" place=""/>
+        <event date="2011-08-20T18:48:46" id="182" place=""/>
+        <event date="2011-08-20T18:32:20" id="160" place=""/>
+        <event date="2011-08-20T10:22:04" id="26" place=""/>
+        <event date="2011-08-20T10:07:35" id="8" place=""/>
+        <event date="2011-08-20T19:00:02" id="195" place=""/>
+        <event date="2011-08-20T10:10:21" id="11" place=""/>
+        <event date="2011-08-20T10:31:15" id="41" place=""/>
+        <event date="2011-08-20T10:05:44" id="2" place=""/>
+        <event date="2011-08-20T18:30:36" id="158" place=""/>
+        <event date="2011-08-20T18:36:08" id="166" place=""/>
+        <event date="2011-08-20T10:10:30" id="12" place=""/>
+        <event date="2011-08-20T10:18:13" id="21" place=""/>
+        <event date="2011-08-20T18:53:21" id="188" place=""/>
+        <event date="2011-08-20T18:54:10" id="189" place=""/>
+        <event date="2011-08-20T18:51:25" id="185" place=""/>
+        <event date="2011-08-20T18:50:25" id="183" place=""/>
+        <event date="2011-08-20T18:26:39" id="154" place=""/>
+        <event date="2011-08-20T18:56:13" id="190" place=""/>
+        <event date="2011-08-20T18:26:27" id="153" place=""/>
+        <event date="2011-08-20T18:37:15" id="167" place=""/>
+        <event date="2011-08-20T10:21:50" id="25" place=""/>
+        <event date="2011-08-20T10:10:34" id="13" place=""/>
+        <event date="2011-08-20T18:30:22" id="157" place=""/>
+        <event date="2011-08-20T18:27:17" id="155" place=""/>
+        <event date="2011-08-20T10:20:41" id="22" place=""/>
+        <event date="2011-08-20T18:57:12" id="191" place=""/>
+        <event date="2011-08-20T10:23:36" id="28" place=""/>
+        <event date="2011-08-20T10:52:30" id="47" place=""/>
+        <event date="2011-08-20T18:32:52" id="161" place=""/>
+        <event date="2011-08-20T10:06:04" id="3" place=""/>
+        <event date="2011-08-20T18:33:48" id="162" place=""/>
+        <event date="2011-08-20T18:41:18" id="171" place=""/>
+        <event date="2011-08-20T10:15:43" id="17" place=""/>
+        <event date="2011-08-20T10:15:23" id="16" place=""/>
+        <event date="2011-08-20T18:33:59" id="163" place=""/>
+        <event date="2011-08-20T10:09:46" id="10" place=""/>
+        <event date="2011-08-20T18:59:52" id="194" place=""/>
+        <event date="2011-08-20T10:55:13" id="49" place=""/>
+        <event date="2011-08-20T10:23:22" id="27" place=""/>
+        <event date="2011-08-20T10:54:29" id="48" place=""/>
+        <event date="2011-08-20T10:27:58" id="36" place=""/>
+        <event date="2011-08-20T18:43:22" id="173" place=""/>
+        <event date="2011-08-20T10:06:33" id="4" place=""/>
+    </sources>
+    <data since="1.1.1">
+        <plain id="156" sourceId="156">Simple web animator</plain>
+        <plain id="17" sourceId="17">XML save / load</plain>
+        <plain id="23" sourceId="23">Perform &lt;context&gt;</plain>
+        <plain id="169" sourceId="169">Mobile devices</plain>
+        <plain id="165" sourceId="165">Layering / grouping / path</plain>
+        <plain id="14" sourceId="14">Visualization</plain>
+        <plain id="46" sourceId="46">Data types</plain>
+        <plain id="11" sourceId="11">Firefox</plain>
+        <plain id="188" sourceId="188">Data repository</plain>
+        <plain id="162" sourceId="162">Organise</plain>
+        <plain id="170" sourceId="170">SWF</plain>
+        <plain id="25" sourceId="25">Staus bar</plain>
+        <plain id="155" sourceId="155">Collaboration / Users</plain>
+        <plain id="10" sourceId="10">History</plain>
+        <plain id="52" sourceId="52">Exprot</plain>
+        <plain id="187" sourceId="187">Import / export</plain>
+        <plain id="40" sourceId="40">Low level manipulation</plain>
+        <plain id="4" sourceId="4">Save / Load</plain>
+        <plain id="183" sourceId="183">Movie driven communication</plain>
+        <plain id="157" sourceId="157">Update</plain>
+        <plain id="153" sourceId="153">ReadBlend</plain>
+        <plain id="191" sourceId="191">Text based input</plain>
+        <plain id="51" sourceId="51">Project</plain>
+        <plain id="159" sourceId="159">Format data</plain>
+        <plain id="200" sourceId="200">Tools for interactive information graphics</plain>
+        <plain id="154" sourceId="154">Web movie connector</plain>
+        <plain id="196" sourceId="196">Tabs / Layers</plain>
+        <plain id="33" sourceId="33">Source repository</plain>
+        <plain id="168" sourceId="168">Compair / contrast</plain>
+        <plain id="8" sourceId="8">Source</plain>
+        <plain id="47" sourceId="47">Data manipulation</plain>
+        <plain id="20" sourceId="20">Bookmark lacations</plain>
+        <plain id="158" sourceId="158">Check</plain>
+        <plain id="30" sourceId="30">Purpose: Data manipulation / presentation</plain>
+        <plain id="190" sourceId="190">Lock</plain>
+        <plain id="161" sourceId="161">Compatibility</plain>
+        <plain id="19" sourceId="19">Named - visualization by relation type</plain>
+        <plain id="26" sourceId="26">Interface</plain>
+        <plain id="2" sourceId="2">DataLib</plain>
+        <plain id="198" sourceId="198">Educational games</plain>
+        <plain id="172" sourceId="172">Edit</plain>
+        <plain id="16" sourceId="16">Command</plain>
+        <plain id="6" sourceId="6">Data</plain>
+        <plain id="176" sourceId="176">Versioning</plain>
+        <plain id="167" sourceId="167">Integrating personal hystory</plain>
+        <plain id="3" sourceId="3">Import / Export</plain>
+        <plain id="35" sourceId="35">-------------------&gt;</plain>
+        <plain id="197" sourceId="197">Search</plain>
+        <plain id="186" sourceId="186">Undo</plain>
+        <plain id="41" sourceId="41">Hight level manipulation</plain>
+        <plain id="7" sourceId="7">Relation</plain>
+        <plain id="192" sourceId="192">Hyper links</plain>
+        <plain id="194" sourceId="194">Internacionalization</plain>
+        <plain id="182" sourceId="182">Time, checklist gui integration</plain>
+        <plain id="195" sourceId="195">Settings</plain>
+        <plain id="160" sourceId="160">Grouping / arrainging</plain>
+        <plain id="36" sourceId="36">Manipulating - abstaction level</plain>
+        <plain id="13" sourceId="13">PHP</plain>
+        <plain id="22" sourceId="22">States list / redo / undo</plain>
+        <plain id="31" sourceId="31">Web</plain>
+        <plain id="21" sourceId="21">State save / get</plain>
+        <plain id="5" sourceId="5">Section</plain>
+        <plain id="12" sourceId="12">Okular</plain>
+        <plain id="164" sourceId="164">Types / subtypes</plain>
+        <plain id="50" sourceId="50">Extending sections and using DataLib project</plain>
+        <plain id="193" sourceId="193">Rss integration</plain>
+        <plain id="189" sourceId="189">Zoomable web</plain>
+        <plain id="48" sourceId="48">Data types from external</plain>
+        <plain id="27" sourceId="27">Delegate secion</plain>
+        <plain id="9" sourceId="9">Representation</plain>
+        <plain id="45" sourceId="45">Platform for tracking, grouping &amp; visualizing information</plain>
+        <plain id="184" sourceId="184">Collaboration</plain>
+        <plain id="199" sourceId="199">Augmented reality - blueprint everywhere</plain>
+        <plain id="177" sourceId="177">Usage statistics module</plain>
+        <plain id="49" sourceId="49">Eg. MVC highlighting, grouping</plain>
+        <plain id="163" sourceId="163">Derive</plain>
+        <plain id="18" sourceId="18">Elements add / remove</plain>
+        <plain id="34" sourceId="34">Interface</plain>
+        <plain id="28" sourceId="28">Delegate history</plain>
+        <plain id="29" sourceId="29">Purpose: Data interface</plain>
+        <plain id="166" sourceId="166">Invariants / hight level addons</plain>
+        <plain id="171" sourceId="171">XML transformation</plain>
+        <plain id="185" sourceId="185">Drag N Drop</plain>
+        <plain id="173" sourceId="173">Linking</plain>
+        <plain id="32" sourceId="32">External sources</plain>
+    </data>
+    <relations since="1.1.1"/>
+    <representations since="1.1.1">
+        <element dataId="166">
+            <position>650.24903793358 600.814470003423 0.07047735915388027</position>
+            <size>275.0 20.0</size>
+        </element>
+        <element dataId="5">
+            <position>609.1577251443341 556.5160054193022 0.5350576695600869</position>
+            <size>114.0 34.0</size>
+        </element>
+        <element dataId="173">
+            <position>636.8303063121829 590.5718268151461 0.09386842748095806</position>
+            <size>32.0 10.0</size>
+        </element>
+        <element dataId="185">
+            <position>1046.1451793284614 570.7785638559251 0.11104202976204892</position>
+            <size>111.0 20.0</size>
+        </element>
+        <element dataId="192">
+            <position>995.4074124073512 575.3711403177656 0.13021894274186502</position>
+            <size>101.0 20.0</size>
+        </element>
+        <element dataId="167">
+            <position>650.3899926518874 603.633564369578 0.07047735915388027</position>
+            <size>259.0 20.0</size>
+        </element>
+        <element dataId="20">
+            <position>989.4121495704496 571.2609003843614 0.1683021731842859</position>
+            <size>177.0 20.0</size>
+        </element>
+        <element dataId="28">
+            <position>578.3455475098688 538.7867681454056 0.08361891606579959</position>
+            <size>149.0 20.0</size>
+        </element>
+        <element dataId="172">
+            <position>620.6679782209123 600.4353044738072 0.06876326781066455</position>
+            <size>35.0 20.0</size>
+        </element>
+        <element dataId="36">
+            <position>840.5177430938865 546.1594828768634 0.18709952937991123</position>
+            <size>280.0 20.0</size>
+        </element>
+        <element dataId="183">
+            <position>1142.2167114675917 573.4459848701074 0.13032640438128</position>
+            <size>260.0 20.0</size>
+        </element>
+        <element dataId="6">
+            <position>611.6540212001132 586.4049180301497 0.32799320675989824</position>
+            <size>68.0 32.0</size>
+        </element>
+        <element dataId="193">
+            <position>1046.8438947903883 575.2409213750229 0.13021894274186502</position>
+            <size>137.0 20.0</size>
+        </element>
+        <element dataId="12">
+            <position>332.4592692704779 448.54655674467926 0.10752044485423887</position>
+            <size>140.0 47.0</size>
+        </element>
+        <element dataId="35">
+            <position>834.3702061551176 547.2600733750422 0.8229448444078946</position>
+            <size>83.0 12.0</size>
+        </element>
+        <element dataId="187">
+            <position>574.6413443701438 600.1563386026546 0.07589418747767135</position>
+            <size>136.0 20.0</size>
+        </element>
+        <element dataId="196">
+            <position>1141.150000036577 582.0621535075102 0.2951487677851805</position>
+            <size>141.0 20.0</size>
+        </element>
+        <element dataId="25">
+            <position>1064.2421811480897 542.1635706048258 0.20491240944639608</position>
+            <size>86.0 20.0</size>
+        </element>
+        <element dataId="34">
+            <position>627.2962611447009 559.4010795771467 0.07696586951451108</position>
+            <size>81.0 20.0</size>
+        </element>
+        <element dataId="158">
+            <position>576.4670348732075 595.3017723640502 0.10415816105902613</position>
+            <size>53.0 20.0</size>
+        </element>
+        <element dataId="8">
+            <position>985.5067238981688 558.9259514570766 0.36545158770581787</position>
+            <size>105.0 34.0</size>
+        </element>
+        <element dataId="21">
+            <position>597.7061968381058 631.8760373592264 0.10610759529378205</position>
+            <size>142.0 20.0</size>
+        </element>
+        <element dataId="6">
+            <position>1043.6210745028989 559.8374682825987 0.31127117057937753</position>
+            <size>72.0 34.0</size>
+        </element>
+        <element dataId="3">
+            <position>350.3689491580426 430.6327279865951 1.2551030680941868</position>
+            <size>136.0 20.0</size>
+        </element>
+        <element dataId="161">
+            <position>702.3689163033434 594.6604178517644 0.09238628494642544</position>
+            <size>120.0 20.0</size>
+        </element>
+        <element dataId="154">
+            <position>1500.419725416616 512.0133800983057 0.9460355130802084</position>
+            <size>195.0 20.0</size>
+        </element>
+        <element dataId="45">
+            <position>453.34511319360695 701.8548892441431 2.0780810760051076</position>
+            <size>515.0 20.0</size>
+        </element>
+        <element dataId="199">
+            <position>1506.3286770405116 687.0471141160253 0.8642459548879428</position>
+            <size>380.0 20.0</size>
+        </element>
+        <element dataId="189">
+            <position>1502.7415825255885 466.551349791646 0.23126940663481377</position>
+            <size>131.0 20.0</size>
+        </element>
+        <element dataId="30">
+            <position>1108.3590274063988 420.4341795223511 0.3039605327143974</position>
+            <size>385.0 20.0</size>
+        </element>
+        <element dataId="19">
+            <position>1090.4749255974818 568.1510291161334 0.03680579457033593</position>
+            <size>344.0 20.0</size>
+        </element>
+        <element dataId="195">
+            <position>622.436201892058 659.5987174911038 0.26962348994530666</position>
+            <size>75.0 20.0</size>
+        </element>
+        <element dataId="184">
+            <position>618.6626469570072 602.5751617935158 0.05445327504790862</position>
+            <size>120.0 20.0</size>
+        </element>
+        <element dataId="16">
+            <position>613.3060960889738 629.990660875057 0.20456842350760363</position>
+            <size>232.0 52.0</size>
+        </element>
+        <element dataId="31">
+            <position>1187.3694382499823 427.4852091437524 0.16075438084974097</position>
+            <size>40.0 20.0</size>
+        </element>
+        <element dataId="50">
+            <position>841.9884239118313 557.6680741811076 0.10901199260743634</position>
+            <size>409.0 20.0</size>
+        </element>
+        <element dataId="7">
+            <position>645.1402808614032 586.1261833931244 0.32799320675989824</position>
+            <size>104.0 28.0</size>
+        </element>
+        <element dataId="51">
+            <position>576.119440702656 484.6483443461741 1.9239924681078726</position>
+            <size>64.0 20.0</size>
+        </element>
+        <element dataId="48">
+            <position>651.2904582124534 594.2263048019407 0.07073619804028583</position>
+            <size>226.0 20.0</size>
+        </element>
+        <element dataId="168">
+            <position>650.6002849361869 606.31208394848 0.07047735915388027</position>
+            <size>167.0 20.0</size>
+        </element>
+        <element dataId="17">
+            <position>590.6516098342304 562.9708359475326 0.09543267932416767</position>
+            <size>140.0 20.0</size>
+        </element>
+        <element dataId="198">
+            <position>1503.735939175847 629.1426351385328 0.8642459548879428</position>
+            <size>170.0 20.0</size>
+        </element>
+        <element dataId="14">
+            <position>975.749973221974 423.7104238066228 1.1596973834948061</position>
+            <size>371.0 64.0</size>
+        </element>
+        <element dataId="8">
+            <position>563.3794667981788 584.5094215843491 0.32799320675989824</position>
+            <size>114.0 37.0</size>
+        </element>
+        <element dataId="200">
+            <position>1501.6624756652554 567.4423529211518 0.6493207775266289</position>
+            <size>547.0 29.0</size>
+        </element>
+        <element dataId="22">
+            <position>597.7489006686699 634.0693789385695 0.07547113573743382</position>
+            <size>212.0 20.0</size>
+        </element>
+        <element dataId="7">
+            <position>1083.9951915061488 559.8867268523327 0.27456918685636067</position>
+            <size>127.0 34.0</size>
+        </element>
+        <element dataId="176">
+            <position>575.4163981678859 597.777730119509 0.07995186307950493</position>
+            <size>96.0 20.0</size>
+        </element>
+        <element dataId="9">
+            <position>682.401254446157 586.2642842640292 0.32799320675989824</position>
+            <size>173.0 25.0</size>
+        </element>
+        <element dataId="35">
+            <position>384.1566097902627 548.2522246155958 0.8229448444078946</position>
+            <size>83.0 12.0</size>
+        </element>
+        <element dataId="186">
+            <position>1081.203714726429 542.728679635166 0.16017100125936481</position>
+            <size>46.0 20.0</size>
+        </element>
+        <element dataId="160">
+            <position>651.6488458677555 597.9863241098363 0.09238628494642544</position>
+            <size>193.0 20.0</size>
+        </element>
+        <element dataId="171">
+            <position>114.9173676175136 582.6055437182841 0.7156726401806286</position>
+            <size>332.0 37.0</size>
+        </element>
+        <element dataId="156">
+            <position>1500.363834110202 537.5735971549271 0.9460355130802084</position>
+            <size>191.0 20.0</size>
+        </element>
+        <element dataId="18">
+            <position>590.9379078722044 566.1201143652296 0.09543267932416767</position>
+            <size>207.0 20.0</size>
+        </element>
+        <element dataId="170">
+            <position>1505.5749029981848 656.8356429488105 0.7156726401806286</position>
+            <size>52.0 26.0</size>
+        </element>
+        <element dataId="173">
+            <position>677.099861701514 590.290221532704 0.04988553096890793</position>
+            <size>65.0 20.0</size>
+        </element>
+        <element dataId="191">
+            <position>1058.4063236703685 569.1348873974413 0.24966921156544847</position>
+            <size>152.0 20.0</size>
+        </element>
+        <element dataId="159">
+            <position>616.5420575881137 598.0787103947829 0.09238628494642544</position>
+            <size>136.0 20.0</size>
+        </element>
+        <element dataId="177">
+            <position>1031.1995480138457 498.90467974445005 0.4680633941097297</position>
+            <size>216.0 20.0</size>
+        </element>
+        <element dataId="40">
+            <position>403.34291923158275 548.0104584126984 0.8229448444078946</position>
+            <size>41.0 4.0</size>
+        </element>
+        <element dataId="190">
+            <position>1142.9849095562665 576.6101083562766 0.17648436523883249</position>
+            <size>40.0 20.0</size>
+        </element>
+        <element dataId="188">
+            <position>119.8121419086159 496.85879821653964 1.4501677792761423</position>
+            <size>140.0 20.0</size>
+        </element>
+        <element dataId="2">
+            <position>521.0427628399025 404.76184554924356 3.745998387517971</position>
+            <size>69.0 20.0</size>
+        </element>
+        <element dataId="4">
+            <position>592.5863705823942 530.223344681005 0.7449846205480006</position>
+            <size>129.0 25.0</size>
+        </element>
+        <element dataId="47">
+            <position>886.8264199023134 690.2185435580101 0.4280022591701861</position>
+            <size>166.0 20.0</size>
+        </element>
+        <element dataId="49">
+            <position>653.7028101473591 595.9035535824572 0.01539425764858825</position>
+            <size>282.0 20.0</size>
+        </element>
+        <element dataId="173">
+            <position>602.0989881442292 591.1350373800311 0.09386842748095806</position>
+            <size>32.0 10.0</size>
+        </element>
+        <element dataId="155">
+            <position>118.49573081841186 538.949512667266 1.324065659826998</position>
+            <size>120.0 20.0</size>
+        </element>
+        <element dataId="164">
+            <position>653.1270264268992 584.8674716474434 0.09238628494642544</position>
+            <size>152.0 20.0</size>
+        </element>
+        <element dataId="35">
+            <position>1394.30945173244 543.0018804771051 0.5127822814067609</position>
+            <size>139.0 20.0</size>
+        </element>
+        <element dataId="26">
+            <position>631.3070813781787 631.3480432874074 0.07366033724661133</position>
+            <size>81.0 20.0</size>
+        </element>
+        <element dataId="41">
+            <position>1407.1607981937275 544.014407781906 0.44220982535436854</position>
+            <size>77.0 7.0</size>
+        </element>
+        <element dataId="163">
+            <position>619.3136461365074 584.8674716474434 0.09238628494642544</position>
+            <size>58.0 20.0</size>
+        </element>
+        <element dataId="32">
+            <position>642.7421106772028 408.784433165585 0.15218620447160466</position>
+            <size>150.0 20.0</size>
+        </element>
+        <element dataId="197">
+            <position>1115.1367063633825 567.4403902457547 0.1977117534001107</position>
+            <size>61.0 20.0</size>
+        </element>
+        <element dataId="182">
+            <position>1141.8568802650977 570.4978712765995 0.0950079487939531</position>
+            <size>276.0 20.0</size>
+        </element>
+        <element dataId="46">
+            <position>820.0580674717643 691.0745480763487 0.4280022591701861</position>
+            <size>97.0 20.0</size>
+        </element>
+        <element dataId="9">
+            <position>1128.4720156396193 560.6808141367574 0.2496083516876016</position>
+            <size>236.0 34.0</size>
+        </element>
+        <element dataId="10">
+            <position>610.913474202593 641.6233720161622 0.2946804793841796</position>
+            <size>172.0 53.0</size>
+        </element>
+        <element dataId="169">
+            <position>1502.8788957682511 598.3376558302705 0.7156726401806286</position>
+            <size>173.0 26.0</size>
+        </element>
+        <element dataId="11">
+            <position>330.9491319588898 437.1469887472879 0.25352758467934633</position>
+            <size>63.0 20.0</size>
+        </element>
+        <element dataId="29">
+            <position>613.79402253266 414.1040116587151 0.33262471332940313</position>
+            <size>215.0 20.0</size>
+        </element>
+        <element dataId="165">
+            <position>696.8684944425415 586.1484718744525 0.09238628494642544</position>
+            <size>176.0 20.0</size>
+        </element>
+        <element dataId="153">
+            <position>1502.311796442781 480.79420816665913 0.9460355130802084</position>
+            <size>96.0 20.0</size>
+        </element>
+        <element dataId="27">
+            <position>578.1783096777381 536.8635330758918 0.08361891606579959</position>
+            <size>144.0 20.0</size>
+        </element>
+        <element dataId="13">
+            <position>332.86269169115064 442.605368239468 0.10752044485423887</position>
+            <size>86.0 47.0</size>
+        </element>
+        <element dataId="33">
+            <position>644.0593264156524 404.85806605064863 0.09738818594253904</position>
+            <size>160.0 20.0</size>
+        </element>
+        <element dataId="162">
+            <position>577.3702727708276 583.4816773732464 0.09238628494642544</position>
+            <size>80.0 20.0</size>
+        </element>
+        <element dataId="194">
+            <position>1064.1081654316 536.349929855944 0.25899924864373675</position>
+            <size>180.0 20.0</size>
+        </element>
+        <element dataId="157">
+            <position>619.1718809074083 595.7184050082861 0.10415816105902613</position>
+            <size>64.0 20.0</size>
+        </element>
+        <element dataId="23">
+            <position>597.7278941123695 636.5312118107042 0.08470385604650266</position>
+            <size>173.0 20.0</size>
+        </element>
+        <element dataId="52">
+            <position>596.8561404105977 634.752062650254 0.010986326144945081</position>
+            <size>59.0 20.0</size>
+        </element>
+    </representations>
+</dinosy>
