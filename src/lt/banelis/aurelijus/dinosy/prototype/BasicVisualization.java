@@ -404,6 +404,9 @@ public class BasicVisualization {
             return false;
         }
 
+        /**
+         * @return <code>true</code> if key is not released
+         */
         public boolean isNowPressed() {
             return nowPressed;
         }
@@ -436,28 +439,61 @@ public class BasicVisualization {
         @Override
         public void keyPressed(KeyEvent e) {
             for (Operation operation : operations) {
-                for (Key key : operation.getKeys()) {
-                    if (key.isKeyOwner(e) || key.isNowPressed()) {
-                        operation.perform();
-                        break;
-                    }
-                }
+                checkAllKeys(operation, e);
+            }
+            for (ZoomableComponent zoomableComponent : panel.getSelected()) {
+                checkKeyForSelected(zoomableComponent.getComponent(), panel, e);
             }
         }
 
         @Override
         public void keyReleased(KeyEvent e) {
             for (Operation operation : operations) {
-                for (Key key : operation.getKeys()) {
-                    if (key.isKeyOwner(e)) {
-                        operation.perform();
-                        break;
-                    }
-                }
+                checkAllKeys(operation, e);
+            }
+            for (ZoomableComponent zoomableComponent : panel.getSelected()) {
+                checkKeyForSelected(zoomableComponent.getComponent(), panel, e);
             }
         }
     };
+    
+    private void checkKeyForSelected(Component component, ZoomPanel panel, KeyEvent e) {
+        if (component instanceof HavingOperations) {
+            HavingOperations specialized = (HavingOperations) component;
+            for (Operation operation : specialized.getOperations(panel)) {
+                checkAllKeys(operation, e);
+            }
+        }
+    }
+    
+    private static void checkAllKeys(Operation operation, KeyEvent e) {
+        boolean onKeyPressed = (e.getID() == KeyEvent.KEY_PRESSED);
+        for (Key key : operation.getKeys()) {
+            if (key.isKeyOwner(e) || (onKeyPressed && key.isNowPressed())) {
+                operation.perform();
+                break;
+            }
+        }
+    }
 
+    /**
+     * Adds key default shortcuts to components,
+     * checking if there was not already set.
+     */
+    public void addKeyListener(Component component) {
+        if (!contains(defaultKeyShortCuts, component.getKeyListeners())) {
+            component.addKeyListener(defaultKeyShortCuts);
+        }
+    }
+
+    private static boolean contains(Object what, Object[] in) {
+        for (Object object : in) {
+            if (object.equals(what)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /*
      * Operations
@@ -522,6 +558,9 @@ public class BasicVisualization {
         protected abstract void perform(ZoomableComponent focused, ZoomPanel panel);
     }
 
+    /**
+     * Operations performed on all selected elements in ZoomPanel
+     */
     public abstract class SelectionOperation extends Operation {
         public SelectionOperation(String name, Key ... keys) {
             super(name, keys);
@@ -733,25 +772,7 @@ public class BasicVisualization {
         }
     }
 
-    /**
-     * Adds key default shortucs to components,
-     * checking if there was not already set.
-     */
-    public void addKeyListener(Component component) {
-        if (!contains(defaultKeyShortCuts, component.getKeyListeners())) {
-            component.addKeyListener(defaultKeyShortCuts);
-        }
-    }
-
-    private static boolean contains(Object what, Object[] in) {
-        for (Object object : in) {
-            if (object.equals(what)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    
     /*
      * Utilities
      */
@@ -770,7 +791,11 @@ public class BasicVisualization {
         if (component.getZ() == 1) {
             size = component.getSize();
         }
-        return new Representation.Element(data, component.getLocation(), component.getZ(), size, assigned);
+        boolean mainIdea = false;
+        if (assigned instanceof Idea) {
+            mainIdea = ((Idea) assigned).isMainIdea();
+        }
+        return new Representation.Element(data, component.getLocation(), component.getZ(), size, mainIdea, assigned);
     }
 
     static void setRepresentation(Representation.Element representation, ZoomableComponent component) {

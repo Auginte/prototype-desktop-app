@@ -1,5 +1,6 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import java.util.List;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.BorderLayout;
@@ -13,6 +14,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JLabel;
@@ -27,7 +29,7 @@ import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
  *
  * @author Aurelijus Banelis
  */
-public class ZoomableLabel extends JPanel implements DataRepresentation, Editable, Selectable, Cloneable {
+public class ZoomableLabel extends JPanel implements DataRepresentation, Editable, Selectable, Cloneable, Idea, HavingOperations {
     private transient JTextField editField = new JTextField("Some text");
     private Font resized = null;
     private int lastFontHeight = -1;
@@ -41,6 +43,8 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     private Data.Plain data;
     private boolean selectable = true;
     private boolean selected = false;
+    private boolean mainIdea = false;
+    private boolean needIlustration = false;
 
     public ZoomableLabel() {
         this("Some text");
@@ -91,6 +95,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
             updateWidth();
             inicialised = true;
         }
+        paintIdeaSpecific(g);
         paintSelected(g);
         paintFocus(g);
         g.drawString(getText(), 0, (int) (getHeight() * 0.8));
@@ -362,4 +367,61 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
             g.setColor(oldColor);
         }
     }
+
+
+    
+    /*
+     * Idea representation
+     */    
+    
+    public boolean isMainIdea() {
+        return mainIdea;
+    }
+
+    public void setMainIdea(boolean isMain) {
+        this.mainIdea = isMain;
+    }
+    
+    public boolean isNeedIlustracion() {
+        return needIlustration;
+    }
+
+    public void setNeedIlustration(boolean needIlustration) {
+        this.needIlustration = needIlustration;
+    }
+    
+    private void paintIdeaSpecific(Graphics g) {
+        Color oldColor = g.getColor();
+        int arc = Math.min(this.getWidth(), this.getHeight()) / 4;
+        if (isMainIdea()) {
+            g.setColor(new Color(32, 128, 32));
+            g.fillRoundRect(0, 0, this.getWidth()-1, this.getHeight()-1, arc, arc);
+        }
+        if (isNeedIlustracion()) {
+            g.setColor(new Color(255, 32, 32));
+            g.drawRoundRect(0, 0, this.getWidth()-1, this.getHeight()-1, arc, arc);
+        }
+        g.setColor(oldColor);
+    }
+    
+    public List<BasicVisualization.Operation> getOperations(final ZoomPanel panel) {
+        List<BasicVisualization.Operation> operations = Arrays.asList(
+           new BasicVisualization.Operation("Toggle need ilustration", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_I)) {
+                @Override
+                public void perform() {
+                    ZoomableLabel.this.setNeedIlustration(!ZoomableLabel.this.isNeedIlustracion());
+                    ZoomableLabel.this.repaint();
+                }
+            },
+            new BasicVisualization.Operation("Toggle main idea", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_M)) {
+                @Override
+                public void perform() {
+                    ZoomableLabel.this.setMainIdea(!ZoomableLabel.this.isMainIdea());
+                    ZoomableLabel.this.repaint();
+                }
+            }   
+        );
+        return operations;
+    }
+
 }
