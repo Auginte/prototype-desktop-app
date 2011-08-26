@@ -2,6 +2,7 @@ package lt.banelis.aurelijus.dinosy.prototype;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -11,7 +12,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,8 +44,10 @@ import lt.dinosy.datalib.Controller;
 import lt.dinosy.datalib.Controller.BadVersionException;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.NotUniqueIdsException;
+import lt.dinosy.datalib.Okular;
 import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Representation.Element;
+import lt.dinosy.datalib.Source;
 import org.xml.sax.SAXException;
 
 /**
@@ -360,6 +366,11 @@ public class BasicVisualization {
             result.addSeparator();
         }
         
+        /* Source information */
+        if (panel.getFocusOwner() != null) {
+            sourceInformation(result, panel.getFocusOwner().getComponent());
+        }
+        
         /* Common operations for selected elements */
         if (panel.getSelected().size() > 0) {
             result.add(menuSeparator("Selected:"));
@@ -388,6 +399,90 @@ public class BasicVisualization {
             }
         }
         return result;
+    }
+    
+    private void sourceInformation(JPopupMenu menu, Component focused) {
+        if (focused instanceof DataRepresentation) {
+            menu.add(menuSeparator("Source:"));
+            final DataRepresentation representation = (DataRepresentation) focused;
+            Source source = representation.getData().getSource();
+            StringBuilder tooltip = new StringBuilder(source.getDateSting());
+            JMenuItem item = new JMenuItem(source.toString());
+            if (source instanceof Source.Internet) {
+                item.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        Source.Internet source = (Source.Internet) representation.getData().getSource();
+                        runExternal(new String[] {"/usr/bin/firefox", source.getSource()});
+                    }
+                });
+            } else if (source instanceof Source.Okular) {
+                item.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        Source.Okular source = (Source.Okular) representation.getData().getSource();
+                        runExternal(new String[] {"/usr/bin/okular", "-p", String.valueOf(source.getPage()), source.getSource()});
+                    }
+                });
+            } else if (source instanceof Source.Project) {
+                sourceInformationProject(item, source);
+            } else if (source instanceof Source.Model) {
+                String preAddress = "";
+                if (source.getParent() instanceof Source.Project) {
+                    JMenuItem pojectItem = new JMenuItem(source.getParent().getSource());
+                    sourceInformationProject(pojectItem, source.getParent());
+                    menu.add(pojectItem);
+                    preAddress = ((Source.Project) source.getParent()).getAddress();
+                }
+                final String address = preAddress + representation.getData().getSource().getSource();
+                item.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        runExternal(new String[] {"/usr/bin/geany", address});
+                    }
+                });
+            } else {
+                item.setEnabled(false);
+            }
+            item.setToolTipText(tooltip.toString());
+            menu.add(item);
+            menu.addSeparator();
+        }
+    }
+    
+    private static void sourceInformationProject(JMenuItem item, final Source dataSource) {
+        item.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Source.Project source = (Source.Project) dataSource;
+                runExternal(new String[] {"/usr/bin/nautilus", source.getAddress()});
+            }
+        });
+    }
+    
+    private static void runExternal(final String[] commands) {
+        Thread editingThread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Process proc = Runtime.getRuntime().exec(commands);
+                    consumeAll(proc.getInputStream());
+                    consumeAll(proc.getErrorStream());
+                    proc.waitFor();
+                } catch (Exception ex) {
+                    Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error running eternal program" + Arrays.toString(commands), ex);
+                }
+            }
+        };
+        editingThread.start();        
+    }
+    
+    private static void consumeAll(InputStream stream) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        String line = null;
+        try {
+            while ( (line = br.readLine()) != null) {
+                if ("debug".equals("on")) {
+                    System.out.println(line);
+                }
+            }
+        } catch (IOException ex) {}
     }
     
     private static void addMenuItem(Operation operation, JPopupMenu container, ActionListener action) {
@@ -737,7 +832,14 @@ public class BasicVisualization {
                 }
             }
         },
-
+        new PanelOperation("Delete all", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_DELETE, true)) {
+            @Override
+            public void perform(ZoomPanel panel) {
+                panel.removeAll();
+                panel.repaint();
+            }
+        },
+        
         new AddOperation("text", new Key(Key.Modifier.CTRL, KeyEvent.VK_SPACE, true)) {
             @Override
             public void perform(ZoomPanel panel) {
