@@ -1,6 +1,5 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -14,7 +13,11 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +29,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
@@ -46,6 +50,8 @@ import org.xml.sax.SAXException;
  * @author Aurelijus Banelis
  */
 public class BasicVisualization {
+    static final Key editKey = new Key(Key.Modifier.NONE, KeyEvent.VK_ENTER);
+    
     private ZoomPanel panel;
     private Controller storage = new Controller();
     private JPopupMenu contextMenu;
@@ -54,8 +60,16 @@ public class BasicVisualization {
     private double selectionX = Double.NaN;
     private double selectionY = Double.NaN;
 
+    private BasicVisualization() {
+        Collections.sort(operations, new Comparator<BasicVisualization.Operation>() {
+            public int compare(Operation o1, Operation o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+    }
 
     public BasicVisualization(ZoomPanel panel) {
+        this();
         this.panel = panel;
     }
 
@@ -201,7 +215,6 @@ public class BasicVisualization {
                 panel.zoom(amount, evt.getX(), evt.getY());
             }
         });
-        panel.add(getPopup());
     }
 
 
@@ -293,72 +306,111 @@ public class BasicVisualization {
         }
     }
 
+    /**
+     * @deprecated use getOperationsPopup()
+     */
     public JPopupMenu getPopup() {
-        if (contextMenu == null) {
-            contextMenu = new JPopupMenu("Simple operations");
-
-            JMenuItem open = new JMenuItem("Open");
-            open.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    JFileChooser jfc = new JFileChooser();
-                    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
-                        loadData(jfc.getSelectedFile().getPath());
-                    }
-                }
-            });
-            contextMenu.add(open);
-
-            JMenuItem save = new JMenuItem("Save");
-            save.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    JFileChooser jfc = new JFileChooser();
-                    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    if (jfc.showSaveDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
-                        List<Component> components = Arrays.asList(panel.getComponents());
-                        save(components, jfc.getSelectedFile().getPath());
-                    }
-                }
-            });
-            contextMenu.add(save);
-
-            contextMenu.addSeparator();
-
-            JMenuItem addImage = new JMenuItem("Add image");
-            addImage.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    JFileChooser jfc = new JFileChooser();
-                    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
-                        ZoomableImage image = new ZoomableImage(jfc.getSelectedFile().getPath());
-                        ZoomableComponent component = panel.addComponent(image);
-                        image.loadImage();
-                        int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
-                        int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
-                        component.setLocation(x, y);
-                    }
-                }
-            });
-            contextMenu.add(addImage);
-
-            JMenuItem newText = new JMenuItem("New text");
-            newText.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    ZoomableLabel label = new ZoomableLabel("");
-                    label.switchEditable();
-                    ZoomableComponent component = panel.addComponent(label);
-                    component.setLocation(panel.getWidth() / 2 - 40, panel.getHeight() / 2 - 10);
-                    component.setSize(new Dimension(80, 20));
-                    label.requestFocusInWindow();
-                }
-            });
-
-            contextMenu.add(newText);
-        }
-        return contextMenu;
+        return getOperationsPopup();
     }
 
+    public JPopupMenu getOperationsPopup() {
+        JPopupMenu result = new JPopupMenu();
+        
+        /* Type specific operations */
+        if ((panel.getSelected().size() > 0)) {
+            HashMap<String, List<Operation>> distinct = new HashMap<String, List<Operation>>();
+            for (ZoomableComponent zoomableComponent : panel.getSelected()) {
+                if (zoomableComponent.getComponent() instanceof HavingOperations) {
+                    HavingOperations ownOperations = (HavingOperations) zoomableComponent.getComponent();
+                    for (Operation operation : ownOperations.getOperations(panel)) {
+                        if (!distinct.containsKey(operation.getName())) {
+                            distinct.put(operation.getName(), Arrays.asList(operation));
+                        } else {
+                            distinct.get(operation.getName()).add(operation);
+                        }
+                    }
+                }
+            }
+            if (distinct.size() > 0) {
+                result.add(menuSeparator("Specialized:"));
+                List<String> names = new ArrayList<String>(distinct.keySet());
+                Collections.sort(names);
+                for (String name : names) {
+                    final List<Operation> group = distinct.get(name);
+                    addMenuItem(group.get(0), result, new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            for (Operation operation : group) {
+                                operation.perform();
+                            }
+                        }
+                    });
+                }
+                result.addSeparator();
+            }
+        }
+        
+        /* Common operations for focused elements */
+        if (panel.getFocusOwner() != null) {
+            result.add(menuSeparator("Focused:"));
+            for (Operation operation : operations) {
+                if (operation instanceof FocusedOperation) {
+                    addMenuItem(operation, result, performOne(operation));
+                }
+            }
+            result.addSeparator();
+        }
+        
+        /* Common operations for selected elements */
+        if (panel.getSelected().size() > 0) {
+            result.add(menuSeparator("Selected:"));
+            for (Operation operation : operations) {
+                if (operation instanceof SelectionOperation) {
+                    addMenuItem(operation, result, performOne(operation));
+                }
+            }
+            result.addSeparator();
+        }
+        
+        /* Adding new elements */
+        result.add(menuSeparator("Add new:"));
+        for (Operation operation : operations) {
+            if (operation instanceof AddOperation) {
+                addMenuItem(operation, result, performOne(operation));
+            }
+        }
+        result.addSeparator();
+        
+        /* All the reset operations (usually panel related) */
+        result.add(menuSeparator("Common:"));
+        for (Operation operation : operations) {
+            if (!(operation instanceof FocusedOperation) && !(operation instanceof SelectionOperation) && !(operation instanceof AddOperation)) {
+                addMenuItem(operation, result, performOne(operation));
+            }
+        }
+        return result;
+    }
+    
+    private static void addMenuItem(Operation operation, JPopupMenu container, ActionListener action) {
+        JMenuItem item = new JMenuItem(operation.getName());
+        item.setAccelerator(KeyStroke.getKeyStroke(operation.getKeys()[0].code, operation.getKeys()[0].modifier));
+        item.addActionListener(action);
+        container.add(item);
+    }
+    
+    private static ActionListener performOne(final Operation operation) {
+        return new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                operation.perform();
+            }
+        };
+    }
 
+    private static JMenuItem menuSeparator(String name) {
+        JMenuItem result = new JMenuItem(name);
+        result.setEnabled(false);
+        return result;
+    }
+    
     /*
      * Key opertations
      */
@@ -420,7 +472,8 @@ public class BasicVisualization {
             NONE(0),
             CTRL(KeyEvent.CTRL_DOWN_MASK),
             CTRL_ALT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.ALT_DOWN_MASK),
-            CTRL_SHIFT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK);
+            CTRL_SHIFT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK),
+            CTRL_ALT_SHIFT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK + KeyEvent.ALT_DOWN_MASK);
 
             private int modifier;
 
@@ -534,6 +587,7 @@ public class BasicVisualization {
         @Override
         public void perform() {
             perform(panel);
+            panel.lastFocusOwner = null;
         }
 
         protected abstract void perform(ZoomPanel panel);
@@ -553,6 +607,7 @@ public class BasicVisualization {
             if (component != null) {
                 perform(component, panel);
             }
+            panel.lastFocusOwner = null;
         }
 
         protected abstract void perform(ZoomableComponent focused, ZoomPanel panel);
@@ -573,26 +628,25 @@ public class BasicVisualization {
             if (selected.size() > 0) {
                 perform(selected, panel);
             }
+            panel.lastFocusOwner = null;
         }
 
         protected abstract void perform(List<ZoomableComponent> selected, ZoomPanel panel);
     }
 
     /**
+     * Operations adding new elements to panel
+     */
+    public abstract class AddOperation extends PanelOperation {
+        public AddOperation(String what, Key... keys) {
+            super("Add " + what, keys);
+        }
+    }
+    
+    /**
      * List of commonly used functions of ZoomPanel and its elements
      */
     public List<Operation> operations = Arrays.asList(
-        new PanelOperation("Add text", new Key(KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_SPACE, true)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                ZoomableLabel label = new ZoomableLabel("");
-                label.switchEditable();
-                ZoomableComponent component = panel.addComponent(label);
-                component.setLocation(panel.getWidth() / 2, panel.getHeight() / 2);
-                component.setSize(new Dimension(100, 20));
-                label.requestFocusInWindow();
-            }
-        },
         new PanelOperation("Zoom in", new Key(Key.Modifier.CTRL, KeyEvent.VK_PLUS), new Key(KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_EQUALS), new Key(KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_E)) {
             @Override
             public void perform(ZoomPanel panel) {
@@ -636,11 +690,29 @@ public class BasicVisualization {
             }
         },
         new PanelOperation("Save", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_S)) {
-
             @Override
             protected void perform(ZoomPanel panel) {
                 if (savedTo != null) {
                     save(Arrays.asList(panel.getComponents()), savedTo);
+                } else {
+                    saveAs();
+                }
+            }
+        },
+        new PanelOperation("Save as ...", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_S)) {
+            @Override
+            protected void perform(ZoomPanel panel) {
+                saveAs();
+            }
+        },
+        new PanelOperation("Open", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_O)) {
+            @Override
+            protected void perform(ZoomPanel panel) {
+                JFileChooser jfc = new JFileChooser();
+                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
+                    loadData(jfc.getSelectedFile().getPath());
+                    savedTo = jfc.getSelectedFile().getPath();
                 }
             }
         },
@@ -666,6 +738,34 @@ public class BasicVisualization {
             }
         },
 
+        new AddOperation("text", new Key(Key.Modifier.CTRL, KeyEvent.VK_SPACE, true)) {
+            @Override
+            public void perform(ZoomPanel panel) {
+                ZoomableLabel label = new ZoomableLabel("");
+                label.switchEditable();
+                ZoomableComponent component = panel.addComponent(label);
+                component.setLocation(panel.getWidth() / 2, panel.getHeight() / 2);
+                component.setSize(new Dimension(100, 20));
+                label.requestFocusInWindow();
+            }
+        },
+        new AddOperation("image", new Key(Key.Modifier.CTRL, KeyEvent.VK_I, true)) {
+            @Override
+            public void perform(ZoomPanel panel) {
+                JFileChooser jfc = new JFileChooser();
+                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
+                    ZoomableImage image = new ZoomableImage(jfc.getSelectedFile().getPath());
+                    ZoomableComponent component = panel.addComponent(image);
+                    image.loadImage();
+                    int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
+                    int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
+                    component.setLocation(x, y);
+                }
+            }
+        },
+        
+        
         new FocusedOperation("Add text near", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_D, true)) {
             @Override
             public void perform(ZoomableComponent focused, ZoomPanel panel) {
@@ -689,40 +789,28 @@ public class BasicVisualization {
                 zoomWithSelected(selected, panel, 0.9);
             }
         },
-        new SelectionOperation("Go left", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_LEFT), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_A)) {
+        new SelectionOperation("Go with elements left", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_LEFT), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_A)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, 10, 0);
             }
         },
-        new SelectionOperation("Go right", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_RIGHT), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_D)) {
+        new SelectionOperation("Go with elements right", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_RIGHT), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_D)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, -10, 0);
             }
         },
-        new SelectionOperation("Go up", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_UP), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_W)) {
+        new SelectionOperation("Go with elements up", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_UP), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_W)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, 0, 10);
             }
         },
-        new SelectionOperation("Go down", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_DOWN), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_S)) {
+        new SelectionOperation("Go with elements down", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_DOWN), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_S)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, 0, -10);
-            }
-        },
-        new FocusedOperation("Edit element", new Key(Key.Modifier.NONE, KeyEvent.VK_ENTER)) {
-            @Override
-            protected void perform(ZoomableComponent focused, ZoomPanel panel) {
-                if (focused.getComponent() instanceof Editable) {
-                    Editable component = (Editable) focused.getComponent();
-                    //TODO: to all component enter to go in and out?
-                    if (!component.isEditMode()) {
-                        component.switchEditable();
-                    }
-                }
             }
         },
         new SelectionOperation("Delete element", new Key(Key.Modifier.NONE, KeyEvent.VK_DELETE, true)) {
@@ -752,6 +840,16 @@ public class BasicVisualization {
         }
     );
 
+    private void saveAs() {
+        JFileChooser jfc = new JFileChooser();
+        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (jfc.showSaveDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
+            List<Component> components = Arrays.asList(panel.getComponents());
+            save(components, jfc.getSelectedFile().getPath());
+            savedTo = jfc.getSelectedFile().getPath();
+        }
+    }
+    
     public void zoomWithSelected(List<ZoomableComponent> selected, ZoomPanel panel, double zDifference) {
         for (ZoomableComponent zoomableComponent : selected) {
             zoomableComponent.getMoveAdapter().setBeingDragged(true);

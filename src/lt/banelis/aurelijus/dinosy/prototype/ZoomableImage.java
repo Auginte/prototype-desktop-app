@@ -1,5 +1,12 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.Channels;
+import java.net.URL;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.InputStream;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
@@ -8,11 +15,17 @@ import java.awt.RenderingHints;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import javax.swing.JLabel;
+import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
 import lt.dinosy.datalib.Source;
 import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Data;
@@ -21,11 +34,11 @@ import lt.dinosy.datalib.Firefox;
 import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
 
 /**
- * Zoobale element ot store images
+ * Zoomable element, that  store images
  *
  * @author Aurelijus Banelis
  */
-public class ZoomableImage extends JLabel implements DataRepresentation, Zoomable, Selectable {
+public class ZoomableImage extends JLabel implements DataRepresentation, Zoomable, Selectable, HavingOperations {
     private Data.Image data;
     private volatile BufferedImage originalImage = null;
     private double scaleFactor = 1;
@@ -33,6 +46,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private boolean loadingFromNew = false;
     private boolean selectable = true;
     private boolean selected = false;
+    private static String externalProgram = "/usr/bin/kolourpaint";
 
     private ZoomableImage() {
         setForeground(Color.cyan);
@@ -76,11 +90,15 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         loading = new Thread() {
             @Override
             public void run() {
+                File file = null;
                 try {
-                    File file = null;
                     if (data.getData().startsWith("http") && data.getCached() != null) {
                         //FIXME: use configuration (getters)
                         file = new File(Firefox.webDataCache + "/" + data.getCached());
+                    } else if (data.getData().startsWith("http")) {
+                        String downloaded = Firefox.webDataCache + "/" + data.getCached();
+                        Firefox.download(data.getData(), downloaded);
+                        file = new File(downloaded);
                     } else {
                         file = new File(data.getData());
                     }
@@ -89,13 +107,14 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                     }
                     updateSize();
                 } catch (IOException ex) {
-                    System.err.println("EX " + ex);
+                    System.err.println("Error loading image: " + file);
                 }
             }
         };
         loading.start();
     }
 
+   
     @Override
     public void paint(Graphics g) {
         if (originalImage != null) {
@@ -208,4 +227,46 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         }
     }
 
+    public List<Operation> getOperations(ZoomPanel panel) {
+        return Arrays.asList((Operation) new Operation("Edit extaernally", BasicVisualization.editKey) {
+            @Override
+            public void perform() {
+                Thread editingThread = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            Process proc = Runtime.getRuntime().exec(new String[] {externalProgram, getData().getData()});
+                            consumeAll(proc.getInputStream());
+                            consumeAll(proc.getErrorStream());
+                            proc.waitFor();
+                            loadImage();
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "External image editing interupted", ex);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalProgram, ex);
+                        }
+                    }
+                };
+                editingThread.start();
+            }
+        },
+        new Operation("Update", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_U)) {
+            @Override
+            public void perform() {
+                loadImage();
+            }
+        });
+    }
+   
+    private static void consumeAll(InputStream stream) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        String line = null;
+        try {
+            while ( (line = br.readLine()) != null) {
+                if ("debug".equals("on")) {
+                    System.out.println(line);
+                }
+            }
+        } catch (IOException ex) {}
+    }
 }

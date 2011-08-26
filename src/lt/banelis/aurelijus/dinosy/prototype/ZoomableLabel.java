@@ -15,11 +15,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Source;
@@ -406,6 +409,14 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     
     public List<BasicVisualization.Operation> getOperations(final ZoomPanel panel) {
         List<BasicVisualization.Operation> operations = Arrays.asList(
+            new BasicVisualization.Operation("Edit element", BasicVisualization.editKey) {
+                @Override
+                public void perform() {
+                    if (!ZoomableLabel.this.isEditMode()) {
+                        ZoomableLabel.this.switchEditable();
+                    }
+                }
+            },
            new BasicVisualization.Operation("Toggle need ilustration", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_I)) {
                 @Override
                 public void perform() {

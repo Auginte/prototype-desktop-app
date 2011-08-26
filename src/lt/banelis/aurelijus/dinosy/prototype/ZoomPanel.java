@@ -17,7 +17,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 
 /**
- * Panel with zooming capabilies.
+ * Panel with zooming capabilities.
  *
  * @author Aurelijus Banelis
  */
@@ -33,7 +33,9 @@ public class ZoomPanel extends JPanel implements Serializable {
     private List<Connection> connections = new LinkedList<Connection>();
     private boolean grid = true;
     private Color gridColor = new Color(32, 32, 32);
-
+    //TODO: beter integration of popups and focusing
+    Component lastFocusOwner = null;
+    
     private static Color addColor(Color color, int delta) {
         int c[] = new int[3];
         c[0] = color.getRed() + delta;
@@ -479,7 +481,7 @@ public class ZoomPanel extends JPanel implements Serializable {
                 return components.get(component);
             }
         }
-        return null;
+        return components.get(lastFocusOwner);
     }
 
     public List<ZoomableComponent> getSelected() {

@@ -10,9 +10,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -46,25 +46,41 @@ public class mainTest extends javax.swing.JFrame {
         initKeyShortcuts(getContentPane());
     }
 
+    private MouseListener contextMenuListener = new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent evt) {
+            if (evt.getButton() == MouseEvent.BUTTON3) {
+                zoomPanel1.lastFocusOwner = evt.getComponent();
+                visualization.getOperationsPopup().show(evt.getComponent(), evt.getX(), evt.getY());
+            }
+        }
+    };
+        
     private void initPopups() {
         contextMenu = phpUml.getPopup();
         contextMenu.addSeparator();
-        List<Component> items = new ArrayList<Component>(visualization.getPopup().getComponentCount());
-        items.addAll(Arrays.asList(visualization.getPopup().getComponents()));
-        for (Component component : items) {
-            contextMenu.add(component);
+        for (Component component : zoomPanel1.getComponents()) {
+            component.addMouseListener(contextMenuListener);
         }
+        zoomPanel1.addChangeListener(new ZoomPanel.ContentChangeAdapter() {
+            @Override
+            public void added(Component component) {
+                component.addMouseListener(contextMenuListener);
+            }
+            @Override
+            public void addedAll() {
+                for (Component component : zoomPanel1.getComponents()) {
+                    component.addMouseListener(contextMenuListener);
+                }
+            }
+        });
     }
 
+    
     private void initKeyShortcuts(Container component) {
         for (Component subComponent : component.getComponents()) {
             if (subComponent.isFocusable()) {
                 subComponent.addKeyListener(visualization.defaultKeyShortCuts);
-                subComponent.addKeyListener(new KeyAdapter() {
-                    @Override public void keyPressed(KeyEvent e) { debugKey(e, "Pressed" + e.getComponent().getClass().getSimpleName()); }
-                    @Override public void keyReleased(KeyEvent e) { debugKey(e, "Released" + e.getComponent().getClass().getSimpleName()); }
-                    @Override public void keyTyped(KeyEvent e) { debugKey(e, "Typed" + e.getComponent().getClass().getSimpleName()); }
-                });
                 if (subComponent instanceof Container) {
                     initKeyShortcuts((Container) subComponent);
                 }
@@ -76,12 +92,6 @@ public class mainTest extends javax.swing.JFrame {
                 visualization.addKeyListener(component);
             }
         });
-    }
-
-
-    private void debugKey(KeyEvent evt, String where) {
-        String debug = where + "| " + evt.getKeyCode() + ": " + evt.getKeyChar() + ": L" + evt.getKeyLocation() + " = " + KeyEvent.getKeyModifiersText(evt.getModifiers()) + " + " + KeyEvent.getKeyText(evt.getKeyCode()) + " | " + evt.getID();
-        this.setTitle(debug + " >> " + zoomPanel1.getComponentCount());
     }
 
 
@@ -373,7 +383,7 @@ public class mainTest extends javax.swing.JFrame {
             component.setSize(new Dimension(100, 20));
             label.requestFocusInWindow();
         } else if (evt.getButton() == MouseEvent.BUTTON3) {
-            contextMenu.show(evt.getComponent(), evt.getX(), evt.getY());
+            visualization.getOperationsPopup().show(evt.getComponent(), evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_zoomPanel1MouseClicked
 

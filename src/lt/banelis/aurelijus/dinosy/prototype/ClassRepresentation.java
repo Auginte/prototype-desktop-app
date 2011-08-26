@@ -1,6 +1,10 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.BufferedReader;
 import javax.swing.border.Border;
 import java.awt.Graphics;
 import java.awt.event.FocusEvent;
@@ -14,6 +18,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +29,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
 import lt.banelis.parser.Class;
 import lt.banelis.parser.Function;
 import lt.banelis.parser.NullNotAllowedException;
@@ -43,7 +49,7 @@ import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
  *
  * @author Aurelijus Banelis
  */
-public class ClassRepresentation extends JPanel implements DataRepresentation, Cloneable, Selectable {
+public class ClassRepresentation extends JPanel implements DataRepresentation, Cloneable, Selectable, HavingOperations {
     private Data.Class data;
     private String maxText = "";
     private int maxLength = 0;
@@ -56,6 +62,7 @@ public class ClassRepresentation extends JPanel implements DataRepresentation, C
     private Border oldBorder;
     private boolean selectable = true;
     private boolean selected = false;
+    private static String externalProgram = "/usr/bin/geany";
 
     public ClassRepresentation(Source source, lt.banelis.parser.Class classObject) {
         iniciateData(source, classObject);
@@ -506,5 +513,53 @@ public class ClassRepresentation extends JPanel implements DataRepresentation, C
     @Override
     public String toString() {
         return "{" + data.getData() + " at " + getLocation().x + "x" + getLocation().y + " size " + getSize().width + "x" + getSize().height + "}";
+    }
+
+    public List<Operation> getOperations(ZoomPanel panel) {
+        return Arrays.asList((Operation) new Operation("Open externally", BasicVisualization.editKey) {
+            @Override
+            public void perform() {
+                Thread openThread = new Thread() {
+                    @Override
+                    public void run() {
+                        File source = new File(getData().getSource().getSource());
+                        if (!source.exists() && getData().getSource().getParent() instanceof Source.Project) {
+                            Source.Project project = (Source.Project) getData().getSource().getParent();
+                            source = new File(project.getAddress() + getData().getSource().getSource());
+                        }
+                        if (source.exists()) {
+                            try {
+                                Process proc = Runtime.getRuntime().exec(new String[] {externalProgram, source.getAbsolutePath()});
+                                consumeAll(proc.getInputStream());
+                                consumeAll(proc.getErrorStream());
+                                proc.waitFor();
+                                update();
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "External image editing interupted", ex);
+                            } catch (IOException ex) {
+                                Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalProgram, ex);
+                            }
+                        }
+                    }
+                };
+                openThread.start();
+            }
+        });
+    }
+    
+    private static void consumeAll(InputStream stream) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        String line = null;
+        try {
+            while ( (line = br.readLine()) != null) {
+                if ("debug".equals("on")) {
+                    System.out.println(line);
+                }
+            }
+        } catch (IOException ex) {}
+    }
+    
+    private void update() {
+        //TODO: uddate data with chages in file
     }
 }
