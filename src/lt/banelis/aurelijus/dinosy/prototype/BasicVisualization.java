@@ -1,5 +1,6 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import com.sun.media.sound.DataPusher;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.MenuItem;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -65,6 +67,9 @@ public class BasicVisualization {
     private ZoomableComponent selectionBox;
     private double selectionX = Double.NaN;
     private double selectionY = Double.NaN;
+    
+    //FIXME: normal source implemntation
+    public Source defaultSource = null;
 
     private BasicVisualization() {
         Collections.sort(operations, new Comparator<BasicVisualization.Operation>() {
@@ -843,7 +848,10 @@ public class BasicVisualization {
         new AddOperation("text", new Key(Key.Modifier.CTRL, KeyEvent.VK_SPACE, true)) {
             @Override
             public void perform(ZoomPanel panel) {
-                ZoomableLabel label = new ZoomableLabel("");
+                if (defaultSource == null) {
+                    defaultSource = new Source.Event();
+                }
+                ZoomableLabel label = new ZoomableLabel(new Data.Plain("", defaultSource));
                 label.switchEditable();
                 ZoomableComponent component = panel.addComponent(label);
                 component.setLocation(panel.getWidth() / 2, panel.getHeight() / 2);
@@ -871,7 +879,10 @@ public class BasicVisualization {
         new FocusedOperation("Add text near", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_D, true)) {
             @Override
             public void perform(ZoomableComponent focused, ZoomPanel panel) {
-                ZoomableLabel label = new ZoomableLabel("");
+                if (defaultSource == null) {
+                    defaultSource = new Source.Event();
+                }
+                ZoomableLabel label = new ZoomableLabel(new Data.Plain("", defaultSource));
                 label.switchEditable();
                 ZoomableComponent component = panel.addComponent(label);
                 component.setLocation(focused.getLocation().getX(), focused.getLocation().getY() + focused.getSize().getHeight());
