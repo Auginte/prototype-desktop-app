@@ -34,7 +34,7 @@ public class MoveAdapter implements MouseInputListener {
     }
 
     /**
-     * @return  <code>true</code> when button delegated for draggin is pressed
+     * @return  <code>true</code> when button delegated for dragging is pressed
      */
     protected boolean isMoveButton(MouseEvent e) {
         boolean controllButtons = e.isShiftDown() || e.isControlDown() || e.isAltDown() || e.isAltGraphDown() || e.isMetaDown();
@@ -58,9 +58,11 @@ public class MoveAdapter implements MouseInputListener {
     }
 
     public void mousePressed(MouseEvent e) {
-        if (isEnabled() && isMoveButton(e)) {
+        if (isEnabled()) {
             grabbedX = e.getX();
             grabbedY = e.getY();
+        }
+        if (isEnabled() && isMoveButton(e)) {
             beingDragged = true;
         }
     }

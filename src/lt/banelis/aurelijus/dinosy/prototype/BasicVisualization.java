@@ -1,9 +1,7 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
-import com.sun.media.sound.DataPusher;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -11,6 +9,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
 import java.io.BufferedReader;
@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -46,7 +45,6 @@ import lt.dinosy.datalib.Controller;
 import lt.dinosy.datalib.Controller.BadVersionException;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.NotUniqueIdsException;
-import lt.dinosy.datalib.Okular;
 import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Representation.Element;
 import lt.dinosy.datalib.Source;
@@ -62,7 +60,6 @@ public class BasicVisualization {
     
     private ZoomPanel panel;
     private Controller storage = new Controller();
-    private JPopupMenu contextMenu;
     private String savedTo;
     private ZoomableComponent selectionBox;
     private double selectionX = Double.NaN;
@@ -87,6 +84,7 @@ public class BasicVisualization {
     public void initAll() {
         initZooming();
         initSelectable();
+        initMouseCloning();
     }
 
     public void initSelectable() {
@@ -228,6 +226,43 @@ public class BasicVisualization {
         });
     }
 
+    private void initMouseCloning() {
+        panel.addChangeListener(new ZoomPanel.ContentChangeAdapter() {
+            @Override
+            public void added(Component component) {
+                component.addMouseListener(getMouseClonning());
+            }
+
+            @Override
+            public void addedAll() {
+                for (Component component : panel.getComponents()) {
+                    component.addMouseListener(getMouseClonning());
+                }
+            }
+        });
+        for (Component component : panel.getComponents()) {
+            component.addMouseListener(getMouseClonning());
+        }
+    }
+    
+    private MouseListener getMouseClonning() {
+        return new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int mask = KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK;
+                if (((e.getModifiersEx() & mask) == mask) && (e.getComponent() instanceof ZoomableLabel)) {
+                    //FIXME: all components (not only ZoomableLabel)
+                    try {
+                        panel.addComponent(((ZoomableLabel) e.getComponent()).clone());
+                        ZoomableComponent component = panel.getZoomableComponent(e.getComponent());
+                        component.getMoveAdapter().setBeingDragged(true);
+                    } catch (CloneNotSupportedException ex) {
+                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "MouseClonning: Zoomable component must be clonnable", ex);
+                    }
+                }
+            }
+        };
+    }
 
     /*
      * Open / Save
@@ -335,7 +370,7 @@ public class BasicVisualization {
                     HavingOperations ownOperations = (HavingOperations) zoomableComponent.getComponent();
                     for (Operation operation : ownOperations.getOperations(panel)) {
                         if (!distinct.containsKey(operation.getName())) {
-                            distinct.put(operation.getName(), Arrays.asList(operation));
+                            distinct.put(operation.getName(), new LinkedList<Operation>(Arrays.asList(operation)));
                         } else {
                             distinct.get(operation.getName()).add(operation);
                         }
@@ -725,6 +760,9 @@ public class BasicVisualization {
         public void perform() {
             //TODO: optimize
             List<ZoomableComponent> selected = panel.getSelected();
+            if (!selected.contains(panel.getFocusOwner())) {
+                selected.add(panel.getFocusOwner());
+            }
             if (selected.size() > 0) {
                 perform(selected, panel);
             }
@@ -875,7 +913,6 @@ public class BasicVisualization {
             }
         },
         
-        
         new FocusedOperation("Add text near", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_D, true)) {
             @Override
             public void perform(ZoomableComponent focused, ZoomPanel panel) {
@@ -947,6 +984,29 @@ public class BasicVisualization {
                         component.getComponent().requestFocus();
                     } catch (CloneNotSupportedException ex) {
                         Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Zoomable object should be deep clonable", ex);
+                    }
+                }
+            }
+        },
+        new FocusedOperation("Select cloned elements", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_C, true)) {
+            @Override
+            protected void perform(ZoomableComponent focused, ZoomPanel panel) {
+                if (focused.getComponent() instanceof DataRepresentation) {
+                    Data data = ((DataRepresentation) focused.getComponent()).getData();
+                    for (Component component : panel.getComponents()) {
+                        if (component instanceof DataRepresentation && component instanceof Selectable) {
+                            if (((DataRepresentation) component).getData() == data) {
+                                ((Selectable) component).setSelected(true);
+                            } else {
+                                ((Selectable) component).setSelected(false);
+                            }
+                        }
+                    }
+                    for (ZoomableComponent zoomableComponent : panel.getZoomableComponetns()) {
+                        if (zoomableComponent.getComponent() instanceof DataRepresentation) {
+                            if (((DataRepresentation) zoomableComponent.getComponent()).getData() == data) {
+                            }
+                        }
                     }
                 }
             }
