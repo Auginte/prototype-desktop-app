@@ -2,6 +2,10 @@ package lt.banelis.aurelijus.dinosy.prototype;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -14,6 +18,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,6 +40,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.TransferHandler;
+import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.border.Border;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
@@ -85,6 +92,7 @@ public class BasicVisualization {
         initZooming();
         initSelectable();
         initMouseCloning();
+        initDragAndDrop();
     }
 
     public void initSelectable() {
@@ -264,6 +272,58 @@ public class BasicVisualization {
         };
     }
 
+    private void initDragAndDrop() {
+        panel.setTransferHandler(new TransferHandler() {
+            private static final String stringListFlavor = "text/uri-list; class=java.lang.String; charset=Unicode";
+            @Override
+            public boolean canImport(TransferSupport support) {
+                for (DataFlavor dataFlavor : support.getDataFlavors()) {
+                    if (dataFlavor.getMimeType().equals(stringListFlavor)) {
+                        return true;
+                    }
+                    //TODO: DataFlavor.javaFileListFlavor
+                }
+                return false;
+            }
+
+            @Override
+            public boolean importData(TransferSupport support) {
+                boolean succeeded = true;
+                for (DataFlavor dataFlavor : support.getDataFlavors()) {
+                    try {
+                        if (dataFlavor.getMimeType().equals(stringListFlavor)) {
+                            String text = (String) support.getTransferable().getTransferData(new DataFlavor(stringListFlavor));
+                            for (String string : text.split("\\n+")) {
+                                String file = string.substring("file://".length()).trim();
+                                int x = support.getDropLocation().getDropPoint().x;
+                                int y = support.getDropLocation().getDropPoint().y;
+                                if (isImage(file)) {
+                                    addImage(file, x, y);
+                                } else {
+                                    //TODO: import of other (eg. text) files
+                                    addText(file, x, y, 100, 20, false);
+                                }
+                            }
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Cannot import drag n drop data", ex);
+                        succeeded = false;
+                    }
+                }
+                return succeeded;
+            }
+            
+            private boolean isImage(String file) {
+                return isExtention(file, "jpg") || isExtention(file, "png") || isExtention(file, "gif") || isExtention(file, "bmp");
+            }
+            
+            private boolean isExtention(String file, String extention) {
+                return file.toLowerCase().endsWith("." + extention.toLowerCase());
+            }
+            
+        });
+    }
+    
     /*
      * Open / Save
      */
@@ -598,6 +658,10 @@ public class BasicVisualization {
             return nowPressed;
         }
 
+        public void release() {
+            nowPressed = false;
+        }
+        
         @Override
         public String toString() {
             return KeyEvent.getKeyModifiersText(modifier) + " + " + KeyEvent.getKeyText(code);
@@ -659,6 +723,9 @@ public class BasicVisualization {
         for (Key key : operation.getKeys()) {
             if (key.isKeyOwner(e) || (onKeyPressed && key.isNowPressed())) {
                 operation.perform();
+                if (onKeyPressed && key.isNowPressed()) {
+                    key.release();
+                }
                 break;
             }
         }
@@ -760,7 +827,7 @@ public class BasicVisualization {
         public void perform() {
             //TODO: optimize
             List<ZoomableComponent> selected = panel.getSelected();
-            if (!selected.contains(panel.getFocusOwner())) {
+            if ( (panel.getFocusOwner() != null) && (!selected.contains(panel.getFocusOwner())) ) {
                 selected.add(panel.getFocusOwner());
             }
             if (selected.size() > 0) {
@@ -886,15 +953,7 @@ public class BasicVisualization {
         new AddOperation("text", new Key(Key.Modifier.CTRL, KeyEvent.VK_SPACE, true)) {
             @Override
             public void perform(ZoomPanel panel) {
-                if (defaultSource == null) {
-                    defaultSource = new Source.Event();
-                }
-                ZoomableLabel label = new ZoomableLabel(new Data.Plain("", defaultSource));
-                label.switchEditable();
-                ZoomableComponent component = panel.addComponent(label);
-                component.setLocation(panel.getWidth() / 2, panel.getHeight() / 2);
-                component.setSize(new Dimension(100, 20));
-                label.requestFocusInWindow();
+                addText("", panel.getWidth() / 2, panel.getHeight() / 2, 100, 200, true);
             }
         },
         new AddOperation("image", new Key(Key.Modifier.CTRL, KeyEvent.VK_I, true)) {
@@ -903,12 +962,7 @@ public class BasicVisualization {
                 JFileChooser jfc = new JFileChooser();
                 jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
-                    ZoomableImage image = new ZoomableImage(jfc.getSelectedFile().getPath());
-                    ZoomableComponent component = panel.addComponent(image);
-                    image.loadImage();
-                    int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
-                    int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
-                    component.setLocation(x, y);
+                    addImage(jfc.getSelectedFile().getPath(), null, null);
                 }
             }
         },
@@ -916,15 +970,7 @@ public class BasicVisualization {
         new FocusedOperation("Add text near", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_D, true)) {
             @Override
             public void perform(ZoomableComponent focused, ZoomPanel panel) {
-                if (defaultSource == null) {
-                    defaultSource = new Source.Event();
-                }
-                ZoomableLabel label = new ZoomableLabel(new Data.Plain("", defaultSource));
-                label.switchEditable();
-                ZoomableComponent component = panel.addComponent(label);
-                component.setLocation(focused.getLocation().getX(), focused.getLocation().getY() + focused.getSize().getHeight());
-                component.setSize(new DoubleDimension(100, focused.getSize().getHeight()));
-                label.requestFocusInWindow();
+                addText("", (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
             }
         },
         new SelectionOperation("Zoom with element in", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_PLUS), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_EQUALS), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_E)) {
@@ -1013,6 +1059,34 @@ public class BasicVisualization {
         }
     );
 
+    private void addImage(String path, Integer x, Integer y) {
+        if (defaultSource == null) {
+            defaultSource = new Source.Event();
+        }
+        ZoomableImage image = new ZoomableImage(path, defaultSource);
+        ZoomableComponent component = panel.addComponent(image);
+        image.loadImage();
+        if (x == null || y == null) {
+            x = (panel.getWidth() / 2) - (component.getSize().width / 2);
+            y = (panel.getHeight() / 2) - (component.getSize().height / 2);
+        }
+        component.setLocation(x, y);
+    }
+    
+    private void addText(String text, int x, int y, int widh, int height, boolean edit) {
+        if (defaultSource == null) {
+            defaultSource = new Source.Event();
+        }
+        ZoomableLabel label = new ZoomableLabel(new Data.Plain(text, defaultSource));
+        if (edit) {
+            label.switchEditable();
+        }
+        ZoomableComponent component = panel.addComponent(label);
+        component.setLocation(x, y);
+        component.setSize(new Dimension(widh, height));
+        label.requestFocusInWindow();
+    }
+    
     private void saveAs() {
         JFileChooser jfc = new JFileChooser();
         jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1035,14 +1109,26 @@ public class BasicVisualization {
 
     public void translateWithSelected(List<ZoomableComponent> selected, ZoomPanel panel, double xDifference, double yDifference) {
         for (ZoomableComponent zoomableComponent : selected) {
-            zoomableComponent.getMoveAdapter().setBeingDragged(true);
+            if (zoomableComponent.getMoveAdapter() != null) {
+                zoomableComponent.getMoveAdapter().setBeingDragged(true);
+            }
         }
         panel.translate(xDifference, yDifference);
         for (ZoomableComponent zoomableComponent : selected) {
-            zoomableComponent.getMoveAdapter().setBeingDragged(false);
+            if (zoomableComponent.getMoveAdapter() != null) {
+                zoomableComponent.getMoveAdapter().setBeingDragged(false);
+            }
         }
     }
 
+    private void performOperation(String operationName) {
+        for (Operation operation : operations) {
+            if (operation.getName().equalsIgnoreCase(operationName)) {
+                operation.perform();
+                break;
+            }
+        }
+    }
     
     /*
      * Utilities

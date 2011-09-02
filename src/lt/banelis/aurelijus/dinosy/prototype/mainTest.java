@@ -26,7 +26,9 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPopupMenu;
 import lt.banelis.parser.Class;
+import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Firefox;
+import lt.dinosy.datalib.Source;
 import lt.dinosy.datalib.Source.Book;
 import lt.dinosy.datalib.Source.Event;
 import lt.dinosy.datalib.Source.Internet;
@@ -500,7 +502,10 @@ public class mainTest extends javax.swing.JFrame {
 
     private void zoomPanel1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_zoomPanel1MouseClicked
         if (evt.getClickCount() > 1) {
-            ZoomableLabel label = new ZoomableLabel("");
+            if (visualization.defaultSource == null) {
+                visualization.defaultSource = new Source.Event();
+            }
+            ZoomableLabel label = new ZoomableLabel(new Data.Plain("", visualization.defaultSource));
             label.switchEditable();
             ZoomableComponent component = zoomPanel1.addComponent(label);
             component.setLocation(evt.getX(), evt.getY());
@@ -658,14 +663,15 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         }
     }
     
-    private void translate(JComponent component) {
-        component.setLocation(component.getLocation().x + 1, component.getLocation().y + 5);
+    public void loadProject(String file) {
+        visualization.loadData(file);
     }
-
+    
+    
     /**
     * @param args the command line arguments
     */
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -674,7 +680,13 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                         e.printStackTrace(System.err);
                     }
                 });
-                new mainTest().setVisible(true);
+                mainTest mainTest = new mainTest();
+                mainTest.setVisible(true);
+                if (args.length >= 1) {
+                    if ((new File(args[0])).exists()) {
+                        mainTest.loadProject(args[0]);
+                    }
+                }
             }
         });
     }
