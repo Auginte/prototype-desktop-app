@@ -47,7 +47,16 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private boolean selectable = true;
     private boolean selected = false;
     private static String externalProgram = "/usr/bin/kolourpaint";
-
+    private int lastWidth = -1;
+    private int lastHeight = -1;
+    private transient BufferedImage cachedImage = null;
+    private Optimization optimization = Optimization.time;
+    
+    private enum Optimization {
+        time,
+        memory
+    }
+    
     private ZoomableImage() {
         setForeground(Color.cyan);
         initFocusability();
@@ -118,11 +127,24 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     @Override
     public void paint(Graphics g) {
         if (originalImage != null) {
-            Graphics2D g2 = (Graphics2D)g;
             int newW = (int)(originalImage.getWidth() * scaleFactor);
             int newH = (int)(originalImage.getHeight() * scaleFactor);
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            g2.drawImage(originalImage, 0, 0, newW, newH, null);
+            if (optimization == Optimization.time) {
+                /* Faster but more memory */
+                if (cachedImage == null || newW != lastWidth || newH != lastHeight) {
+                    cachedImage = new BufferedImage(newW, newH, BufferedImage.TYPE_3BYTE_BGR);
+                    Graphics2D graphics2D = cachedImage.createGraphics();
+                    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    graphics2D.drawImage(originalImage, 0, 0, newW, newH, null);
+                }
+                g.drawImage(cachedImage, 0, 0, null);
+            } else {
+                /* Slower but less memory */
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2.drawImage(originalImage, 0, 0, newW, newH, null);
+            }
+            
         } else {
             g.drawRect(1, 1, this.getWidth() - 2, this.getHeight() - 2);
             g.drawString("Loading: " + data.getData(), 0, 10);
@@ -228,7 +250,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     }
 
     public List<Operation> getOperations(ZoomPanel panel) {
-        return Arrays.asList((Operation) new Operation("Edit extaernally", BasicVisualization.editKey) {
+        return Arrays.asList((Operation) new Operation("Edit externally", BasicVisualization.editKey) {
             @Override
             public void perform() {
                 Thread editingThread = new Thread() {

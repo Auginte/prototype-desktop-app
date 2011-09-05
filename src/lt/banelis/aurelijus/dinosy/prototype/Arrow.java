@@ -87,6 +87,32 @@ public abstract class Arrow {
         }
     };
 
+    public static class Association extends Arrow {
+        private String name;
+
+        public Association(String name) {
+            this.name = name;
+        }
+                
+        public void paint(Graphics g) {
+            g.drawLine(getX(ange - Math.PI/2), getY(ange - Math.PI/2), getX(ange), getY(ange));
+            g.drawLine(getX(ange + Math.PI), getY(ange + Math.PI), getX(ange), getY(ange));
+            g.drawLine(getX(ange + Math.PI/2), getY(ange + Math.PI/2), getX(ange), getY(ange));
+            drawTitle(name, g);
+        }
+    }
+    
+    protected void drawTitle(String name, Graphics g) {
+        int x = location.x + size;
+        int y = location.y + size;
+        if (getDegrees() < 180) {
+            y = location.y - size;
+        }
+        //TODO: align right by degrees
+        g.setFont(ZoomableLabel.getFont(size, g.getFont()));
+        g.drawString(name,x , y);
+    }
+    
     /*
      * Helpers
      */

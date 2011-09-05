@@ -1,5 +1,6 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import java.awt.Component;
 import java.util.List;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -15,14 +16,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Source;
@@ -32,7 +30,7 @@ import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
  *
  * @author Aurelijus Banelis
  */
-public class ZoomableLabel extends JPanel implements DataRepresentation, Editable, Selectable, Cloneable, Idea, HavingOperations {
+public class ZoomableLabel extends JPanel implements DataRepresentation, Editable, Selectable, Cloneable, Idea, HavingOperations, Connectable {
     private transient JTextField editField = new JTextField("Some text");
     private Font resized = null;
     private int lastFontHeight = -1;
@@ -48,6 +46,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     private boolean selected = false;
     private boolean mainIdea = false;
     private boolean needIlustration = false;
+    private ConnectionState connectionState = ConnectionState.none;
 
     public ZoomableLabel() {
         this("Some text");
@@ -101,6 +100,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         paintIdeaSpecific(g);
         paintSelected(g);
         paintFocus(g);
+        paintConnectionState(g);
         g.drawString(getText(), 0, (int) (getHeight() * 0.8));
     }
     
@@ -239,15 +239,25 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         return (int) (label1000.getPreferredSize().width * (height / 1000.0));
     }
 
-    private void updateFont() {
-        int height = (int) (getHeight() * 0.8);
-        if (resized == null || lastFontHeight != height) {
+    public static Font getFont(int height, Font old) {
+        if (old.getSize() != height) {
+            Font resized = null;
             if (cachedFonts.containsKey(height)) {
                 resized = cachedFonts.get(height);
             } else {
-                resized = getFont().deriveFont((float) height);
+                resized = old.deriveFont((float) height);
                 cachedFonts.put(height, resized);
             }
+            return resized;
+        } else {
+            return old;
+        }
+    }
+    
+    private void updateFont() {
+        int height = (int) (getHeight() * 0.8);
+        if (resized == null || lastFontHeight != height) {
+            resized = getFont(height, this.getFont());
             setFont(resized);
             editField.setFont(resized);
             lastFontHeight = height;
@@ -289,7 +299,8 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     @Override
     public String toString() {
         if (data != null) {
-            return (String) data.getData() + " : " + super.toString();
+            //FIXME: debug mode toString
+            return (String) data.getData() /* + " : " + super.toString() */;
         } else {
             return super.toString();
         }
@@ -433,6 +444,39 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
             }   
         );
         return operations;
+    }
+
+    
+    /*
+     * Connecting
+     */
+    
+    public ConnectionState getConnectionState() {
+        return connectionState;
+    }
+
+    public void setConnectinState(ConnectionState state) {
+        if (connectionState != state) {
+            connectionState = state;
+            this.repaint();
+        }
+    }
+
+    
+    public void paintConnectionState(Graphics g) {
+        Color oldColor = g.getColor();
+        final int r = 5;
+        switch (connectionState) {
+            case connectionCandidate:
+                g.setColor(Connectable.connectionCandidate);
+                g.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, r, r);
+                break;
+            case connectionStart:
+                g.setColor(Connectable.connectionStart);
+                g.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, r, r);
+                break;
+        }
+        g.setColor(oldColor);
     }
 
 }

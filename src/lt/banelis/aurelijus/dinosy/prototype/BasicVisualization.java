@@ -3,22 +3,18 @@ package lt.banelis.aurelijus.dinosy.prototype;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DropTargetAdapter;
-import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,6 +34,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
@@ -56,6 +53,7 @@ import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Representation.Element;
 import lt.dinosy.datalib.Source;
 import org.xml.sax.SAXException;
+import lt.banelis.aurelijus.dinosy.prototype.Connectable.ConnectionState;
 
 /**
  * Basic elements of visualization
@@ -71,6 +69,8 @@ public class BasicVisualization {
     private ZoomableComponent selectionBox;
     private double selectionX = Double.NaN;
     private double selectionY = Double.NaN;
+    private Component connectionStart = null;
+    private Component connectionEnd = null;
     
     //FIXME: normal source implemntation
     public Source defaultSource = null;
@@ -93,8 +93,14 @@ public class BasicVisualization {
         initSelectable();
         initMouseCloning();
         initDragAndDrop();
+        initConnections();
     }
 
+    
+    /*
+     * Selection
+     */
+    
     public void initSelectable() {
         /* Selecting separate elements */
         panel.addChangeListener(new ZoomPanel.ContentChangeAdapter() {
@@ -131,7 +137,7 @@ public class BasicVisualization {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if (e.isShiftDown() || e.isControlDown()) {
+            if (isModifier(e, KeyEvent.CTRL_DOWN_MASK) || isModifier(e, KeyEvent.SHIFT_DOWN_MASK)) {
                 if (panel.getZoomableComponent(selectionBox.getComponent()) == null) {
                     selectionBox = panel.addComponent(selectionBox.getComponent());
                 }
@@ -234,6 +240,11 @@ public class BasicVisualization {
         });
     }
 
+    
+    /*
+     * Clonning
+     */
+    
     private void initMouseCloning() {
         panel.addChangeListener(new ZoomPanel.ContentChangeAdapter() {
             @Override
@@ -257,8 +268,8 @@ public class BasicVisualization {
         return new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                int mask = KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK;
-                if (((e.getModifiersEx() & mask) == mask) && (e.getComponent() instanceof ZoomableLabel)) {
+                int modifier = KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK;
+                if (isModifier(e, modifier) && (e.getComponent() instanceof ZoomableLabel)) {
                     //FIXME: all components (not only ZoomableLabel)
                     try {
                         panel.addComponent(((ZoomableLabel) e.getComponent()).clone());
@@ -323,6 +334,107 @@ public class BasicVisualization {
             
         });
     }
+    
+    
+    /*
+     * Connections
+     */
+    
+    private void initConnections() {
+        panel.addChangeListener(new ZoomPanel.ContentChangeListener() {
+            public void added(Component component) {
+                addConnectionListener(component);
+            }
+
+            public void addedAll() {
+                for (Component component : panel.getComponents()) {
+                    addConnectionListener(component);
+                }
+            }
+
+            public void removed(Component component) {
+                removeConnectionsFromComponent(component);
+            }
+
+            public void removedAll() {
+                for (Component component : panel.getComponents()) {
+                    removeConnectionsFromComponent(component);
+                }
+            }
+        });
+        for (Component component : panel.getComponents()) {
+            addConnectionListener(component);
+        }
+    }
+    
+    private void addConnectionListener(Component component) {
+        MouseAdapter connectionsListener = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (isModifier(e)) {
+                    connectionStart = e.getComponent();
+                    ((Connectable) e.getComponent()).setConnectinState(ConnectionState.connectionStart);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (isModifier(e) && connectionStart != connectionEnd && connectionStart != null && connectionEnd != null) {
+                    addAssociationConnection(connectionStart, connectionEnd);
+                }
+                connectionStart = null;
+                connectionEnd = null;
+                for (Component component1 : panel.getComponents()) {
+                    if (component1 instanceof Connectable) {
+                        ((Connectable) component1).setConnectinState(ConnectionState.none);
+                    }
+                }
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (isModifier(e) && connectionStart != null) {
+                    Connectable connectable = (Connectable) e.getComponent();
+                    if (connectable.getConnectionState() != ConnectionState.connectionStart) {
+                        //TODO: do we need relation to self
+                        connectable.setConnectinState(ConnectionState.connectionCandidate);
+                        connectionEnd = e.getComponent();
+                    }
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (isModifier(e)) {
+                    Connectable connectable = (Connectable) e.getComponent();
+                    if (connectable.getConnectionState() != ConnectionState.connectionStart) {
+                        connectable.setConnectinState(ConnectionState.none);
+                    }
+                }
+            }
+            
+            private boolean isModifier(MouseEvent e) {
+                int modifier = MouseEvent.CTRL_DOWN_MASK + MouseEvent.ALT_DOWN_MASK;
+                return BasicVisualization.isModifier(e, modifier);
+            }
+        };
+        if (component instanceof Connectable) {
+            component.addMouseListener(connectionsListener);
+            component.addMouseMotionListener(connectionsListener);
+        }
+    }
+    
+    private void removeConnectionsFromComponent(Component component) {
+        //FIXME: not implemented
+    }
+    
+    private void addAssociationConnection(Component from, Component to) {
+        //TOOD: normal integration
+        String name = JOptionPane.showInputDialog(panel, "Enter association name:");
+        panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
+        panel.repaint();
+    }
+    
     
     /*
      * Open / Save
@@ -505,6 +617,9 @@ public class BasicVisualization {
         if (focused instanceof DataRepresentation) {
             menu.add(menuSeparator("Source:"));
             final DataRepresentation representation = (DataRepresentation) focused;
+            if (representation.getData() instanceof Data.Image) {
+                menu.add(((Data.Image) representation.getData()).getData());
+            }
             Source source = representation.getData().getSource();
             StringBuilder tooltip = new StringBuilder(source.getDateSting());
             JMenuItem item = new JMenuItem(source.toString());
@@ -605,6 +720,7 @@ public class BasicVisualization {
         result.setEnabled(false);
         return result;
     }
+    
     
     /*
      * Key opertations
@@ -1070,6 +1186,7 @@ public class BasicVisualization {
             x = (panel.getWidth() / 2) - (component.getSize().width / 2);
             y = (panel.getHeight() / 2) - (component.getSize().height / 2);
         }
+        ((JComponent) component.getComponent()).setToolTipText(path);
         component.setLocation(x, y);
     }
     
@@ -1130,6 +1247,7 @@ public class BasicVisualization {
         }
     }
     
+    
     /*
      * Utilities
      */
@@ -1161,5 +1279,12 @@ public class BasicVisualization {
             size = component.getSize();
         }
         representation.set(component.getLocation(), component.getZ(), size);
+    }
+    
+    private static boolean isModifier(InputEvent e, int modifier) {
+        int mask = KeyEvent.BUTTON1_DOWN_MASK - 1;
+        modifier = modifier & mask;
+        int pressed = e.getModifiersEx() & mask;
+        return pressed == modifier;
     }
 }
