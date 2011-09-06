@@ -54,6 +54,8 @@ import lt.dinosy.datalib.Representation.Element;
 import lt.dinosy.datalib.Source;
 import org.xml.sax.SAXException;
 import lt.banelis.aurelijus.dinosy.prototype.Connectable.ConnectionState;
+import lt.dinosy.datalib.Relation;
+import lt.dinosy.datalib.Relation.Association;
 
 /**
  * Basic elements of visualization
@@ -353,14 +355,11 @@ public class BasicVisualization {
             }
 
             public void removed(Component component) {
-                removeConnectionsFromComponent(component);
+                panel.removeConnections(component);
+                panel.repaint();
             }
 
-            public void removedAll() {
-                for (Component component : panel.getComponents()) {
-                    removeConnectionsFromComponent(component);
-                }
-            }
+            public void removedAll() { }
         });
         for (Component component : panel.getComponents()) {
             addConnectionListener(component);
@@ -381,6 +380,7 @@ public class BasicVisualization {
             public void mouseReleased(MouseEvent e) {
                 if (isModifier(e) && connectionStart != connectionEnd && connectionStart != null && connectionEnd != null) {
                     addAssociationConnection(connectionStart, connectionEnd);
+                    panel.repaint();
                 }
                 connectionStart = null;
                 connectionEnd = null;
@@ -424,15 +424,18 @@ public class BasicVisualization {
         }
     }
     
-    private void removeConnectionsFromComponent(Component component) {
-        //FIXME: not implemented
-    }
-    
+   
     private void addAssociationConnection(Component from, Component to) {
-        //TOOD: normal integration
-        String name = JOptionPane.showInputDialog(panel, "Enter association name:");
-        panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
-        panel.repaint();
+        if (from instanceof DataRepresentation && to instanceof DataRepresentation) {
+            Data dataFrom = ((DataRepresentation) from).getData();
+            Data dataTo = ((DataRepresentation) to).getData();
+            //TODO: input with suggestions
+            String name = JOptionPane.showInputDialog(panel, "Enter association name:");
+            Association association = new Association(dataFrom, dataTo, name);
+            dataFrom.addRelation(association);
+            dataTo.addRelation(association);
+            panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
+        }
     }
     
     
@@ -443,6 +446,8 @@ public class BasicVisualization {
     public void loadData(String file) {
         try {
             if (storage.openFile(file)) {
+                List<Representation> representations = new LinkedList<Representation>();
+                /* Representations */
                 for (Data data : storage.getData().values()) {
                     for (Representation representation : data.getRepresentations()) {
                         ZoomableComponent component;
@@ -467,11 +472,34 @@ public class BasicVisualization {
                         } else {
                             component.zoom(1);
                         }
+                        representations.add(representation);
                     }
                 }
+                
+                /* Relations */
+                for (Representation representation : representations) {
+                    for (Relation relation : representation.getData().getRelations()) {
+                        if (relation.getFrom() == representation.getData()) {
+                            Component from = (Component) representation.getAssigned();
+                            Component to = getComponent(relation.getTo(), representations);
+                            assert to != null;
+                            if (relation instanceof Association) {
+                                String name = ((Association) relation).getName();
+                                panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
+                            } else if (relation instanceof Relation.Generalization) {
+                                panel.addConnnection(new Connection(from, to, new Arrow.Generalization()));
+                            } else {
+                                panel.addConnnection(new Connection(from, to));
+                            }
+                        }
+                    }
+                }
+                
                 savedTo = file;
                 panel.repaint();
             }
+
+        //TODO: normal exception handling
         } catch (URISyntaxException ex) {
             Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "URISyntaxException loading data", ex);
         } catch (ParserConfigurationException ex) {
@@ -485,6 +513,15 @@ public class BasicVisualization {
         }
     }
 
+    private Component getComponent(Data data, List<Representation> representations) {
+        for (Representation representation : representations) {
+            if (representation.getData() == data) {
+                return (Component) representation.getAssigned();
+            }
+        }
+        return null;
+    }
+    
     public void save(List<Component> components, String file) {
         List<Data> data = new LinkedList<Data>();
         Set<Representation> representations = new HashSet<Representation>();

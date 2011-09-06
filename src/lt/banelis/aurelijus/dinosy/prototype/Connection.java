@@ -20,7 +20,7 @@ public class Connection {
     private int arrowSize = Arrow.defaultSize;
 
     public Connection(Component from, Component to) {
-        this(from, to, new Arrow.Generalization());
+        this(from, to, new Arrow.None());
     }
 
     public Connection(Component from, Component to, Arrow arrowTo) {

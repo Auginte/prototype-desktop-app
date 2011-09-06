@@ -11,10 +11,15 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.JPanel;
+import lt.dinosy.datalib.Data;
+import lt.dinosy.datalib.Relation;
+import lt.dinosy.datalib.Representation;
 
 /**
  * Panel with zooming capabilities.
@@ -174,20 +179,21 @@ public class ZoomPanel extends JPanel implements Serializable {
 
     @Override
     public void remove(int index) {
+        Component component = getComponent(index);
         for (ContentChangeListener contentChangeListener : changeListerners) {
-            contentChangeListener.removed(getComponent(index));
+            contentChangeListener.removed(component);
         }
-        components.remove(getComponent(index));
+        components.remove(component);
         super.remove(index);
     }
 
     @Override
     public void removeAll() {
-        components.clear();
-        connections.clear();
         for (ContentChangeListener contentChangeListener : changeListerners) {
             contentChangeListener.removedAll();
         }
+        components.clear();
+        connections.clear();
         super.removeAll();
     }
 
@@ -358,7 +364,7 @@ public class ZoomPanel extends JPanel implements Serializable {
     }
 
     /**
-     * Adds addaper if not already exists
+     * Adds adapter if not already exists
      * @todo using sub components
      */
     private void addEdgeAdapter(Component component) {
@@ -411,6 +417,43 @@ public class ZoomPanel extends JPanel implements Serializable {
             }
         }
         connections.removeAll(toDelete);
+    }
+    
+    public void removeConnections(Component component) {
+        Set<Connection> toRemove = new HashSet<Connection>();
+        Data data = ((DataRepresentation) component).getData();
+        for (Connection connection : connections) {
+            if (connection.getFrom() == component) {
+                toRemove.add(connection);
+                removeRelations((DataRepresentation) connection.getTo(), data);
+            } else if (connection.getTo() == component) {
+                toRemove.add(connection);
+                removeRelations((DataRepresentation) connection.getFrom(), data);
+            }
+        }
+        connections.removeAll(toRemove);
+    }
+    
+    private void removeRelations(DataRepresentation container, Data linkTo) {
+        List<Relation> toRemove = new LinkedList<Relation>();
+        for (Relation relation : container.getData().getRelations()) {
+            if (relation.getFrom() == linkTo || relation.getTo() == linkTo) {
+                toRemove.add(relation);
+            }
+        }
+        container.getData().getRelations().removeAll(toRemove);
+    }
+    
+    private int countRepresentations(Data data) {
+        int result = 0;
+        for (Component component : getComponents()) {
+            if (component instanceof DataRepresentation) {
+                if (((DataRepresentation) component).getData() == data) {
+                    result++;
+                }
+            }
+        }
+        return result;
     }
 
     //TODO: why concurent modification?
