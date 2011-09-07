@@ -2,7 +2,13 @@ package lt.banelis.aurelijus.dinosy.prototype;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -18,6 +24,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,6 +104,7 @@ public class BasicVisualization {
         initMouseCloning();
         initDragAndDrop();
         initConnections();
+//        initClipboard();
     }
 
     
@@ -290,13 +299,13 @@ public class BasicVisualization {
             private static final String stringListFlavor = "text/uri-list; class=java.lang.String; charset=Unicode";
             @Override
             public boolean canImport(TransferSupport support) {
-                for (DataFlavor dataFlavor : support.getDataFlavors()) {
-                    if (dataFlavor.getMimeType().equals(stringListFlavor)) {
-                        return true;
-                    }
-                    //TODO: DataFlavor.javaFileListFlavor
-                }
-                return false;
+                return true;
+//                for (DataFlavor dataFlavor : support.getDataFlavors()) {
+//                    if (dataFlavor.getMimeType().equals(stringListFlavor)) {
+//                        return true;
+//                    }
+//                }
+//                return false;
             }
 
             @Override
@@ -317,6 +326,17 @@ public class BasicVisualization {
                                     addText(file, x, y, 100, 20, false);
                                 }
                             }
+//                        } else {
+//                            if (dataFlavor.getPrimaryType().equals("text")) {
+//                                System.out.println("TEXT: " + dataFlavor);
+//                                BufferedReader bufferedReader = new BufferedReader(dataFlavor.getReaderForText(support.getTransferable()));
+//                                String line = null;
+//                                while ((line = bufferedReader.readLine()) != null) {
+//                                    System.out.println("\t" + line);
+//                                }
+//                            } else {
+//                                System.out.println(dataFlavor + " <--- " +  dataFlavor.getDefaultRepresentationClass().getSimpleName());
+//                            }
                         }
                     } catch (Exception ex) {
                         Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Cannot import drag n drop data", ex);
@@ -336,6 +356,32 @@ public class BasicVisualization {
             
         });
     }
+    
+//    private void initClipboard() {
+//        final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+//        clipboard.addFlavorListener(new FlavorListener() {
+//            public void flavorsChanged(FlavorEvent e) {
+//                Transferable contents = clipboard.getContents(null);
+//                for (DataFlavor dataFlavor : contents.getTransferDataFlavors()) {
+//                    if (dataFlavor.getPrimaryType().equals("text")) {
+//                        try {
+//                            BufferedReader bufferedReader = new BufferedReader(dataFlavor.getReaderForText(contents));
+//                            System.out.println("text: " + dataFlavor);
+//                            String line = null;
+//                            while ((line = bufferedReader.readLine()) != null) {
+//                                System.out.println("\t" + line);
+//                            }
+//                        } catch (Exception ex) {
+//                            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Clipboard error", ex);
+//                        }
+//                    } else {
+//                        System.out.println("binnary: " + dataFlavor + " <-- " + dataFlavor.getPrimaryType());
+//                    }
+//                }
+//                System.out.println("_________________________________-");
+//            }
+//        });
+//    }
     
     
     /*
