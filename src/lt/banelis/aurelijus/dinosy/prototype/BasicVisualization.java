@@ -8,7 +8,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.FlavorEvent;
 import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -21,16 +20,19 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -62,8 +65,10 @@ import lt.dinosy.datalib.Representation.Element;
 import lt.dinosy.datalib.Source;
 import org.xml.sax.SAXException;
 import lt.banelis.aurelijus.dinosy.prototype.Connectable.ConnectionState;
+import lt.dinosy.datalib.Okular;
 import lt.dinosy.datalib.Relation;
 import lt.dinosy.datalib.Relation.Association;
+import lt.dinosy.datalib.Settings;
 
 /**
  * Basic elements of visualization
@@ -81,6 +86,10 @@ public class BasicVisualization {
     private double selectionY = Double.NaN;
     private Component connectionStart = null;
     private Component connectionEnd = null;
+    private ClipboardSourceListener clipboardSourceListener = null;
+    private Source lastClipboardSource = null;
+    private volatile boolean checkingClipboard = false;
+    private long lastChecked = 0;
     
     //FIXME: normal source implemntation
     public Source defaultSource = null;
@@ -104,7 +113,7 @@ public class BasicVisualization {
         initMouseCloning();
         initDragAndDrop();
         initConnections();
-//        initClipboard();
+        initClipboard();
     }
 
     
@@ -357,31 +366,163 @@ public class BasicVisualization {
         });
     }
     
-//    private void initClipboard() {
-//        final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-//        clipboard.addFlavorListener(new FlavorListener() {
-//            public void flavorsChanged(FlavorEvent e) {
-//                Transferable contents = clipboard.getContents(null);
-//                for (DataFlavor dataFlavor : contents.getTransferDataFlavors()) {
-//                    if (dataFlavor.getPrimaryType().equals("text")) {
-//                        try {
-//                            BufferedReader bufferedReader = new BufferedReader(dataFlavor.getReaderForText(contents));
-//                            System.out.println("text: " + dataFlavor);
-//                            String line = null;
-//                            while ((line = bufferedReader.readLine()) != null) {
-//                                System.out.println("\t" + line);
-//                            }
-//                        } catch (Exception ex) {
-//                            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Clipboard error", ex);
+    
+    /*
+     * Clipboard
+     */
+    
+    public static interface ClipboardSourceListener {
+        public void checking();
+        public void noNew();
+        public void newOkular(Source.Okular source);
+        public void newFirefox(Source.Internet source);
+        public void otherData(String data);
+    }
+
+    public void setClipboardSourceListener(ClipboardSourceListener clipboardSourceListener) {
+        this.clipboardSourceListener = clipboardSourceListener;
+    }
+
+    public ClipboardSourceListener getClipboardSourceListener() {
+        return clipboardSourceListener;
+    }
+
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    
+    private void initClipboard() {
+        clipboard.addFlavorListener(clipboardListener);
+    }
+    
+    public void forceClipboardCheck() {
+        long now = (new Date()).getTime() / 3;
+        if (!checkingClipboard && now != lastChecked) {
+            clipboardListener.flavorsChanged(null);
+        }
+        lastChecked = now;
+    }
+        
+    private FlavorListener clipboardListener = new FlavorListener() {
+        public void flavorsChanged(FlavorEvent e) {
+            /* One instance for performance */
+            if (checkingClipboard) {
+                return;
+            } else {
+                checkingClipboard = true;
+            }
+            if (clipboardSourceListener != null) {
+                clipboardSourceListener.checking();
+            }
+            
+            /* Gathering clipboard data */
+            final Transferable contents = clipboard.getContents(null);
+            int page = 0;
+            String url = "";
+            Source.Okular.Boundary boundary = new Source.Okular.Boundary(-1, -1, -1, -1);
+            String otherData = "";
+            DataFlavor okularImage = null;
+            for (DataFlavor dataFlavor : contents.getTransferDataFlavors()) {
+                try {
+                    boolean streamRepresentation = (dataFlavor.getDefaultRepresentationClass() == InputStream.class);
+                    if (otherData.length() == 0) {
+                        otherData = dataFlavor.getHumanPresentableName();
+                    }
+                    if (dataFlavor.getMimeType().startsWith("text/x-okular-")) {
+                        String data = getFromReader(dataFlavor.getReaderForText(contents));
+                        if (dataFlavor.getMimeType().equals("text/x-okular-page; class=java.io.InputStream")) {
+                            page = Integer.parseInt(data.trim());
+                        } else if (dataFlavor.getMimeType().equals("text/x-okular-url; class=java.io.InputStream")) {
+                            url = URLDecoder.decode(data, "UTF-8").trim();
+                        } else if (dataFlavor.getMimeType().equals("text/x-okular-selection; class=java.nio.ByteBuffer") || dataFlavor.getMimeType().equals("text/x-okular-selection; class=java.io.InputStream")) {
+                            String[] parts = data.split("x|, ", 4);
+                            boundary.l = Float.parseFloat(parts[0]);
+                            boundary.t = Float.parseFloat(parts[1]);
+                            boundary.r = Float.parseFloat(parts[2]);
+                            boundary.b = Float.parseFloat(parts[3]);
+                        }
+                    } else if (dataFlavor.getMimeType().startsWith("image/png") && streamRepresentation) {
+                        okularImage = dataFlavor;
+                    } else if (dataFlavor.getPrimaryType().equals("text") && streamRepresentation) {
+                        otherData = getFromReader(dataFlavor.getReaderForText(contents));
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Clipboard error", ex);
+                }
+            }
+            
+            /* Exporting data to Source format */
+            if (page > 0 && url.length() > 0 && okularImage != null && clipboardSourceListener != null) {
+                Source.Okular lastSource = null;
+                if (lastClipboardSource instanceof Source.Okular) {
+                    lastSource = (Source.Okular) lastClipboardSource;
+                }
+                if (lastSource == null || lastSource.getPage() != page || !lastSource.getSource().equals(url) || !lastSource.getPosition().equals(boundary)) {
+                    final DataFlavor finalFlavor = okularImage;
+                    final String finalUrl = url;
+                    final int finalPage = page;
+                    final Source.Okular.Boundary finalBoundary = boundary;
+//                    Thread saveClipboard = new Thread() {
+//                        @Override
+//                        public void run() {
+                            File destination = generateClipboardFile(finalUrl);
+                            FileOutputStream output = null;
+                            try {
+                                InputStream imageStream = (InputStream) contents.getTransferData(finalFlavor);
+                                output = new FileOutputStream(destination);
+                                int nextChar;
+                                while ( (nextChar = imageStream.read()) != -1 ) {
+                                    output.write(nextChar);
+                                }
+                                imageStream.close();
+                                output.close();
+                            } catch (Exception ex) {
+                                Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Can not save image from clipboard to " + destination, ex);
+                            }
+                            Source.Okular source = new Source.Okular(new Date(), finalUrl, finalPage, finalBoundary, destination.getPath());
+                            clipboardSourceListener.newOkular(source);
+                            lastClipboardSource = source;
 //                        }
-//                    } else {
-//                        System.out.println("binnary: " + dataFlavor + " <-- " + dataFlavor.getPrimaryType());
-//                    }
-//                }
-//                System.out.println("_________________________________-");
-//            }
-//        });
-//    }
+//                    };
+//                    saveClipboard.start();
+                } else {
+                    clipboardSourceListener.noNew();
+                }
+            } else {
+                clipboardSourceListener.otherData(otherData);
+            }
+            checkingClipboard = false;
+        }
+    };
+        
+    private File generateClipboardFile(String url) {
+        int slash = url.lastIndexOf(System.getProperty("file.separator"));
+        if (slash < 0) {
+            slash = 0;
+        }
+        String fileName = url.substring(slash).trim() + "." + (new Date()).getTime() + ".png";
+        return new File(Settings.getCurrentCacheDirecotry(), fileName);
+    }
+    
+    private static int intGroup(Matcher matcher, int group) {
+        return Integer.parseInt(matcher.group(group));
+    }
+    
+    private static String getFromReader(Reader reader) {
+        StringBuilder result = new StringBuilder();
+        try {
+            BufferedReader bufferedReader = new BufferedReader(reader);
+            String line = null;
+            while ((line = bufferedReader.readLine()) != null) {
+                result.append(line).append("\n");
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Can not convert reader to string", ex);
+        }
+        return result.toString();
+    }
+
+    public Source getLastClipboardSource() {
+        return lastClipboardSource;
+    }
     
     
     /*

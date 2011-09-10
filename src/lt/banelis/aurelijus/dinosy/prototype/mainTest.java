@@ -32,6 +32,7 @@ import lt.dinosy.datalib.Source;
 import lt.dinosy.datalib.Source.Book;
 import lt.dinosy.datalib.Source.Event;
 import lt.dinosy.datalib.Source.Internet;
+import lt.dinosy.datalib.Source.Okular;
 
 /**
  *
@@ -50,6 +51,7 @@ public class mainTest extends javax.swing.JFrame {
         visualization = new BasicVisualization(zoomPanel1);
         visualization.initAll();
         initPopups();
+        initSources();
         initKeyShortcuts(getContentPane());
     }
 
@@ -132,6 +134,9 @@ public class mainTest extends javax.swing.JFrame {
         sourceBookPage = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         sourceBookIsbn = new javax.swing.JTextField();
+        jPanel4 = new javax.swing.JPanel();
+        sourceOkularAuto = new javax.swing.JCheckBox();
+        sourceOkularClipboard = new javax.swing.JLabel();
         buttonsPanel = new javax.swing.JPanel();
         jButton9 = new javax.swing.JButton();
         jButton10 = new javax.swing.JButton();
@@ -183,7 +188,7 @@ public class mainTest extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 52, Short.MAX_VALUE)
+            .addGap(0, 69, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("None", jPanel1);
@@ -210,7 +215,7 @@ public class mainTest extends javax.swing.JFrame {
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(29, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(sourceEventName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -248,7 +253,7 @@ public class mainTest extends javax.swing.JFrame {
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(29, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(sourceinternetUrl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -296,7 +301,7 @@ public class mainTest extends javax.swing.JFrame {
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(29, Short.MAX_VALUE)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(sourceBookName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -308,6 +313,32 @@ public class mainTest extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Book", jPanel5);
+
+        jPanel4.setLayout(new java.awt.BorderLayout());
+
+        sourceOkularAuto.setSelected(true);
+        sourceOkularAuto.setText("<HTML>Automatically<BR/> add from<BR/> clipboard</HTML>");
+        sourceOkularAuto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sourceOkularAutoActionPerformed(evt);
+            }
+        });
+        jPanel4.add(sourceOkularAuto, java.awt.BorderLayout.LINE_START);
+
+        sourceOkularClipboard.setFont(new java.awt.Font("Ubuntu", 0, 9)); // NOI18N
+        sourceOkularClipboard.setText("No data in clipboard");
+        sourceOkularClipboard.setToolTipText("Move mouse over to force to check clipboard");
+        sourceOkularClipboard.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                sourceOkularClipboardMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                sourceOkularClipboardMouseEntered(evt);
+            }
+        });
+        jPanel4.add(sourceOkularClipboard, java.awt.BorderLayout.CENTER);
+
+        jTabbedPane1.addTab("Okular", jPanel4);
 
         javax.swing.GroupLayout sourcePanelLayout = new javax.swing.GroupLayout(sourcePanel);
         sourcePanel.setLayout(sourcePanelLayout);
@@ -482,6 +513,9 @@ public class mainTest extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 zoomPanel1MouseClicked(evt);
             }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                zoomPanel1MouseEntered(evt);
+            }
         });
 
         javax.swing.GroupLayout zoomPanel1Layout = new javax.swing.GroupLayout(zoomPanel1);
@@ -492,7 +526,7 @@ public class mainTest extends javax.swing.JFrame {
         );
         zoomPanel1Layout.setVerticalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 788, Short.MAX_VALUE)
+            .addGap(0, 773, Short.MAX_VALUE)
         );
 
         getContentPane().add(zoomPanel1, java.awt.BorderLayout.CENTER);
@@ -630,6 +664,29 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     updateParentSource();
 }//GEN-LAST:event_jButton1ActionPerformed
 
+private void sourceOkularAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceOkularAutoActionPerformed
+    
+}//GEN-LAST:event_sourceOkularAutoActionPerformed
+
+private void sourceOkularClipboardMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sourceOkularClipboardMouseEntered
+    visualization.forceClipboardCheck();
+}//GEN-LAST:event_sourceOkularClipboardMouseEntered
+
+private void sourceOkularClipboardMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sourceOkularClipboardMouseClicked
+    if (evt.getClickCount() > 1 && visualization.getLastClipboardSource() instanceof Okular) {
+        Okular source = (Okular) visualization.getLastClipboardSource();
+        addImage(source.getCachedImage(), source);
+    }
+}//GEN-LAST:event_sourceOkularClipboardMouseClicked
+
+private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_zoomPanel1MouseEntered
+//    visualization.forceClipboardCheck(); //Performance glitch
+}//GEN-LAST:event_zoomPanel1MouseEntered
+
+    private void initSources() {
+        visualization.setClipboardSourceListener(clipboardSourceListener);
+    }
+
     enum SourceType {
         None,
         Event,
@@ -667,6 +724,45 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         visualization.loadData(file);
     }
     
+    BasicVisualization.ClipboardSourceListener clipboardSourceListener = new BasicVisualization.ClipboardSourceListener() {
+        public void newOkular(Okular source) {
+            sourceOkularClipboard.setText("<HTML><B>Page:</B> " + source.getPage() + "<BR/>" +
+                    "<B>URL:</B> " + source.getSource() + "<BR/>" +
+                    "<B>Rect:</B> " + source.getPosition().l + "x" + source.getPosition().t + " | " + source.getPosition().r + "x" + source.getPosition().b + "<BR/>" +
+                    "<B>Date:</B> " + source.getDateSting() +
+                    "<HTML>");
+            if (sourceOkularAuto.isSelected()) {
+                addImage(source.getCachedImage(), source);
+            }
+        }
+
+        public void newFirefox(Internet source) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public void otherData(String data) {
+            sourceOkularClipboard.setText("<HTML><B>Not okular data in clipboard:</B><BR/>" +
+                    data + "<BR/>" +
+                    "<B>Date</B>:" + Source.parseDate(new Date()) + "</HTML>");
+        }
+
+        public void checking() {
+            sourceOkularClipboard.setText("Checking clipboard...");
+        }
+
+        public void noNew() {
+            if (visualization.getLastClipboardSource() instanceof Source.Okular) {
+                sourceOkularClipboard.setText("Nothing new in clipboard: " + visualization.getLastClipboardSource().getSource());
+            }
+        }
+    };
+    
+    private void addImage(String file, Source source) {
+        ZoomableImage image = new ZoomableImage(file, source);
+        image.loadImage();
+        ZoomableComponent component = zoomPanel1.addComponent(image);
+        component.setLocation(zoomPanel1.getWidth() / 2, zoomPanel1.getHeight() / 2);
+    }
     
     /**
     * @param args the command line arguments
@@ -718,6 +814,7 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JTabbedPane jTabbedPane1;
@@ -727,6 +824,8 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     private javax.swing.JTextField sourceEventDate;
     private javax.swing.JTextField sourceEventName;
     private javax.swing.JTextField sourceEventPlace;
+    private javax.swing.JCheckBox sourceOkularAuto;
+    private javax.swing.JLabel sourceOkularClipboard;
     private javax.swing.JPanel sourcePanel;
     private javax.swing.JTextField sourceinternetTitle;
     private javax.swing.JTextField sourceinternetUrl;
