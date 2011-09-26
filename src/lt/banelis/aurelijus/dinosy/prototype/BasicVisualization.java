@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -499,7 +500,7 @@ public class BasicVisualization {
             slash = 0;
         }
         String fileName = url.substring(slash).trim() + "." + (new Date()).getTime() + ".png";
-        return new File(Settings.getCurrentCacheDirecotry(), fileName);
+        return new File(Settings.getDateCacheDirecotry(), fileName);
     }
     
     private static int intGroup(Matcher matcher, int group) {
@@ -848,12 +849,20 @@ public class BasicVisualization {
             StringBuilder tooltip = new StringBuilder(source.getDateSting());
             JMenuItem item = new JMenuItem(source.toString());
             if (source instanceof Source.Internet) {
+                final Source.Internet internetSource = (Source.Internet) source;
                 item.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        Source.Internet source = (Source.Internet) representation.getData().getSource();
-                        runExternal(new String[] {"/usr/bin/firefox", source.getSource()});
+                        runExternal(new String[] {"/usr/bin/firefox", internetSource.getSource()});
                     }
                 });
+                if (internetSource.getTitle() != null && internetSource.getTitle().length() > 0) {
+                    JMenuItem title = new JMenuItem(internetSource.getTitle());
+                    if (internetSource.getXpaht() != null && internetSource.getXpaht().length() > 0) {
+                        title.setToolTipText(internetSource.getXpaht());
+                    }
+                    title.setEnabled(false);
+                    menu.add(title);
+                }
             } else if (source instanceof Source.Okular) {
                 item.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
@@ -1293,7 +1302,7 @@ public class BasicVisualization {
         new AddOperation("text", new Key(Key.Modifier.CTRL, KeyEvent.VK_SPACE, true)) {
             @Override
             public void perform(ZoomPanel panel) {
-                addText("", panel.getWidth() / 2, panel.getHeight() / 2, 100, 200, true);
+                addText("", panel.getWidth() / 2, panel.getHeight() / 2, 100, 20, true);
             }
         },
         new AddOperation("image", new Key(Key.Modifier.CTRL, KeyEvent.VK_I, true)) {
@@ -1304,6 +1313,12 @@ public class BasicVisualization {
                 if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
                     addImage(jfc.getSelectedFile().getPath(), null, null);
                 }
+            }
+        },
+        new AddOperation("screenShot", new Key(Key.Modifier.CTRL, KeyEvent.VK_PRINTSCREEN, true)) {
+            @Override
+            public void perform(ZoomPanel panel) {
+                addScreenShot(0, Settings.getDateCacheDirecotry());
             }
         },
         
@@ -1426,6 +1441,28 @@ public class BasicVisualization {
         component.setLocation(x, y);
         component.setSize(new Dimension(widh, height));
         label.requestFocusInWindow();
+    }
+    
+    private void addScreenShot(final long delay, final File outputDirectory) {
+        Thread captureProgram = new Thread() {
+            @Override
+            public void run() {
+                if (delay > 100) {
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "ScreenShot delay interupted", ex);
+                    }
+                }
+                if (outputDirectory.isDirectory()) {
+                    outputDirectory.mkdirs();
+                }
+                String fileName = outputDirectory.getPath() + "/" + new SimpleDateFormat("yyyy-MM-dd'T'HH;mm;ss").format(new Date()) + ".jpg";
+                Okular.run(new String[] {"/usr/bin/import", fileName});
+                addImage(fileName, panel.getWidth() / 2, panel.getHeight() / 2);
+            }
+        };
+        captureProgram.start();      
     }
     
     private void saveAs() {

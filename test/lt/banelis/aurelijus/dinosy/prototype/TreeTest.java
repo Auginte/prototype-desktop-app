@@ -39,7 +39,7 @@ public class TreeTest {
         subTree.add(new Tree("A4"));
         tree.addChilds(subTree);
 
-        assertEquals("A", tree.getHead());
+        assertEquals("B", tree.getHead());
         assertTrue(tree.contains("A1"));
         assertTrue(tree.contains("A2"));
         assertTrue(tree.contains("A3"));

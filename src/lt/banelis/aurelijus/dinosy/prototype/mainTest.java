@@ -137,6 +137,7 @@ public class mainTest extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         sourceOkularAuto = new javax.swing.JCheckBox();
         sourceOkularClipboard = new javax.swing.JLabel();
+        sourceLastUpdated = new javax.swing.JLabel();
         buttonsPanel = new javax.swing.JPanel();
         jButton9 = new javax.swing.JButton();
         jButton10 = new javax.swing.JButton();
@@ -195,7 +196,19 @@ public class mainTest extends javax.swing.JFrame {
 
         jLabel1.setText("Name:");
 
+        sourceEventName.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                sourceEventNameKeyTyped(evt);
+            }
+        });
+
         jLabel2.setText("Place:");
+
+        sourceEventPlace.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                sourceEventPlaceKeyTyped(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -228,9 +241,21 @@ public class mainTest extends javax.swing.JFrame {
 
         jLabel7.setText("URL:");
 
+        sourceinternetUrl.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                sourceinternetUrlKeyTyped(evt);
+            }
+        });
+
         jLabel8.setText("XPath:");
 
         jLabel9.setText("Title:");
+
+        sourceinternetTitle.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                sourceinternetTitleKeyTyped(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -268,6 +293,12 @@ public class mainTest extends javax.swing.JFrame {
 
         jLabel4.setText("Name:");
 
+        sourceBookName.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                sourceBookNameKeyTyped(evt);
+            }
+        });
+
         jLabel5.setFont(new java.awt.Font("Ubuntu", 1, 15));
         jLabel5.setText("Page:");
 
@@ -279,6 +310,12 @@ public class mainTest extends javax.swing.JFrame {
         });
 
         jLabel6.setText("ISBN:");
+
+        sourceBookIsbn.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                sourceBookIsbnKeyTyped(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -325,7 +362,7 @@ public class mainTest extends javax.swing.JFrame {
         });
         jPanel4.add(sourceOkularAuto, java.awt.BorderLayout.LINE_START);
 
-        sourceOkularClipboard.setFont(new java.awt.Font("Ubuntu", 0, 9)); // NOI18N
+        sourceOkularClipboard.setFont(new java.awt.Font("Ubuntu", 0, 9));
         sourceOkularClipboard.setText("No data in clipboard");
         sourceOkularClipboard.setToolTipText("Move mouse over to force to check clipboard");
         sourceOkularClipboard.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -340,6 +377,9 @@ public class mainTest extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Okular", jPanel4);
 
+        sourceLastUpdated.setFont(new java.awt.Font("Ubuntu", 0, 10)); // NOI18N
+        sourceLastUpdated.setText("Not updated yet");
+
         javax.swing.GroupLayout sourcePanelLayout = new javax.swing.GroupLayout(sourcePanel);
         sourcePanel.setLayout(sourcePanelLayout);
         sourcePanelLayout.setHorizontalGroup(
@@ -348,21 +388,27 @@ public class mainTest extends javax.swing.JFrame {
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 582, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
-                    .addComponent(sourceEventDate, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
-                .addGap(17, 17, 17))
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 109, Short.MAX_VALUE)
+                    .addComponent(sourceLastUpdated, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(sourceEventDate, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)))
+                .addGap(3, 3, 3))
         );
         sourcePanelLayout.setVerticalGroup(
             sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, sourcePanelLayout.createSequentialGroup()
-                    .addComponent(jLabel3)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(sourceEventDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton1))
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(sourcePanelLayout.createSequentialGroup()
+                .addGroup(sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(sourcePanelLayout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sourceEventDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sourceLastUpdated)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton1))
+                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         buttonsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Controll section"));
@@ -493,16 +539,17 @@ public class mainTest extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(buttonsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sourcePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 737, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(sourcePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 718, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         topPanelLayout.setVerticalGroup(
             topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(topPanelLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, topPanelLayout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(sourcePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(buttonsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         getContentPane().add(topPanel, java.awt.BorderLayout.PAGE_START);
@@ -522,11 +569,11 @@ public class mainTest extends javax.swing.JFrame {
         zoomPanel1.setLayout(zoomPanel1Layout);
         zoomPanel1Layout.setHorizontalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1343, Short.MAX_VALUE)
+            .addGap(0, 1324, Short.MAX_VALUE)
         );
         zoomPanel1Layout.setVerticalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 773, Short.MAX_VALUE)
+            .addGap(0, 745, Short.MAX_VALUE)
         );
 
         getContentPane().add(zoomPanel1, java.awt.BorderLayout.CENTER);
@@ -683,6 +730,30 @@ private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:
 //    visualization.forceClipboardCheck(); //Performance glitch
 }//GEN-LAST:event_zoomPanel1MouseEntered
 
+    private void sourceinternetUrlKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetUrlKeyTyped
+        updateParentSource();
+    }//GEN-LAST:event_sourceinternetUrlKeyTyped
+
+    private void sourceinternetTitleKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetTitleKeyTyped
+        updateParentSource();
+    }//GEN-LAST:event_sourceinternetTitleKeyTyped
+
+    private void sourceEventNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceEventNameKeyTyped
+        updateParentSource();
+    }//GEN-LAST:event_sourceEventNameKeyTyped
+
+    private void sourceEventPlaceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceEventPlaceKeyTyped
+        updateParentSource();
+    }//GEN-LAST:event_sourceEventPlaceKeyTyped
+
+    private void sourceBookNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookNameKeyTyped
+        updateParentSource();
+    }//GEN-LAST:event_sourceBookNameKeyTyped
+
+    private void sourceBookIsbnKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookIsbnKeyTyped
+        updateParentSource();
+    }//GEN-LAST:event_sourceBookIsbnKeyTyped
+
     private void initSources() {
         visualization.setClipboardSourceListener(clipboardSourceListener);
     }
@@ -718,6 +789,7 @@ private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:
                     visualization.defaultSource = null;
             }
         }
+        sourceLastUpdated.setText("Updated: " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
     }
     
     public void loadProject(String file) {
@@ -824,6 +896,7 @@ private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:
     private javax.swing.JTextField sourceEventDate;
     private javax.swing.JTextField sourceEventName;
     private javax.swing.JTextField sourceEventPlace;
+    private javax.swing.JLabel sourceLastUpdated;
     private javax.swing.JCheckBox sourceOkularAuto;
     private javax.swing.JLabel sourceOkularClipboard;
     private javax.swing.JPanel sourcePanel;
