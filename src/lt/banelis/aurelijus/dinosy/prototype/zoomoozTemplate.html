@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="lt" lang="lt">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>DiNoSy</title>
+        <link rel="stylesheet" href="style/zoomooz.css" type="text/css" media="screen"/>
+        <script type="text/javascript" src="lib/jquery-1.4.4.js"></script>
+        <script type="text/javascript" src="lib/sylvester.js"></script>
+        <script type="text/javascript" src="lib/jquery.masonry.min.js"></script>
+        <script type="text/javascript" src="lib/jquery.prettyPhoto.js"></script>
+        <script type="text/javascript" src="js/purecssmatrix.js"></script>
+        <script type="text/javascript" src="js/jquery.animtrans.js"></script>
+        <script type="text/javascript" src="js/jquery.zoomooz.js"></script>
+
+        <script type="text/javascript" language="javascript">
+          $(document).ready(function() {
+            $(".zoomable").click(function(evt) {
+              $(this).zoomTo();
+              evt.stopPropagation();
+            });
+            $("body").click(function(evt) {
+              $(this).zoomTo({targetsize:1.0});
+              evt.stopPropagation();
+            });
+          });
+        </script>
+    </head>
+    <body>
+[Code]
+    </body>
+</html>

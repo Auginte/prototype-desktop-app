@@ -1,5 +1,6 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import com.sun.org.apache.bcel.internal.generic.F2D;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -20,14 +21,18 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1019,6 +1024,8 @@ public class BasicVisualization {
         public enum Modifier {
             NONE(0),
             CTRL(KeyEvent.CTRL_DOWN_MASK),
+            ALT(KeyEvent.ALT_DOWN_MASK),
+            SHIFT(KeyEvent.SHIFT_DOWN_MASK),
             CTRL_ALT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.ALT_DOWN_MASK),
             CTRL_SHIFT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK),
             CTRL_ALT_SHIFT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK + KeyEvent.ALT_DOWN_MASK);
@@ -1322,43 +1329,43 @@ public class BasicVisualization {
             }
         },
         
-        new FocusedOperation("Add text near", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_D, true)) {
+        new FocusedOperation("Add text near", new Key(Key.Modifier.SHIFT, KeyEvent.VK_D, true)) {
             @Override
             public void perform(ZoomableComponent focused, ZoomPanel panel) {
                 addText("", (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
             }
         },
-        new SelectionOperation("Zoom with element in", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_PLUS), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_EQUALS), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_E)) {
+        new SelectionOperation("Zoom with element in", new Key(Key.Modifier.ALT, KeyEvent.VK_PLUS), new Key(Key.Modifier.ALT, KeyEvent.VK_EQUALS), new Key(Key.Modifier.ALT, KeyEvent.VK_E)) {
             @Override
             protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 zoomWithSelected(selected, panel, 1.1);
             }
         },
-        new SelectionOperation("Zoom with element out", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_MINUS), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_Q)) {
+        new SelectionOperation("Zoom with element out", new Key(Key.Modifier.ALT, KeyEvent.VK_MINUS), new Key(Key.Modifier.ALT, KeyEvent.VK_Q)) {
             @Override
             protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 zoomWithSelected(selected, panel, 0.9);
             }
         },
-        new SelectionOperation("Go with elements left", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_LEFT), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_A)) {
+        new SelectionOperation("Go with elements left", new Key(Key.Modifier.ALT, KeyEvent.VK_LEFT), new Key(Key.Modifier.ALT, KeyEvent.VK_A)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, 10, 0);
             }
         },
-        new SelectionOperation("Go with elements right", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_RIGHT), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_D)) {
+        new SelectionOperation("Go with elements right", new Key(Key.Modifier.ALT, KeyEvent.VK_RIGHT), new Key(Key.Modifier.ALT, KeyEvent.VK_D)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, -10, 0);
             }
         },
-        new SelectionOperation("Go with elements up", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_UP), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_W)) {
+        new SelectionOperation("Go with elements up", new Key(Key.Modifier.ALT, KeyEvent.VK_UP), new Key(Key.Modifier.ALT, KeyEvent.VK_W)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, 0, 10);
             }
         },
-        new SelectionOperation("Go with elements down", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_DOWN), new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_S)) {
+        new SelectionOperation("Go with elements down", new Key(Key.Modifier.ALT, KeyEvent.VK_DOWN), new Key(Key.Modifier.ALT, KeyEvent.VK_S)) {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 translateWithSelected(selected, panel, 0, -10);
@@ -1373,6 +1380,21 @@ public class BasicVisualization {
                 panel.repaint();
             }
         },
+        new SelectionOperation("Export to HTML", new Key(Key.Modifier.NONE, KeyEvent.VK_F12, true)) {
+            @Override
+            public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+                JFileChooser jfc = new JFileChooser();
+                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                if (jfc.showSaveDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        exportToHtml(selected, jfc.getSelectedFile().getPath());
+                    } catch (IOException ex) {
+                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Error saving file", ex);
+                    }
+                }
+            }
+        },
+        
         new FocusedOperation("Clone representaion", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_C, true)) {
             //FIXME: act on realses not workin!!!!
             @Override
@@ -1508,6 +1530,85 @@ public class BasicVisualization {
         }
     }
     
+    private static String getHtmlStyle(ZoomableComponent component) {
+        return "position: absolute; left: " + (int) component.getLocation().getX() +
+                "px; top: " + (int) component.getLocation().getY() +
+                "px; width: " + (int) component.getSize().width + 
+                "px; height: " + (int) component.getSize().height +
+                "px;";
+    }
+    
+    private static String stripHtml(String text) {
+        return text.replaceAll("<(script|style)[^>]*?>(?:.|\\n)*?</\\s*\\1\\s*>", text);
+    }
+    
+    private void exportToHtml(List<ZoomableComponent> selected, String file) throws IOException {
+        /* Converting elements to HTML */
+        StringBuilder html = new StringBuilder();
+        for (ZoomableComponent zoomableComponent : selected) {
+            if (zoomableComponent.getSize().width > 1) {
+                if (zoomableComponent.getComponent() instanceof ZoomableLabel) {
+                    ZoomableLabel label = (ZoomableLabel) zoomableComponent.getComponent();
+                    if (label.getFontSize() > 0) {
+                        html.append("<span class=\"zoomable\" style=\"").append(getHtmlStyle(zoomableComponent));
+                        html.append(" font-size: ").append(label.getFontSize());
+                        html.append("px;\">").append(stripHtml(label.getText())).append("</span>\n");
+                    }
+                } else if (zoomableComponent.getComponent() instanceof ZoomableImage) {
+                    ZoomableImage image = (ZoomableImage) zoomableComponent.getComponent();
+                    File cachedImage = new File(image.getCached());
+                    File directory = new File(file).getParentFile();
+                    File copyTo = new File(directory.getPath() + File.separator + "img" + File.separator + cachedImage.getName());
+                    if (cachedImage.exists()) {
+                        copyTo.getParentFile().mkdirs();
+                        copyFile(cachedImage, copyTo);
+                        html.append("<img class=\"zoomable\" style=\"").append(getHtmlStyle(zoomableComponent));
+                        html.append("\" src=\"img/").append(cachedImage.getName()).append("\" alt=\"");
+                        html.append(image.getData()).append("\"/>\n");
+                    }
+                }
+            }
+        }
+        
+        /* Saving output to file */
+        BufferedReader reader = new BufferedReader(new InputStreamReader(BasicVisualization.class.getResourceAsStream("zoomoozTemplate.html")));
+        BufferedWriter writter = new BufferedWriter(new FileWriter(file));
+        String line;
+        String nl = System.getProperty("line.separator");
+        while ((line = reader.readLine()) != null) {
+            if (line.equalsIgnoreCase("[Code]")) {
+                writter.write(html.toString() + nl);
+            } else {
+                writter.write(line + nl);
+            }
+        }
+        reader.close();
+        writter.close();
+    }
+    
+    private static void copyFile(File sourceFile, File destFile) throws IOException {
+    if(!destFile.exists()) {
+        destFile.createNewFile();
+    }
+
+    FileChannel source = null;
+    FileChannel destination = null;
+
+    try {
+        source = new FileInputStream(sourceFile).getChannel();
+        destination = new FileOutputStream(destFile).getChannel();
+        destination.transferFrom(source, 0, source.size());
+    }
+    finally {
+        if(source != null) {
+            source.close();
+        }
+        if(destination != null) {
+            destination.close();
+        }
+    }
+}
+
     
     /*
      * Utilities

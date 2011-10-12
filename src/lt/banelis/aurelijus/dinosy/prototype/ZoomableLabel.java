@@ -104,6 +104,9 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         g.drawString(getText(), 0, (int) (getHeight() * 0.8));
     }
     
+    public int getFontSize() {
+        return (int) (getHeight() * 0.8);
+    }
 
     /*
      * Editable
@@ -255,7 +258,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     }
     
     private void updateFont() {
-        int height = (int) (getHeight() * 0.8);
+        int height = getFontSize();
         if (resized == null || lastFontHeight != height) {
             resized = getFont(height, this.getFont());
             setFont(resized);

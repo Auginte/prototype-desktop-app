@@ -123,6 +123,14 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         loading.start();
     }
 
+    public String getCached() {
+        if (data.getCached() != null) {
+            return data.getCached();
+        } else {
+            return data.getData();
+        }
+    }
+    
    
     @Override
     public void paint(Graphics g) {
