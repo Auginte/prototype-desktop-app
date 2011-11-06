@@ -7,7 +7,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 /**
- * Elemetn can be selected.
+ * Element can be selected.
  *
  * @author Aurelijus Banelis
  * @todo use inheritance not markers
@@ -27,9 +27,9 @@ public interface Selectable {
             if (e.isShiftDown()) {
                 Selectable selectable = null;
                 if ((e.getComponent() instanceof Selectable) && ((Selectable) e.getComponent()).isSelectable()) {
-                    selectable= (Selectable) e.getComponent();
+                    selectable = (Selectable) e.getComponent();
                 } else if (e.getComponent().getParent() != null && (e.getComponent().getParent() instanceof Selectable)) {
-                    selectable= (Selectable) e.getComponent().getParent();
+                    selectable = (Selectable) e.getComponent().getParent();
                 }
                 if (selectable != null) {
                     selectable.setSelected(!selectable.isSelected());

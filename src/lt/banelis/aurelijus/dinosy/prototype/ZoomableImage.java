@@ -1,9 +1,6 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.Channels;
-import java.net.URL;
-import java.io.FileOutputStream;
+import java.awt.Rectangle;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -46,15 +43,16 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private boolean loadingFromNew = false;
     private boolean selectable = true;
     private boolean selected = false;
-    private static String externalProgram = "/usr/bin/kolourpaint";
+    private static String externalProgram = "/usr/bin/pinta";
     private int lastWidth = -1;
     private int lastHeight = -1;
     private transient BufferedImage cachedImage = null;
-    private Optimization optimization = Optimization.time;
+    private Optimization optimization = Optimization.part;
     
     private enum Optimization {
         time,
-        memory
+        memory,
+        part
     }
     
     private ZoomableImage() {
@@ -82,8 +80,11 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
             this.setSize(originalImage.getWidth(), originalImage.getHeight());
             if (ZoomableImage.this.getParent() instanceof ZoomPanel) {
                 ZoomPanel panel = (ZoomPanel) ZoomableImage.this.getParent();
+                ZoomableComponent zoomable = panel.getZoomableComponent(this);
                 if (loadingFromNew) {
-                    panel.getZoomableComponent(this).reinisiateOriginalSize();
+                    zoomable.reinisiateOriginalSize();
+                } else {
+                    this.setSize(zoomable.getSize().width, zoomable.getSize().height);
                 }
             }
         } else if (loadingFromNew) {
@@ -146,6 +147,17 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                     graphics2D.drawImage(originalImage, 0, 0, newW, newH, null);
                 }
                 g.drawImage(cachedImage, 0, 0, null);
+            } else if (optimization == Optimization.part) {
+                Rectangle clipBounds = g.getClipBounds();
+                cachedImage = new BufferedImage(clipBounds.width, clipBounds.height, BufferedImage.TYPE_3BYTE_BGR);
+                Graphics2D graphics2D = cachedImage.createGraphics();
+                graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                int sx1 = (int) (clipBounds.x / scaleFactor);
+                int sy1 = (int) (clipBounds.y / scaleFactor);
+                int sx2 = (int) ((clipBounds.width + clipBounds.x) / scaleFactor);
+                int sy2 = (int) ((clipBounds.height + clipBounds.y) / scaleFactor);
+                graphics2D.drawImage(originalImage, 0, 0, clipBounds.width, clipBounds.height, sx1, sy1, sx2, sy2, null);
+                g.drawImage(cachedImage, clipBounds.x, clipBounds.y, null);
             } else {
                 /* Slower but less memory */
                 Graphics2D g2 = (Graphics2D) g;

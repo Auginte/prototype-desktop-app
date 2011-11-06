@@ -16,10 +16,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
-import lt.dinosy.datalib.Data;
-import lt.dinosy.datalib.Relation;
-import lt.dinosy.datalib.Representation;
+//import lt.dinosy.datalib.Data;
+//import lt.dinosy.datalib.Relation;
 
 /**
  * Panel with zooming capabilities.
@@ -210,6 +210,7 @@ public class ZoomPanel extends JPanel implements Serializable {
 
     public ZoomableComponent addComponent(Component component) {
         super.add(component);
+        setComponentZOrder(component, 0);
         return addZoomable(component);
     }
 
@@ -419,43 +420,6 @@ public class ZoomPanel extends JPanel implements Serializable {
         connections.removeAll(toDelete);
     }
     
-    public void removeConnections(Component component) {
-        Set<Connection> toRemove = new HashSet<Connection>();
-        Data data = ((DataRepresentation) component).getData();
-        for (Connection connection : connections) {
-            if (connection.getFrom() == component) {
-                toRemove.add(connection);
-                removeRelations((DataRepresentation) connection.getTo(), data);
-            } else if (connection.getTo() == component) {
-                toRemove.add(connection);
-                removeRelations((DataRepresentation) connection.getFrom(), data);
-            }
-        }
-        connections.removeAll(toRemove);
-    }
-    
-    private void removeRelations(DataRepresentation container, Data linkTo) {
-        List<Relation> toRemove = new LinkedList<Relation>();
-        for (Relation relation : container.getData().getRelations()) {
-            if (relation.getFrom() == linkTo || relation.getTo() == linkTo) {
-                toRemove.add(relation);
-            }
-        }
-        container.getData().getRelations().removeAll(toRemove);
-    }
-    
-    private int countRepresentations(Data data) {
-        int result = 0;
-        for (Component component : getComponents()) {
-            if (component instanceof DataRepresentation) {
-                if (((DataRepresentation) component).getData() == data) {
-                    result++;
-                }
-            }
-        }
-        return result;
-    }
-
     //TODO: why concurent modification?
     private synchronized void paintConnections(Graphics g) {
         for (Connection connection : connections) {

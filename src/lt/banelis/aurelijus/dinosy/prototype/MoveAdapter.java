@@ -1,10 +1,12 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
 /**
- * Mouse Listener that enambles moving in ZoomPanel
+ * Mouse Listener that enables moving in ZoomPanel
  *
  * @author Aurelijus Banelis
  */

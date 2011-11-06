@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
@@ -95,7 +96,8 @@ public class BasicVisualization {
     private ClipboardSourceListener clipboardSourceListener = null;
     private Source lastClipboardSource = null;
     private volatile boolean checkingClipboard = false;
-    private long lastChecked = 0;
+    private volatile long lastChecked = 0;
+    private DataConnections dataConnections;
     
     //FIXME: normal source implemntation
     public Source defaultSource = null;
@@ -111,6 +113,7 @@ public class BasicVisualization {
     public BasicVisualization(ZoomPanel panel) {
         this();
         this.panel = panel;
+        dataConnections = new DataConnections(panel);
     }
 
     public void initAll() {
@@ -163,7 +166,16 @@ public class BasicVisualization {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            if (isModifier(e, KeyEvent.CTRL_DOWN_MASK) || isModifier(e, KeyEvent.SHIFT_DOWN_MASK)) {
+            boolean shiftDown = isModifier(e, KeyEvent.SHIFT_DOWN_MASK);
+            boolean ctrlDown = isModifier(e, KeyEvent.CTRL_DOWN_MASK);
+            boolean middle = (e.getModifiersEx() & KeyEvent.BUTTON2_DOWN_MASK) == KeyEvent.BUTTON2_DOWN_MASK;
+            if (ctrlDown || shiftDown) {
+                /* Deselecting old */
+                if (shiftDown && !middle) {
+                    BasicVisualization.this.selectAll(panel, true);
+                }
+                
+                /* Selecting new */
                 if (panel.getZoomableComponent(selectionBox.getComponent()) == null) {
                     selectionBox = panel.addComponent(selectionBox.getComponent());
                 }
@@ -238,6 +250,17 @@ public class BasicVisualization {
             if (selectionBox.getComponent().isVisible()) {
                 selectionBox.getComponent().setVisible(false);
             }
+            ZoomableComponent focused = null;
+            List<ZoomableComponent> selected = panel.getSelected();
+            for (ZoomableComponent component : selected) {
+                if (component.getComponent().isFocusOwner()) {
+                    focused = component;
+                    break;
+                }
+            }
+            if (focused == null && selected.size() > 0) {
+                selected.get(0).getComponent().requestFocusInWindow();
+            }
         }
     };
 
@@ -249,8 +272,8 @@ public class BasicVisualization {
 
     private void addSelectionListener(Component component) {
         if (!contains(Selectable.defaultSelelectionListener, component.getMouseListeners())) {
-                component.addMouseListener(Selectable.defaultSelelectionListener);
-            }
+            component.addMouseListener(Selectable.defaultSelelectionListener);
+        }
     }
 
     public void initZooming() {
@@ -394,81 +417,96 @@ public class BasicVisualization {
     }
 
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    
     private void initClipboard() {
-        clipboard.addFlavorListener(clipboardListener);
+        Thread clipboardThread = new Thread() {
+            @Override
+            public void run() {
+                clipboard.addFlavorListener(clipboardListener);
+            }
+        };
+        clipboardThread.start();
     }
     
     public void forceClipboardCheck() {
-        long now = (new Date()).getTime() / 3;
+        long now = (new Date()).getTime();
         if (!checkingClipboard && now != lastChecked) {
-            clipboardListener.flavorsChanged(null);
+            Thread clipThread = new Thread() {
+                @Override
+                public void run() {
+                    long now = (new Date()).getTime();
+                    if (!checkingClipboard && now != lastChecked) {
+                        clipboardListener.flavorsChanged(null);
+                        lastChecked = now;
+                    }
+                }
+            };
+            clipThread.start();
         }
-        lastChecked = now;
     }
         
     private FlavorListener clipboardListener = new FlavorListener() {
         public void flavorsChanged(FlavorEvent e) {
-            /* One instance for performance */
-            if (checkingClipboard) {
-                return;
-            } else {
-                checkingClipboard = true;
-            }
-            if (clipboardSourceListener != null) {
-                clipboardSourceListener.checking();
-            }
-            
-            /* Gathering clipboard data */
-            final Transferable contents = clipboard.getContents(null);
-            int page = 0;
-            String url = "";
-            Source.Okular.Boundary boundary = new Source.Okular.Boundary(-1, -1, -1, -1);
-            String otherData = "";
-            DataFlavor okularImage = null;
-            for (DataFlavor dataFlavor : contents.getTransferDataFlavors()) {
-                try {
-                    boolean streamRepresentation = (dataFlavor.getDefaultRepresentationClass() == InputStream.class);
-                    if (otherData.length() == 0) {
-                        otherData = dataFlavor.getHumanPresentableName();
+            Thread clipboardThread = new Thread() {
+                @Override
+                public void run() {
+
+                    /* One instance for performance */
+                    if (checkingClipboard) {
+                        return;
+                    } else {
+                        checkingClipboard = true;
                     }
-                    if (dataFlavor.getMimeType().startsWith("text/x-okular-")) {
-                        String data = getFromReader(dataFlavor.getReaderForText(contents));
-                        if (dataFlavor.getMimeType().equals("text/x-okular-page; class=java.io.InputStream")) {
-                            page = Integer.parseInt(data.trim());
-                        } else if (dataFlavor.getMimeType().equals("text/x-okular-url; class=java.io.InputStream")) {
-                            url = URLDecoder.decode(data, "UTF-8").trim();
-                        } else if (dataFlavor.getMimeType().equals("text/x-okular-selection; class=java.nio.ByteBuffer") || dataFlavor.getMimeType().equals("text/x-okular-selection; class=java.io.InputStream")) {
-                            String[] parts = data.split("x|, ", 4);
-                            boundary.l = Float.parseFloat(parts[0]);
-                            boundary.t = Float.parseFloat(parts[1]);
-                            boundary.r = Float.parseFloat(parts[2]);
-                            boundary.b = Float.parseFloat(parts[3]);
+                    if (clipboardSourceListener != null) {
+                        clipboardSourceListener.checking();
+                    }
+
+                    /* Gathering clipboard data */
+                    final Transferable contents = clipboard.getContents(null);
+                    int page = 0;
+                    String url = "";
+                    Source.Okular.Boundary boundary = new Source.Okular.Boundary(-1, -1, -1, -1);
+                    String otherData = "";
+                    DataFlavor okularImage = null;
+                    for (DataFlavor dataFlavor : contents.getTransferDataFlavors()) {
+                        try {
+                            boolean streamRepresentation = (dataFlavor.getDefaultRepresentationClass() == InputStream.class);
+                            if (otherData.length() == 0) {
+                                otherData = dataFlavor.getHumanPresentableName();
+                            }
+                            if (dataFlavor.getMimeType().startsWith("text/x-okular-")) {
+                                String data = getFromReader(dataFlavor.getReaderForText(contents));
+                                if (dataFlavor.getMimeType().equals("text/x-okular-page; class=java.io.InputStream")) {
+                                    page = Integer.parseInt(data.trim());
+                                } else if (dataFlavor.getMimeType().equals("text/x-okular-url; class=java.io.InputStream")) {
+                                    url = URLDecoder.decode(data, "UTF-8").trim();
+                                } else if (dataFlavor.getMimeType().equals("text/x-okular-selection; class=java.nio.ByteBuffer") || dataFlavor.getMimeType().equals("text/x-okular-selection; class=java.io.InputStream")) {
+                                    String[] parts = data.split("x|, ", 4);
+                                    boundary.l = Float.parseFloat(parts[0]);
+                                    boundary.t = Float.parseFloat(parts[1]);
+                                    boundary.r = Float.parseFloat(parts[2]);
+                                    boundary.b = Float.parseFloat(parts[3]);
+                                }
+                            } else if (dataFlavor.getMimeType().startsWith("image/png") && streamRepresentation) {
+                                okularImage = dataFlavor;
+                            } else if (otherData.length() < 1 && dataFlavor.getPrimaryType().equals("text") && streamRepresentation) {
+                                otherData = getFromReader(dataFlavor.getReaderForText(contents));
+                            }
+                        } catch (Exception ex) {
+                            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Clipboard error", ex);
                         }
-                    } else if (dataFlavor.getMimeType().startsWith("image/png") && streamRepresentation) {
-                        okularImage = dataFlavor;
-                    } else if (dataFlavor.getPrimaryType().equals("text") && streamRepresentation) {
-                        otherData = getFromReader(dataFlavor.getReaderForText(contents));
                     }
-                } catch (Exception ex) {
-                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Clipboard error", ex);
-                }
-            }
-            
-            /* Exporting data to Source format */
-            if (page > 0 && url.length() > 0 && okularImage != null && clipboardSourceListener != null) {
-                Source.Okular lastSource = null;
-                if (lastClipboardSource instanceof Source.Okular) {
-                    lastSource = (Source.Okular) lastClipboardSource;
-                }
-                if (lastSource == null || lastSource.getPage() != page || !lastSource.getSource().equals(url) || !lastSource.getPosition().equals(boundary)) {
-                    final DataFlavor finalFlavor = okularImage;
-                    final String finalUrl = url;
-                    final int finalPage = page;
-                    final Source.Okular.Boundary finalBoundary = boundary;
-//                    Thread saveClipboard = new Thread() {
-//                        @Override
-//                        public void run() {
+
+                    /* Exporting data to Source format */
+                    if (page > 0 && url.length() > 0 && okularImage != null && clipboardSourceListener != null) {
+                        Source.Okular lastSource = null;
+                        if (lastClipboardSource instanceof Source.Okular) {
+                            lastSource = (Source.Okular) lastClipboardSource;
+                        }
+                        if (lastSource == null || lastSource.getPage() != page || !lastSource.getSource().equals(url) || !lastSource.getPosition().equals(boundary)) {
+                            final DataFlavor finalFlavor = okularImage;
+                            final String finalUrl = url;
+                            final int finalPage = page;
+                            final Source.Okular.Boundary finalBoundary = boundary;
                             File destination = generateClipboardFile(finalUrl);
                             FileOutputStream output = null;
                             try {
@@ -486,16 +524,16 @@ public class BasicVisualization {
                             Source.Okular source = new Source.Okular(new Date(), finalUrl, finalPage, finalBoundary, destination.getPath());
                             clipboardSourceListener.newOkular(source);
                             lastClipboardSource = source;
-//                        }
-//                    };
-//                    saveClipboard.start();
-                } else {
-                    clipboardSourceListener.noNew();
+                        } else {
+                            clipboardSourceListener.noNew();
+                        }
+                    } else {
+                        clipboardSourceListener.otherData(otherData);
+                    }
+                    checkingClipboard = false;
                 }
-            } else {
-                clipboardSourceListener.otherData(otherData);
-            }
-            checkingClipboard = false;
+            };
+            clipboardThread.start();
         }
     };
         
@@ -548,7 +586,7 @@ public class BasicVisualization {
             }
 
             public void removed(Component component) {
-                panel.removeConnections(component);
+                dataConnections.removeConnections(component);
                 panel.repaint();
             }
 
@@ -688,8 +726,8 @@ public class BasicVisualization {
                     }
                 }
                 
-                savedTo = file;
-                panel.repaint();
+                savedTo = file;                
+                panel.repaint();   
             }
 
         //TODO: normal exception handling
@@ -1287,15 +1325,7 @@ public class BasicVisualization {
                         break;
                     }
                 }
-                for (Component component : panel.getComponents()) {
-                    if (component instanceof Selectable && ((Selectable) component).isSelectable()) {
-                        if (deselect) {
-                            ((Selectable) component).setSelected(false);
-                        } else {
-                            ((Selectable) component).setSelected(true);
-                        }
-                    }
-                }
+                BasicVisualization.this.selectAll(panel, deselect);
             }
         },
         new PanelOperation("Delete all", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_DELETE, true)) {
@@ -1394,6 +1424,24 @@ public class BasicVisualization {
                 }
             }
         },
+        new SelectionOperation("Bring selected up", new Key(Key.Modifier.ALT, KeyEvent.VK_PAGE_UP)) {
+            @Override
+            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+                for (ZoomableComponent zoomableComponent : selected) {
+                    panel.setComponentZOrder(zoomableComponent.getComponent(), 0);
+                }
+                panel.repaint();
+            }
+        },
+        new SelectionOperation("Bring selected down", new Key(Key.Modifier.ALT, KeyEvent.VK_PAGE_DOWN)) {
+            @Override
+            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+                for (ZoomableComponent zoomableComponent : selected) {
+                    panel.setComponentZOrder(zoomableComponent.getComponent(), panel.getComponentCount() - 1);
+                }
+                panel.repaint();
+            }
+        },
         
         new FocusedOperation("Clone representaion", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_C, true)) {
             //FIXME: act on realses not workin!!!!
@@ -1436,6 +1484,18 @@ public class BasicVisualization {
         }
     );
 
+    private void selectAll(ZoomPanel panel, boolean deselect) {
+        for (Component component : panel.getComponents()) {
+            if (component instanceof Selectable && ((Selectable) component).isSelectable()) {
+                if (deselect) {
+                    ((Selectable) component).setSelected(false);
+                } else {
+                    ((Selectable) component).setSelected(true);
+                }
+            }
+        }
+    }
+    
     private void addImage(String path, Integer x, Integer y) {
         if (defaultSource == null) {
             defaultSource = new Source.Event();
@@ -1552,7 +1612,13 @@ public class BasicVisualization {
                     if (label.getFontSize() > 0) {
                         html.append("<span class=\"zoomable\" style=\"").append(getHtmlStyle(zoomableComponent));
                         html.append(" font-size: ").append(label.getFontSize());
-                        html.append("px;\">").append(stripHtml(label.getText())).append("</span>\n");
+                        html.append("px;\">").append(stripHtml(label.getText()));
+                        if (label.getData().getSource() instanceof Source.Internet) {
+                            Source.Internet source = (Source.Internet) label.getData().getSource();
+                            html.append("<a href=\"").append(urlEncode(source.getSource()));
+                            html.append("\">[^]</a>");
+                        }
+                        html.append("</span>\n");
                     }
                 } else if (zoomableComponent.getComponent() instanceof ZoomableImage) {
                     ZoomableImage image = (ZoomableImage) zoomableComponent.getComponent();
@@ -1563,7 +1629,7 @@ public class BasicVisualization {
                         copyTo.getParentFile().mkdirs();
                         copyFile(cachedImage, copyTo);
                         html.append("<img class=\"zoomable\" style=\"").append(getHtmlStyle(zoomableComponent));
-                        html.append("\" src=\"img/").append(cachedImage.getName()).append("\" alt=\"");
+                        html.append("\" src=\"img/").append(urlEncode(cachedImage.getName())).append("\" alt=\"");
                         html.append(image.getData()).append("\"/>\n");
                     }
                 }
@@ -1587,28 +1653,35 @@ public class BasicVisualization {
     }
     
     private static void copyFile(File sourceFile, File destFile) throws IOException {
-    if(!destFile.exists()) {
-        destFile.createNewFile();
-    }
-
-    FileChannel source = null;
-    FileChannel destination = null;
-
-    try {
-        source = new FileInputStream(sourceFile).getChannel();
-        destination = new FileOutputStream(destFile).getChannel();
-        destination.transferFrom(source, 0, source.size());
-    }
-    finally {
-        if(source != null) {
-            source.close();
+        if(!destFile.exists()) {
+            destFile.createNewFile();
         }
-        if(destination != null) {
-            destination.close();
+
+        FileChannel source = null;
+        FileChannel destination = null;
+
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        }
+        finally {
+            if(source != null) {
+                source.close();
+            }
+            if(destination != null) {
+                destination.close();
+            }
         }
     }
-}
 
+    private static String urlEncode(String text) {
+        try {
+            return java.net.URLEncoder.encode(text, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            return text;
+        }
+    }
     
     /*
      * Utilities
