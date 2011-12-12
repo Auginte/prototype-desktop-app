@@ -6,6 +6,7 @@ import java.awt.Point;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
+import javax.swing.JLabel;
 
 /**
  * Component, that adds zoom attribute to usual AWT Component
@@ -19,17 +20,22 @@ public class ZoomableComponent implements Serializable {
     private DoublePoint location;
     private DoubleDimension size;
     private Dimension derivedSize;
-    private double z = 1;
+    private double z;
     private MoveAdapter moveAdapter = null;
 
-    public ZoomableComponent(Component component) {
+    public ZoomableComponent(Component component, double z) {
         this.component = component;
-        recalculateOriginal();
+        this.z = z;
+        recalculateOriginal(z);
     }
 
-    public final void recalculateOriginal() {
+    public ZoomableComponent(Component component) {
+        this(component, 1);
+    }
+
+    public final void recalculateOriginal(double z) {
         this.originalLocation = component.getLocation();
-        this.originalSize = component.getSize();
+        this.originalSize = new Dimension((int) (component.getSize().getWidth() / z), (int) (component.getSize().getHeight() / z));
         this.location = new DoublePoint(originalLocation);
         this.size = new DoubleDimension(originalSize);
         this.derivedSize = component.getSize();
@@ -78,7 +84,7 @@ public class ZoomableComponent implements Serializable {
             ((Zoomable) getComponent()).zoomed(z);
         }
     }
-
+    
     /**
      * Resets location and size to original
      */
@@ -115,6 +121,7 @@ public class ZoomableComponent implements Serializable {
     }
 
     public Dimension getOriginalSize() {
+        //TODO: better size calculation
         if (originalSize.width == 0 && originalSize.height == 0) {
             originalSize.setSize(component.getSize());
         }

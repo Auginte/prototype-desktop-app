@@ -1,8 +1,6 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
 /**
@@ -75,7 +73,7 @@ public class MoveAdapter implements MouseInputListener {
         }
     }
 
-    public void mouseDragged(MouseEvent e) {
+    public synchronized void mouseDragged(MouseEvent e) {
         if (beingDragged) {
             drag(e);
             //TODO: optimise
@@ -83,7 +81,7 @@ public class MoveAdapter implements MouseInputListener {
         }
     }
 
-    private void drag(MouseEvent e) {
+    private synchronized void drag(MouseEvent e) {
         if (dragInside) {
             int differenceX = e.getX() - grabbedX;
             int differenceY = e.getY() - grabbedY;

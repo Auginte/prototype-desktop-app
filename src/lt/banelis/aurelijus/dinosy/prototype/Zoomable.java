@@ -10,4 +10,5 @@ public interface Zoomable {
      * Executed when parent resized this component
      */
     public void zoomed(double z);
+    public double getZ();
 }

@@ -1,6 +1,5 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
-import com.sun.org.apache.bcel.internal.generic.F2D;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -318,14 +317,28 @@ public class BasicVisualization {
             @Override
             public void mousePressed(MouseEvent e) {
                 int modifier = KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK;
-                if (isModifier(e, modifier) && (e.getComponent() instanceof ZoomableLabel)) {
+                if (isModifier(e, modifier) && (e.getComponent() instanceof Cloneable)) {
                     //FIXME: all components (not only ZoomableLabel)
+                    JComponent clone = null;
                     try {
-                        panel.addComponent(((ZoomableLabel) e.getComponent()).clone());
-                        ZoomableComponent component = panel.getZoomableComponent(e.getComponent());
-                        component.getMoveAdapter().setBeingDragged(true);
+                        if (e.getComponent() instanceof ZoomableLabel) {
+                            clone = ((ZoomableLabel) e.getComponent()).clone();
+                        } else if (e.getComponent() instanceof ZoomableImage) {
+                            clone = ((ZoomableImage) e.getComponent()).clone();
+                        }
                     } catch (CloneNotSupportedException ex) {
                         Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "MouseClonning: Zoomable component must be clonnable", ex);
+                    }
+                    if (clone != null) {
+                        clone.setLocation((int) e.getComponent().getLocation().getX(), (int) e.getComponent().getLocation().getY());
+                        clone.setSize((int) e.getComponent().getSize().getWidth(), (int) e.getComponent().getSize().getHeight());
+                        if ( e.getComponent() instanceof Zoomable) {
+                            panel.addComponent(clone, ((Zoomable) e.getComponent()).getZ());
+                        } else {
+                            panel.addComponent(clone);
+                        }
+                        ZoomableComponent component = panel.getZoomableComponent(e.getComponent());
+                        component.getMoveAdapter().setBeingDragged(true);
                     }
                 }
             }
@@ -905,6 +918,21 @@ public class BasicVisualization {
                     }
                     title.setEnabled(false);
                     menu.add(title);
+                }
+                if (internetSource.getSource().contains("/CCNA/")) {
+                     String course = "";
+                     if (internetSource.getSource().contains("cid=0600000000&")) {
+                         course = "1";
+                     } else if (internetSource.getSource().contains("cid=0900000000&")) {
+                        course = "2";
+                     } else if (internetSource.getSource().contains("cid=1300000000&")) {
+                        course = "3"; 
+                     } else if (internetSource.getSource().contains("cid=1400000000&")) {
+                         course = "4"; 
+                     }
+                    
+                     JMenuItem item2 = new JMenuItem("CCNA" + course + ": " + internetSource.getXpaht());
+                     menu.add(item2);
                 }
             } else if (source instanceof Source.Okular) {
                 item.addActionListener(new ActionListener() {

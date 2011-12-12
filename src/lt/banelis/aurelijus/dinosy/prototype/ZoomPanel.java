@@ -11,12 +11,9 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 //import lt.dinosy.datalib.Data;
 //import lt.dinosy.datalib.Relation;
@@ -29,7 +26,7 @@ import javax.swing.JPanel;
 public class ZoomPanel extends JPanel implements Serializable {
     private double z = 1;
     private DoublePoint cameraLocation = new DoublePoint(0, 0);
-    private Map<Component, ZoomableComponent> components = new HashMap<Component, ZoomableComponent>();
+    private volatile Map<Component, ZoomableComponent> components = new HashMap<Component, ZoomableComponent>();
     private boolean movability = true;
     private int translateEdges = 20;
     private int translateEdgesDelay = 50;
@@ -111,7 +108,7 @@ public class ZoomPanel extends JPanel implements Serializable {
 
     /**
      * Delegates zoomable component for each Swing component.
-     * Memorise original position and size of components.
+     * Memorize original position and size of components.
      */
     private synchronized void initialiseComponents() {
         if (!componentsInicialised) {
@@ -120,7 +117,7 @@ public class ZoomPanel extends JPanel implements Serializable {
                 if (zoomableComponent == null) {
                     addZoomable(component);
                 } else if (zoomableComponent.getSize().getWidth() == 0) {
-                    zoomableComponent.recalculateOriginal();
+                    zoomableComponent.recalculateOriginal(1);
                 }
             }
             componentsInicialised = true;
@@ -160,8 +157,8 @@ public class ZoomPanel extends JPanel implements Serializable {
         super.add(comp, constraints, index);
     }
 
-    private ZoomableComponent addZoomable(Component comp) {
-        ZoomableComponent component = new ZoomableComponent(comp);
+    private ZoomableComponent addZoomable(Component comp, double z) {
+        ZoomableComponent component = new ZoomableComponent(comp, z);
         addMovability(component);
         addEdgeAdapter(component.getComponent());
         components.put(comp, component);
@@ -169,6 +166,10 @@ public class ZoomPanel extends JPanel implements Serializable {
             contentChangeListener.added(comp);
         }
         return component;
+    }
+    
+    private ZoomableComponent addZoomable(Component comp) {
+        return addZoomable(comp, 1);
     }
 
     @Override
@@ -208,10 +209,14 @@ public class ZoomPanel extends JPanel implements Serializable {
         g.setColor(oldColor);
     }
 
-    public ZoomableComponent addComponent(Component component) {
+    public ZoomableComponent addComponent(Component component, double z) {
         super.add(component);
         setComponentZOrder(component, 0);
-        return addZoomable(component);
+        return addZoomable(component, z);
+    }
+    
+    public ZoomableComponent addComponent(Component component) {
+        return addComponent(component, 1);
     }
 
     public Collection<ZoomableComponent> getZoomableComponetns() {
@@ -237,7 +242,7 @@ public class ZoomPanel extends JPanel implements Serializable {
      * Using camera
      */
 
-    public void translate(double xDifference, double yDifference) {
+    public synchronized void translate(double xDifference, double yDifference) {
         translate(xDifference, yDifference, false);
     }
 
@@ -266,7 +271,7 @@ public class ZoomPanel extends JPanel implements Serializable {
         zoom(zDifference, this.getWidth() / 2, this.getHeight() / 2);
     }
 
-    public void zoom(double zDifference, int fromX, int fromY) {
+    public synchronized void zoom(double zDifference, int fromX, int fromY) {
         this.z *= zDifference;
         for (ZoomableComponent zoomableComponent : components.values()) {            
             if (!zoomableComponent.getMoveAdapter().isBeingDragged()) {
@@ -312,7 +317,7 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
         return super.getPreferredSize();
     }
-
+    
     /*
      * Moving
      */
@@ -417,6 +422,10 @@ public class ZoomPanel extends JPanel implements Serializable {
                 toDelete.add(connection);
             }
         }
+        removeConnections(toDelete);
+    }
+    
+    public void removeConnections(List<? extends Connection> toDelete) {
         connections.removeAll(toDelete);
     }
     

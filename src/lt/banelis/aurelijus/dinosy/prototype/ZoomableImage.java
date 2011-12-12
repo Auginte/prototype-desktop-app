@@ -35,7 +35,7 @@ import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
  *
  * @author Aurelijus Banelis
  */
-public class ZoomableImage extends JLabel implements DataRepresentation, Zoomable, Selectable, HavingOperations {
+public class ZoomableImage extends JLabel implements DataRepresentation, Zoomable, Selectable, HavingOperations, Cloneable {
     private Data.Image data;
     private volatile BufferedImage originalImage = null;
     private double scaleFactor = 1;
@@ -48,7 +48,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private int lastHeight = -1;
     private transient BufferedImage cachedImage = null;
     private Optimization optimization = Optimization.part;
-    
+
     private enum Optimization {
         time,
         memory,
@@ -63,6 +63,13 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     public ZoomableImage(Data.Image data) {
         this();
         iniciateData(data);
+    }
+
+    public ZoomableImage(Data.Image data, BufferedImage originalImage, double scaleFactor) {
+        this();
+        this.data = data;
+        this.originalImage = originalImage;
+        this.scaleFactor = scaleFactor;
     }
 
     public ZoomableImage(String file, Source source) {
@@ -177,7 +184,10 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         scaleFactor = z;
     }
 
-
+    public double getZ() {
+        return scaleFactor;
+    }
+    
     /*
      * Data container
      */
@@ -310,5 +320,11 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                 }
             }
         } catch (IOException ex) {}
+    }
+    
+    @Override
+    protected ZoomableImage clone() throws CloneNotSupportedException {
+        //FIXME: update after clonning
+        return new ZoomableImage(data, originalImage, scaleFactor);
     }
 }

@@ -128,6 +128,7 @@ public class mainTest extends javax.swing.JFrame {
         jLabel9 = new javax.swing.JLabel();
         sourceinternetTitle = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
+        ciscoCourse = new javax.swing.JComboBox();
         jPanel5 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         sourceBookName = new javax.swing.JTextField();
@@ -243,8 +244,8 @@ public class mainTest extends javax.swing.JFrame {
         jLabel7.setText("URL:");
 
         sourceinternetUrl.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                sourceinternetUrlKeyTyped(evt);
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                sourceinternetUrlKeyReleased(evt);
             }
         });
 
@@ -256,8 +257,8 @@ public class mainTest extends javax.swing.JFrame {
             }
         });
         sourceinternetXpath.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                sourceinternetXpathKeyTyped(evt);
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                sourceinternetXpathKeyReleased(evt);
             }
         });
 
@@ -275,6 +276,9 @@ public class mainTest extends javax.swing.JFrame {
                 jButton2ActionPerformed(evt);
             }
         });
+
+        ciscoCourse.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "CCNA 1", "CCNA 2", "CCNA 3", "CCNA 4" }));
+        ciscoCourse.setSelectedIndex(3);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -294,13 +298,18 @@ public class mainTest extends javax.swing.JFrame {
                         .addComponent(jLabel9)
                         .addGap(2, 2, 2)
                         .addComponent(sourceinternetTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
-                    .addComponent(jButton2))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(ciscoCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addComponent(jButton2)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton2)
+                    .addComponent(ciscoCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
@@ -753,10 +762,6 @@ private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:
 //    visualization.forceClipboardCheck(); //Performance glitch
 }//GEN-LAST:event_zoomPanel1MouseEntered
 
-    private void sourceinternetUrlKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetUrlKeyTyped
-        updateParentSource();
-    }//GEN-LAST:event_sourceinternetUrlKeyTyped
-
     private void sourceinternetTitleKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetTitleKeyTyped
         updateParentSource();
     }//GEN-LAST:event_sourceinternetTitleKeyTyped
@@ -782,13 +787,31 @@ private void sourceinternetXpathActionPerformed(java.awt.event.ActionEvent evt) 
 }//GEN-LAST:event_sourceinternetXpathActionPerformed
 
 private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-    sourceinternetUrl.setText("https://liepa.mif.vu.lt/CCNA/Exploration3English/theme/cheetah.html?cid=1300000000&l1=en&l2=none&chapter=");
+    String courseCode = "";
+    switch (ciscoCourse.getSelectedIndex()) {
+        case 0:
+            courseCode = "0600000000";
+        break;
+        case 1:
+            courseCode = "0900000000";
+        break;
+        case 2:
+            courseCode = "1300000000";
+        break;
+        default:
+            courseCode = "1400000000";
+    }
+    sourceinternetUrl.setText("https://liepa.mif.vu.lt/CCNA/Exploration4English/theme/cheetah.html?cid=" + courseCode + "&l1=en&l2=none&chapter=");
     sourceinternetUrl.requestFocusInWindow();
 }//GEN-LAST:event_jButton2ActionPerformed
 
-private void sourceinternetXpathKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetXpathKeyTyped
+private void sourceinternetXpathKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetXpathKeyReleased
     updateParentSource();
-}//GEN-LAST:event_sourceinternetXpathKeyTyped
+}//GEN-LAST:event_sourceinternetXpathKeyReleased
+
+private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetUrlKeyReleased
+    updateParentSource();
+}//GEN-LAST:event_sourceinternetUrlKeyReleased
 
     private void initSources() {
         visualization.setClipboardSourceListener(clipboardSourceListener);
@@ -902,6 +925,7 @@ private void sourceinternetXpathKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIR
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel buttonsPanel;
+    private javax.swing.JComboBox ciscoCourse;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
     private javax.swing.JButton jButton11;

@@ -349,8 +349,6 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     protected ZoomableLabel clone() throws CloneNotSupportedException {
         //FIXME: update after clonning
         ZoomableLabel clone = new ZoomableLabel(getData());
-        clone.setLocation((int) getLocation().getX(), (int) getLocation().getY());
-        clone.setSize((int) getSize().getWidth(), (int) getSize().getHeight());
         return clone;
     }
 

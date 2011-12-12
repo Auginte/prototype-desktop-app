@@ -41,4 +41,8 @@ public class ZoomableGroup extends JPanel implements Zoomable {
             }
         }
     }
+
+    public double getZ() {
+        return 1;
+    }
 }
