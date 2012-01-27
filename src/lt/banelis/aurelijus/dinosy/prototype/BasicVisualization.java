@@ -319,32 +319,39 @@ public class BasicVisualization {
                 int modifier = KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK;
                 if (isModifier(e, modifier) && (e.getComponent() instanceof Cloneable)) {
                     //FIXME: all components (not only ZoomableLabel)
-                    JComponent clone = null;
-                    try {
-                        if (e.getComponent() instanceof ZoomableLabel) {
-                            clone = ((ZoomableLabel) e.getComponent()).clone();
-                        } else if (e.getComponent() instanceof ZoomableImage) {
-                            clone = ((ZoomableImage) e.getComponent()).clone();
-                        }
-                    } catch (CloneNotSupportedException ex) {
-                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "MouseClonning: Zoomable component must be clonnable", ex);
-                    }
-                    if (clone != null) {
-                        clone.setLocation((int) e.getComponent().getLocation().getX(), (int) e.getComponent().getLocation().getY());
-                        clone.setSize((int) e.getComponent().getSize().getWidth(), (int) e.getComponent().getSize().getHeight());
-                        if ( e.getComponent() instanceof Zoomable) {
-                            panel.addComponent(clone, ((Zoomable) e.getComponent()).getZ());
-                        } else {
-                            panel.addComponent(clone);
-                        }
-                        ZoomableComponent component = panel.getZoomableComponent(e.getComponent());
-                        component.getMoveAdapter().setBeingDragged(true);
-                    }
+                    BasicVisualization.this.clone(e.getComponent());
                 }
             }
         };
     }
 
+    private void clone(Component component) {
+        JComponent clone = null;
+        try {
+            if (component instanceof ZoomableLabel) {
+                clone = ((ZoomableLabel) component).clone();
+            } else if (component instanceof ZoomableImage) {
+                clone = ((ZoomableImage) component).clone();
+            }
+        } catch (CloneNotSupportedException ex) {
+            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "MouseClonning: Zoomable component must be clonnable", ex);
+        }
+        if (clone != null) {
+            clone.setLocation((int) component.getLocation().getX(), (int) component.getLocation().getY());
+            clone.setSize((int) component.getSize().getWidth(), (int) component.getSize().getHeight());
+            if ( component instanceof Zoomable) {
+                panel.addComponent(clone, ((Zoomable) component).getZ());
+            } else {
+                panel.addComponent(clone);
+            }
+            ZoomableComponent zoomableComponent = panel.getZoomableComponent(component);
+            zoomableComponent.getMoveAdapter().setBeingDragged(true);
+            if (component instanceof DataRepresentation) {
+                ((DataRepresentation) clone).updateData(zoomableComponent);
+            }
+        }
+    }
+    
     private void initDragAndDrop() {
         panel.setTransferHandler(new TransferHandler() {
             private static final String stringListFlavor = "text/uri-list; class=java.lang.String; charset=Unicode";
@@ -1433,6 +1440,11 @@ public class BasicVisualization {
             @Override
             public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
                 for (ZoomableComponent zoomableComponent : selected) {
+                    Representation representation = BasicVisualization.getRepresentation(zoomableComponent);
+                    if (representation != null) {
+                        Data data = ((DataRepresentation) zoomableComponent.getComponent()).getData();
+                        data.removeRepresentation(representation);
+                    }
                     panel.remove(zoomableComponent.getComponent());
                 }
                 panel.repaint();
@@ -1470,20 +1482,87 @@ public class BasicVisualization {
                 panel.repaint();
             }
         },
-        
-        new FocusedOperation("Clone representaion", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_C, true)) {
-            //FIXME: act on realses not workin!!!!
+//        new SelectionOperation("Arrange Grid", new Key(Key.Modifier.CTRL, KeyEvent.VK_R, true)) {
+//            class BoundingBox {
+//                public double x;
+//                public double y;
+//                public double x2;
+//                public double y2;
+//
+//                public BoundingBox(Component component) {
+//                    x = component.getLocation().x;
+//                    y = component.getLocation().y;
+//                    x2 = x + component.getWidth();
+//                    y2 = y + component.getHeight();
+//                }
+//
+//                public double getWidth() {
+//                    return Math.abs(x2-x);
+//                }
+//                
+//                public double getHeight() {
+//                    return Math.abs(y2-y);
+//                }
+//                
+//                @Override
+//                public String toString() {
+//                    return "{" + x + "x" + y + " " + x2 + "X" + y2 + "}";
+//                }
+//            }
+//            @Override
+//            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+//                BoundingBox bounding = new BoundingBox(selected.get(0).getComponent());
+//                for (ZoomableComponent component : selected) {
+//                    if (component.getLocation().getX() < bounding.x) {
+//                        bounding.x = component.getLocation().getX();
+//                    }
+//                    if (component.getLocation().getY() < bounding.y) {
+//                        bounding.y = component.getLocation().getY();
+//                    }
+//                    if (bounding.x2 < component.getLocation().getX() + component.getSize().getWidth()) {
+//                        bounding.x2 = component.getSize().getWidth();
+//                    }
+//                    if (bounding.y2 < component.getLocation().getY() + component.getSize().getHeight()) {
+//                        bounding.y2 = component.getSize().getHeight();
+//                    }
+//                }
+//                int parts = (int) Math.floor(Math.sqrt(selected.size()));
+//                double width = bounding.getWidth() / parts;
+//                double height = bounding.getHeight() / parts;
+//                int iX = 0;
+//                int iY = 0;
+//                for (ZoomableComponent component : selected) {
+//                    double zoomFactor = Math.min(width / component.getSize().getWidth(), height / component.getSize().getHeight());
+//                    component.zoom(zoomFactor, component.getLocation().getX(), component.getLocation().getY());
+//                    component.setLocation(bounding.x + iX * width, bounding.y + iY * height);
+//                    if (iX < parts) {
+//                        iX++;
+//                    } else {
+//                        iX = 0;
+//                        iY++;
+//                    }
+//                }
+//                panel.repaint();
+//            }
+//        },
+      
+        new SelectionOperation("Arrange Liner-X", new Key(Key.Modifier.CTRL, KeyEvent.VK_R, true)) {
+            final static int MARGIN = 5;
             @Override
-            protected void perform(ZoomableComponent focused, ZoomPanel panel) {
-                //FIXME: all components
-                if ((focused.getComponent() instanceof Cloneable) && (focused.getComponent() instanceof ZoomableLabel)) {
-                    try {
-                        ZoomableComponent component = panel.addComponent(((ZoomableLabel) focused.getComponent()).clone());
-                        component.setLocation(focused.getLocation().getX() + 1, focused.getLocation().getY() + 1);
-                        component.getComponent().requestFocus();
-                    } catch (CloneNotSupportedException ex) {
-                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Zoomable object should be deep clonable", ex);
-                    }
+            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+                int addX = 0;
+                int firstX = (int) selected.get(0).getLocation().getX();
+                for (ZoomableComponent component : selected) {
+                    component.setLocation(firstX + addX, component.getLocation().getY());
+                    addX+=component.getSize().width + MARGIN;
+                }
+            }
+        },       
+        new SelectionOperation("Clone selected", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_C, true)) {
+            @Override
+            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+                for (ZoomableComponent zoomableComponent : selected) {
+                    BasicVisualization.this.clone(zoomableComponent.getComponent());
                 }
             }
         },
@@ -1498,12 +1577,6 @@ public class BasicVisualization {
                                 ((Selectable) component).setSelected(true);
                             } else {
                                 ((Selectable) component).setSelected(false);
-                            }
-                        }
-                    }
-                    for (ZoomableComponent zoomableComponent : panel.getZoomableComponetns()) {
-                        if (zoomableComponent.getComponent() instanceof DataRepresentation) {
-                            if (((DataRepresentation) zoomableComponent.getComponent()).getData() == data) {
                             }
                         }
                     }
@@ -1619,9 +1692,13 @@ public class BasicVisualization {
     }
     
     private static String getHtmlStyle(ZoomableComponent component) {
+        String width = "px; width: " + (int) component.getSize().width;
+        if (component.getComponent() instanceof ZoomableLabel) {
+            width = "";
+        }
         return "position: absolute; left: " + (int) component.getLocation().getX() +
                 "px; top: " + (int) component.getLocation().getY() +
-                "px; width: " + (int) component.getSize().width + 
+                width + 
                 "px; height: " + (int) component.getSize().height +
                 "px;";
     }
@@ -1638,14 +1715,15 @@ public class BasicVisualization {
                 if (zoomableComponent.getComponent() instanceof ZoomableLabel) {
                     ZoomableLabel label = (ZoomableLabel) zoomableComponent.getComponent();
                     if (label.getFontSize() > 0) {
+                        int fontSize = label.getFontSize();
                         html.append("<span class=\"zoomable\" style=\"").append(getHtmlStyle(zoomableComponent));
-                        html.append(" font-size: ").append(label.getFontSize());
+                        html.append(" font-size: ").append(fontSize);
                         html.append("px;\">").append(stripHtml(label.getText()));
-                        if (label.getData().getSource() instanceof Source.Internet) {
-                            Source.Internet source = (Source.Internet) label.getData().getSource();
-                            html.append("<a href=\"").append(urlEncode(source.getSource()));
-                            html.append("\">[^]</a>");
-                        }
+//                        if (label.getData().getSource() instanceof Source.Internet) {
+//                            Source.Internet source = (Source.Internet) label.getData().getSource();
+//                            html.append("<a href=\"").append(urlEncode(source.getSource()));
+//                            html.append("\">[^]</a>");
+//                        }
                         html.append("</span>\n");
                     }
                 } else if (zoomableComponent.getComponent() instanceof ZoomableImage) {
@@ -1736,6 +1814,19 @@ public class BasicVisualization {
         return new Representation.Element(data, component.getLocation(), component.getZ(), size, mainIdea, assigned);
     }
 
+    static Representation.Element getRepresentation(ZoomableComponent component) {
+        Representation.Element result = null;
+        if (component.getComponent() instanceof DataRepresentation) {
+            DataRepresentation dataRepresentation = (DataRepresentation) component.getComponent();
+            for (Representation representation : dataRepresentation.getData().getRepresentations()) {
+                if (representation.getAssigned() == component.getComponent()) {
+                    return (Element) representation;
+                }
+            }
+        }
+        return result;
+    }
+    
     static void setRepresentation(Representation.Element representation, ZoomableComponent component) {
         Dimension2D size = component.getOriginalSize();
         if (component.getZ() == 1) {
