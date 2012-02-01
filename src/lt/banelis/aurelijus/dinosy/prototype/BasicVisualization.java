@@ -1,5 +1,7 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -48,7 +50,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -57,6 +63,7 @@ import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.border.Border;
+import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import javax.xml.parsers.ParserConfigurationException;
@@ -97,6 +104,8 @@ public class BasicVisualization {
     private volatile boolean checkingClipboard = false;
     private volatile long lastChecked = 0;
     private DataConnections dataConnections;
+    protected static String externalSketching = "/usr/bin/mypaint";
+    protected static Color defaultForeground = Color.cyan;
     
     //FIXME: normal source implemntation
     public Source defaultSource = null;
@@ -374,7 +383,7 @@ public class BasicVisualization {
                         if (dataFlavor.getMimeType().equals(stringListFlavor)) {
                             String text = (String) support.getTransferable().getTransferData(new DataFlavor(stringListFlavor));
                             for (String string : text.split("\\n+")) {
-                                String file = string.substring("file://".length()).trim();
+                                String file = URLDecoder.decode(string.substring("file://".length()).trim(), "UTF-8");
                                 int x = support.getDropLocation().getDropPoint().x;
                                 int y = support.getDropLocation().getDropPoint().y;
                                 if (isImage(file)) {
@@ -384,17 +393,6 @@ public class BasicVisualization {
                                     addText(file, x, y, 100, 20, false);
                                 }
                             }
-//                        } else {
-//                            if (dataFlavor.getPrimaryType().equals("text")) {
-//                                System.out.println("TEXT: " + dataFlavor);
-//                                BufferedReader bufferedReader = new BufferedReader(dataFlavor.getReaderForText(support.getTransferable()));
-//                                String line = null;
-//                                while ((line = bufferedReader.readLine()) != null) {
-//                                    System.out.println("\t" + line);
-//                                }
-//                            } else {
-//                                System.out.println(dataFlavor + " <--- " +  dataFlavor.getDefaultRepresentationClass().getSimpleName());
-//                            }
                         }
                     } catch (Exception ex) {
                         Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Cannot import drag n drop data", ex);
@@ -698,6 +696,7 @@ public class BasicVisualization {
         try {
             if (storage.openFile(file)) {
                 List<Representation> representations = new LinkedList<Representation>();
+                HashMap<Component, Integer> zOrders = new HashMap<Component, Integer>(storage.getData().size());
                 /* Representations */
                 for (Data data : storage.getData().values()) {
                     for (Representation representation : data.getRepresentations()) {
@@ -722,6 +721,18 @@ public class BasicVisualization {
                             }
                         } else {
                             component.zoom(1);
+                            Element element = (Element) representation;
+                            if (element.getForeground() != null) {
+                                component.getComponent().setForeground(element.getForeground());
+                            }
+                            if (element.getBackground() != null) {
+                                if (component.getComponent() instanceof JComponent) {
+                                    JComponent jComponent = (JComponent) component.getComponent();
+                                    jComponent.setOpaque(element.getBackground().getAlpha() == 255);
+                                }
+                                component.getComponent().setBackground(element.getBackground());
+                            }
+                            zOrders.put(component.getComponent(), element.getZIndex());
                         }
                         representations.add(representation);
                     }
@@ -744,6 +755,11 @@ public class BasicVisualization {
                             }
                         }
                     }
+                }
+                
+                /* Z Order */
+                for (Component component : zOrders.keySet()) {
+                    panel.setComponentZOrder(component, zOrders.get(component));
                 }
                 
                 savedTo = file;                
@@ -783,6 +799,15 @@ public class BasicVisualization {
                 object.updateData(zoomableComponent);
                 data.add(object.getData());
                 for (Representation representation : object.getData().getRepresentations()) {
+                    if (representation instanceof Element) {
+                        Element element = (Element) representation;
+                        element.setZIndex(panel.getComponentZOrder(component));
+                        element.setForeground(component.getForeground(), defaultForeground);
+                        if (component instanceof JComponent) {
+                            JComponent jComponent = (JComponent) component;
+                            element.setBackground(jComponent.getBackground(), jComponent.isOpaque());
+                        }
+                    }
                     representations.add(representation);
                 }
             }
@@ -983,8 +1008,11 @@ public class BasicVisualization {
     }
     
     private static void runExternal(final String[] commands) {
-        Thread editingThread = new Thread() {
-            @Override
+        runExternal(commands, true);
+    }
+    
+    protected static Runnable runExternal(final String[] commands, boolean start) {
+        Runnable runnable = new Runnable() {
             public void run() {
                 try {
                     Process proc = Runtime.getRuntime().exec(commands);
@@ -996,16 +1024,19 @@ public class BasicVisualization {
                 }
             }
         };
-        editingThread.start();        
+        if (start) {
+            new Thread(runnable).start();
+        }
+        return runnable;
     }
-    
+        
     private static void consumeAll(InputStream stream) {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
         String line = null;
         try {
             while ( (line = br.readLine()) != null) {
                 if ("debug".equals("on")) {
-                    System.out.println(line);
+                    System.err.println(line);
                 }
             }
         } catch (IOException ex) {}
@@ -1393,6 +1424,21 @@ public class BasicVisualization {
                 addScreenShot(0, Settings.getDateCacheDirecotry());
             }
         },
+        new AddOperation("sketch", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_K, true)) {
+            @Override
+            protected void perform(ZoomPanel panel) {
+                final String sketchFile = Settings.getDateCacheDirecotry() + "/sketch-" + BasicVisualization.getTimeForFile() + ".png";
+                final Runnable externalEditing = BasicVisualization.runExternal(new String[] {BasicVisualization.externalSketching, sketchFile}, false);
+                Thread adding = new Thread() {
+                    @Override
+                    public void run() {
+                        externalEditing.run();
+                        ZoomableComponent component = addImage(sketchFile, null, null);
+                    }
+                };
+                adding.start();
+            }
+        },
         
         new FocusedOperation("Add text near", new Key(Key.Modifier.SHIFT, KeyEvent.VK_D, true)) {
             @Override
@@ -1481,71 +1527,7 @@ public class BasicVisualization {
                 }
                 panel.repaint();
             }
-        },
-//        new SelectionOperation("Arrange Grid", new Key(Key.Modifier.CTRL, KeyEvent.VK_R, true)) {
-//            class BoundingBox {
-//                public double x;
-//                public double y;
-//                public double x2;
-//                public double y2;
-//
-//                public BoundingBox(Component component) {
-//                    x = component.getLocation().x;
-//                    y = component.getLocation().y;
-//                    x2 = x + component.getWidth();
-//                    y2 = y + component.getHeight();
-//                }
-//
-//                public double getWidth() {
-//                    return Math.abs(x2-x);
-//                }
-//                
-//                public double getHeight() {
-//                    return Math.abs(y2-y);
-//                }
-//                
-//                @Override
-//                public String toString() {
-//                    return "{" + x + "x" + y + " " + x2 + "X" + y2 + "}";
-//                }
-//            }
-//            @Override
-//            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-//                BoundingBox bounding = new BoundingBox(selected.get(0).getComponent());
-//                for (ZoomableComponent component : selected) {
-//                    if (component.getLocation().getX() < bounding.x) {
-//                        bounding.x = component.getLocation().getX();
-//                    }
-//                    if (component.getLocation().getY() < bounding.y) {
-//                        bounding.y = component.getLocation().getY();
-//                    }
-//                    if (bounding.x2 < component.getLocation().getX() + component.getSize().getWidth()) {
-//                        bounding.x2 = component.getSize().getWidth();
-//                    }
-//                    if (bounding.y2 < component.getLocation().getY() + component.getSize().getHeight()) {
-//                        bounding.y2 = component.getSize().getHeight();
-//                    }
-//                }
-//                int parts = (int) Math.floor(Math.sqrt(selected.size()));
-//                double width = bounding.getWidth() / parts;
-//                double height = bounding.getHeight() / parts;
-//                int iX = 0;
-//                int iY = 0;
-//                for (ZoomableComponent component : selected) {
-//                    double zoomFactor = Math.min(width / component.getSize().getWidth(), height / component.getSize().getHeight());
-//                    component.zoom(zoomFactor, component.getLocation().getX(), component.getLocation().getY());
-//                    component.setLocation(bounding.x + iX * width, bounding.y + iY * height);
-//                    if (iX < parts) {
-//                        iX++;
-//                    } else {
-//                        iX = 0;
-//                        iY++;
-//                    }
-//                }
-//                panel.repaint();
-//            }
-//        },
-      
+        },     
         new SelectionOperation("Arrange Liner-X", new Key(Key.Modifier.CTRL, KeyEvent.VK_R, true)) {
             final static int MARGIN = 5;
             @Override
@@ -1582,6 +1564,48 @@ public class BasicVisualization {
                     }
                 }
             }
+        },
+        new SelectionOperation("Change foreground", new Key(Key.Modifier.ALT, KeyEvent.VK_F, true)) {
+            @Override
+            protected void perform(final List<ZoomableComponent> selected, ZoomPanel panel) {
+                Thread colorChoosing = new Thread() {
+                    @Override
+                    public void run() {
+                        Color defaultColor = selected.get(0).getComponent().getForeground();
+                        Color color = JColorChooser.showDialog(BasicVisualization.this.panel, "Select foreground", defaultColor);
+                        if (color != null) {
+                            for (ZoomableComponent zoomableComponent : selected) {
+                                zoomableComponent.getComponent().setForeground(color);
+                            }
+                            BasicVisualization.this.panel.repaint();
+                            BasicVisualization.this.panel.requestFocusInWindow();
+                        }
+                    }
+                };
+                colorChoosing.start();
+            }
+        },
+        new SelectionOperation("Change background", new Key(Key.Modifier.ALT, KeyEvent.VK_B, true)) {
+            @Override
+            protected void perform(final List<ZoomableComponent> selected, ZoomPanel panel) {
+                Color defaultColor = selected.get(0).getComponent().getForeground();
+                boolean defaultTransparency = true;
+                if (selected.get(0).getComponent() instanceof JComponent) {
+                    defaultTransparency = !((JComponent) selected.get(0).getComponent()).isOpaque();
+                }
+                chooseColor("Select background", defaultColor, defaultTransparency, new ColorAction() {
+                    public void colorChosen(Color color, boolean transparent) {
+                        for (ZoomableComponent zoomableComponent : selected) {
+                            if (zoomableComponent.getComponent() instanceof JComponent) {
+                                JComponent component = (JComponent) zoomableComponent.getComponent();
+                                component.setOpaque(!transparent);
+                            }
+                            zoomableComponent.getComponent().setBackground(color);
+                        }
+                        BasicVisualization.this.panel.repaint();
+                    }
+                });
+            }
         }
     );
 
@@ -1597,7 +1621,7 @@ public class BasicVisualization {
         }
     }
     
-    private void addImage(String path, Integer x, Integer y) {
+    private ZoomableComponent addImage(String path, Integer x, Integer y) {
         if (defaultSource == null) {
             defaultSource = new Source.Event();
         }
@@ -1610,6 +1634,7 @@ public class BasicVisualization {
         }
         ((JComponent) component.getComponent()).setToolTipText(path);
         component.setLocation(x, y);
+        return component;
     }
     
     private void addText(String text, int x, int y, int widh, int height, boolean edit) {
@@ -1640,12 +1665,16 @@ public class BasicVisualization {
                 if (outputDirectory.isDirectory()) {
                     outputDirectory.mkdirs();
                 }
-                String fileName = outputDirectory.getPath() + "/" + new SimpleDateFormat("yyyy-MM-dd'T'HH;mm;ss").format(new Date()) + ".jpg";
+                String fileName = outputDirectory.getPath() + "/" + BasicVisualization.getTimeForFile() + ".jpg";
                 Okular.run(new String[] {"/usr/bin/import", fileName});
                 addImage(fileName, panel.getWidth() / 2, panel.getHeight() / 2);
             }
         };
         captureProgram.start();      
+    }
+    
+    private static String getTimeForFile() {
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH;mm;ss").format(new Date());
     }
     
     private void saveAs() {
@@ -1790,6 +1819,88 @@ public class BasicVisualization {
     }
     
     /*
+     * Color chooser
+     */
+    
+    private class TransparencyPanel extends AbstractColorChooserPanel implements ActionListener {
+        private boolean transparent = false;
+        private Color defaultColor;
+        
+        public TransparencyPanel(boolean transparent, Color defaultColor) {
+            this.transparent = transparent;
+            this.defaultColor = defaultColor;
+        }
+        
+        @Override
+        protected void buildChooser() {
+            setLayout(new BorderLayout());
+            final JCheckBox checkBox = new JCheckBox("Be transparent");
+            checkBox.setSelected(transparent);
+            checkBox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                    transparent = checkBox.isSelected();
+                    updateDefaultColor();
+                }
+            });
+            add(checkBox);
+        }
+
+        @Override
+        public void updateChooser() {
+            
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Transparency";
+        }
+
+        @Override
+        public Icon getSmallDisplayIcon() {
+            return null;
+        }
+
+        @Override
+        public Icon getLargeDisplayIcon() {
+            return null;
+        }
+
+        public void actionPerformed(ActionEvent arg0) {
+            updateDefaultColor();
+        }
+
+        private void updateDefaultColor() {
+            if (transparent) {
+                getColorSelectionModel().setSelectedColor(defaultColor);
+            }
+        }
+        
+        public boolean isTransparent() {
+            return transparent;
+        }
+    }
+    
+    private void chooseColor(String title, final Color initialColor, boolean transparency, final ColorAction action) {
+        final JColorChooser colorChooser = new JColorChooser(initialColor);
+        final TransparencyPanel transparencyPanel = new TransparencyPanel(transparency, initialColor);
+        colorChooser.addChooserPanel(transparencyPanel);
+        ActionListener okAction = new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                boolean transparency = transparencyPanel.isTransparent();
+                if (colorChooser.getColor() != initialColor && transparency) {
+                    transparency = false;
+                }
+                action.colorChosen(colorChooser.getColor(), transparency);
+            }
+        };
+        JColorChooser.createDialog(panel, title, false, colorChooser, okAction, null).setVisible(true);
+    }
+    
+    private interface ColorAction {
+        public void colorChosen(Color color, boolean transparent);
+    }
+    
+    /*
      * Utilities
      */
 
@@ -1811,7 +1922,19 @@ public class BasicVisualization {
         if (assigned instanceof Idea) {
             mainIdea = ((Idea) assigned).isMainIdea();
         }
-        return new Representation.Element(data, component.getLocation(), component.getZ(), size, mainIdea, assigned);
+        int zIndex = component.getComponent().getParent().getComponentZOrder(component.getComponent());
+        Color foreground = component.getComponent().getForeground();
+        if (foreground == defaultForeground) {
+            foreground = null;
+        }
+        Color background = component.getComponent().getBackground();
+        if (component.getComponent() instanceof JComponent) {
+            JComponent jComponent = (JComponent) component.getComponent();
+            if (!jComponent.isOpaque()) {
+                background = null;
+            }
+        }
+        return new Representation.Element(data, component.getLocation(), component.getZ(), size, zIndex, foreground, background, mainIdea, assigned);
     }
 
     static Representation.Element getRepresentation(ZoomableComponent component) {

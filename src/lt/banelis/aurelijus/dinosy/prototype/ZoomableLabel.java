@@ -77,7 +77,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     private void constructLabel() {
         setOpaque(false);
         //FIXME: remove in production version
-        setForeground(Color.cyan);
+        setForeground(BasicVisualization.defaultForeground);
     }
 
     public final void setText(String text) {

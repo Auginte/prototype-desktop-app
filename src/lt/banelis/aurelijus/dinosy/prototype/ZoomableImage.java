@@ -44,6 +44,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private boolean selectable = true;
     private boolean selected = false;
     private static String externalProgram = "/usr/bin/pinta";
+    private static String externalFileManager = "/usr/bin/nautilus";
     private int lastWidth = -1;
     private int lastHeight = -1;
     private transient BufferedImage cachedImage = null;
@@ -88,6 +89,14 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
             if (ZoomableImage.this.getParent() instanceof ZoomPanel) {
                 ZoomPanel panel = (ZoomPanel) ZoomableImage.this.getParent();
                 ZoomableComponent zoomable = panel.getZoomableComponent(this);
+                //TODO: find real cause
+                if (loadingFromNew == false && zoomable.getSize().width == 100 && zoomable.getSize().height == 100) {
+                    double differenceWidth = Math.abs(zoomable.getSize().width - originalImage.getWidth() * zoomable.getZ());
+                    double differenceHeight = Math.abs(zoomable.getSize().height - originalImage.getHeight() * zoomable.getZ());
+                    if (differenceWidth > 10 | differenceHeight > 10) {
+                        loadingFromNew = true;
+                    }
+                }
                 if (loadingFromNew) {
                     zoomable.reinisiateOriginalSize();
                 } else {
@@ -286,8 +295,13 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                 Thread editingThread = new Thread() {
                     @Override
                     public void run() {
+                        String externalEdditor = externalProgram;
+                        String file = getData().getData();
+                        if (file.contains("/sketch-")) {
+                            externalEdditor = BasicVisualization.externalSketching;
+                        }
                         try {
-                            Process proc = Runtime.getRuntime().exec(new String[] {externalProgram, getData().getData()});
+                            Process proc = Runtime.getRuntime().exec(new String[] {externalEdditor, file});
                             consumeAll(proc.getInputStream());
                             consumeAll(proc.getErrorStream());
                             proc.waitFor();
@@ -295,11 +309,25 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                         } catch (InterruptedException ex) {
                             Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "External image editing interupted", ex);
                         } catch (IOException ex) {
-                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalProgram, ex);
+                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalEdditor, ex);
                         }
                     }
                 };
                 editingThread.start();
+            }
+        },
+        new Operation("Show file", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_ALT, KeyEvent.VK_F)) {
+            @Override
+            public void perform() {
+                final Runnable viewing = BasicVisualization.runExternal(new String[] {ZoomableImage.externalFileManager, getData().getData()}, false);
+                Thread updating = new Thread() {
+                    @Override
+                    public void run() {
+                       viewing.run();
+                       loadImage();
+                    }
+                };
+                updating.start();
             }
         },
         new Operation("Update", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_U)) {
@@ -316,7 +344,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         try {
             while ( (line = br.readLine()) != null) {
                 if ("debug".equals("on")) {
-                    System.out.println(line);
+                    System.err.println(line);
                 }
             }
         } catch (IOException ex) {}

@@ -685,7 +685,7 @@ public class mainTest extends javax.swing.JFrame {
 
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
         zoomPanel1.removeAll();
-        visualization.loadData("/home/aurelijus/Documents/DiNoSy/Prototipas/docs/projecting.xml");
+        visualization.loadData("/home/aurelijus/Dropbox/Dinosy/projecting.xml");
     }//GEN-LAST:event_jButton9ActionPerformed
 
     private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton10ActionPerformed
@@ -706,11 +706,11 @@ public class mainTest extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton11ActionPerformed
 
     private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton12ActionPerformed
-        visualization.loadData("/home/aurelijus/Documents/DiNoSy/Prototipas/docs/realization.xml");
+        visualization.loadData("/home/aurelijus/Dropbox/Dinosy/ealization.xml");
     }//GEN-LAST:event_jButton12ActionPerformed
 
     private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton13ActionPerformed
-        visualization.loadData("/home/aurelijus/Documents/DiNoSy/DataLib/src/lt/dinosy/datalib/testdocument.xml");
+        visualization.loadData("/home/aurelijus/Dropbox/Dinosy/testdocument.xml");
     }//GEN-LAST:event_jButton13ActionPerformed
 
 private void sourceEventDateKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceEventDateKeyTyped
