@@ -118,8 +118,8 @@ public class ZoomPanel extends JPanel implements Serializable {
                     addZoomable(component);
                 } else if (zoomableComponent.getSize().getWidth() == 0) {
                     zoomableComponent.recalculateOriginal(1);
+                    }
                 }
-            }
             componentsInicialised = true;
             for (ContentChangeListener contentChangeListener : changeListerners) {
                 contentChangeListener.addedAll();

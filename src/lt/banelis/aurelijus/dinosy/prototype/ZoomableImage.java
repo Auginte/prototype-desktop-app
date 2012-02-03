@@ -12,6 +12,7 @@ import java.awt.RenderingHints;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.Arrays;
 import javax.swing.JLabel;
 import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
@@ -85,23 +87,17 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
 
     private void updateSize() {
         if (originalImage != null) {
-            this.setSize(originalImage.getWidth(), originalImage.getHeight());
             if (ZoomableImage.this.getParent() instanceof ZoomPanel) {
                 ZoomPanel panel = (ZoomPanel) ZoomableImage.this.getParent();
                 ZoomableComponent zoomable = panel.getZoomableComponent(this);
-                //TODO: find real cause
-                if (loadingFromNew == false && zoomable.getSize().width == 100 && zoomable.getSize().height == 100) {
-                    double differenceWidth = Math.abs(zoomable.getSize().width - originalImage.getWidth() * zoomable.getZ());
-                    double differenceHeight = Math.abs(zoomable.getSize().height - originalImage.getHeight() * zoomable.getZ());
-                    if (differenceWidth > 10 | differenceHeight > 10) {
-                        loadingFromNew = true;
-                    }
-                }
                 if (loadingFromNew) {
-                    zoomable.reinisiateOriginalSize();
+                    scaleFactor = zoomable.reinisiateOriginalSize(originalImage.getWidth(), originalImage.getHeight());
+                    repaint();
                 } else {
                     this.setSize(zoomable.getSize().width, zoomable.getSize().height);
                 }
+            } else {
+                this.setSize(originalImage.getWidth(), originalImage.getHeight());
             }
         } else if (loadingFromNew) {
             this.setSize(100, 100);
@@ -119,7 +115,6 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                 File file = null;
                 try {
                     if (data.getData().startsWith("http") && data.getCached() != null) {
-                        //FIXME: use configuration (getters)
                         file = new File(Firefox.webDataCache + "/" + data.getCached());
                     } else if (data.getData().startsWith("http")) {
                         String downloaded = Firefox.webDataCache + "/" + data.getCached();
@@ -130,6 +125,13 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                     }
                     if (file.exists()) {
                         originalImage = ImageIO.read(file);
+                    } else if (data.getData().startsWith("http")) {
+                        java.awt.Image image = Toolkit.getDefaultToolkit().createImage(new URL(data.getData()));
+                        //FIXME: dowload
+                        if (image.getWidth(null) > 0 && image.getHeight(null) > 0) {
+                            originalImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+                            originalImage.getGraphics().drawImage(image, 0, 0, null);
+                        }
                     }
                     updateSize();
                 } catch (IOException ex) {

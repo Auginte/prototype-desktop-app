@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,7 +55,6 @@ import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -78,10 +78,13 @@ import lt.dinosy.datalib.Representation.Element;
 import lt.dinosy.datalib.Source;
 import org.xml.sax.SAXException;
 import lt.banelis.aurelijus.dinosy.prototype.Connectable.ConnectionState;
+import lt.dinosy.datalib.Firefox;
 import lt.dinosy.datalib.Okular;
+import lt.dinosy.datalib.PsiaudoClipboard;
 import lt.dinosy.datalib.Relation;
 import lt.dinosy.datalib.Relation.Association;
 import lt.dinosy.datalib.Settings;
+import sun.misc.BASE64Decoder;
 
 /**
  * Basic elements of visualization
@@ -467,7 +470,8 @@ public class BasicVisualization {
             Thread clipboardThread = new Thread() {
                 @Override
                 public void run() {
-
+                    BasicVisualization.this.psiaudoClipboardCheck();
+                    
                     /* One instance for performance */
                     if (checkingClipboard) {
                         return;
@@ -555,6 +559,36 @@ public class BasicVisualization {
         }
     };
         
+    private void psiaudoClipboardCheck() {
+        List<Map<String, String>> fromClipboard = PsiaudoClipboard.getFromClipboard();
+        for (Map<String, String> map : fromClipboard) {
+            if (map.containsKey("xpath") && map.containsKey("url") && map.containsKey("title") && map.containsKey("data") && map.containsKey("date") && map.containsKey("saved")) {
+                Date date = Source.parseDate(map.get("date"));
+                defaultSource = new Source.Internet(date, map.get("url"), map.get("xpath"), map.get("title"), map.get("saved"), null);
+                BASE64Decoder decoder = new BASE64Decoder();
+                String data = "[]";
+                try {
+                    data = new String(decoder.decodeBuffer(map.get("data")));
+                } catch (IOException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Base64 decoder error", ex);
+                }
+                if (map.containsKey("type") && map.get("type").equals(Firefox.Type.image.name())) {
+                    addImage(data, null, null);
+                } else {
+                    addText(data, panel.getWidth() / 2, panel.getHeight() / 2, 100, 20, false);        
+                }
+                if (map.containsKey("saved")) {
+                    ZoomableComponent image = addImage(map.get("saved") + ".png", null, null);
+                    image.zoom(0.5, panel.getWidth() / 2, panel.getHeight() / 2);
+                    image.translate(-30, 15);
+                }
+            }
+        }
+        if (fromClipboard.size() > 0) {
+            panel.repaint();
+        }
+    }
+    
     private File generateClipboardFile(String url) {
         int slash = url.lastIndexOf(System.getProperty("file.separator"));
         if (slash < 0) {
@@ -758,8 +792,11 @@ public class BasicVisualization {
                 }
                 
                 /* Z Order */
+                int n = panel.getComponentCount();
                 for (Component component : zOrders.keySet()) {
-                    panel.setComponentZOrder(component, zOrders.get(component));
+                    if (zOrders.get(component) < n) {
+                        panel.setComponentZOrder(component, zOrders.get(component));
+                    }
                 }
                 
                 savedTo = file;                
@@ -1443,7 +1480,13 @@ public class BasicVisualization {
         new FocusedOperation("Add text near", new Key(Key.Modifier.SHIFT, KeyEvent.VK_D, true)) {
             @Override
             public void perform(ZoomableComponent focused, ZoomPanel panel) {
-                addText("", (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
+                ZoomableLabel label = addText("", (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
+                label.setForeground(focused.getComponent().getForeground());
+                label.setBackground(focused.getComponent().getBackground());
+                if (focused.getComponent() instanceof JComponent) {
+                    JComponent jComponent = (JComponent) focused.getComponent();
+                    label.setOpaque(jComponent.isOpaque());
+                }
             }
         },
         new SelectionOperation("Zoom with element in", new Key(Key.Modifier.ALT, KeyEvent.VK_PLUS), new Key(Key.Modifier.ALT, KeyEvent.VK_EQUALS), new Key(Key.Modifier.ALT, KeyEvent.VK_E)) {
@@ -1637,7 +1680,7 @@ public class BasicVisualization {
         return component;
     }
     
-    private void addText(String text, int x, int y, int widh, int height, boolean edit) {
+    private ZoomableLabel addText(String text, int x, int y, int widh, int height, boolean edit) {
         if (defaultSource == null) {
             defaultSource = new Source.Event();
         }
@@ -1649,6 +1692,7 @@ public class BasicVisualization {
         component.setLocation(x, y);
         component.setSize(new Dimension(widh, height));
         label.requestFocusInWindow();
+        return label;
     }
     
     private void addScreenShot(final long delay, final File outputDirectory) {

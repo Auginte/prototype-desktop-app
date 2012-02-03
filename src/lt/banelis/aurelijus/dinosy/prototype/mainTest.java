@@ -405,7 +405,7 @@ public class mainTest extends javax.swing.JFrame {
         });
         jPanel4.add(sourceOkularClipboard, java.awt.BorderLayout.CENTER);
 
-        jTabbedPane1.addTab("Okular", jPanel4);
+        jTabbedPane1.addTab("Clipboard", jPanel4);
 
         sourceLastUpdated.setFont(new java.awt.Font("Ubuntu", 0, 10));
         sourceLastUpdated.setText("Not updated yet");
@@ -837,7 +837,7 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
                     visualization.defaultSource = new Event(sourceTypeDate, sourceEventName.getText(), sourceEventPlace.getText());
                     break;
                 case Internet:
-                    visualization.defaultSource = new Internet(sourceTypeDate, sourceinternetUrl.getText(), sourceinternetXpath.getText(), sourceinternetTitle.getText(), null);
+                    visualization.defaultSource = new Internet(sourceTypeDate, sourceinternetUrl.getText(), sourceinternetXpath.getText(), sourceinternetTitle.getText(), null, null);
                     break;
                 case Book:
                     visualization.defaultSource = new Book(sourceTypeDate, sourceBookName.getText(), Integer.parseInt(sourceBookPage.getText()), sourceBookIsbn.getText(), null);
