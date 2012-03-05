@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 //import lt.dinosy.datalib.Data;
 //import lt.dinosy.datalib.Relation;
@@ -37,6 +39,10 @@ public class ZoomPanel extends JPanel implements Serializable {
     private Color gridColor = new Color(32, 32, 32);
     //TODO: beter integration of popups and focusing
     Component lastFocusOwner = null;
+    private volatile boolean loading = false;
+    private static int loadingRing = 1;
+    private Thread loadingThread = null;
+    private Color loadingColor = new Color(40, 40, 40);
     
     private static Color addColor(Color color, int delta) {
         int c[] = new int[3];
@@ -78,7 +84,7 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Initianing Zoomable components
      */
-
+   
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -92,6 +98,9 @@ public class ZoomPanel extends JPanel implements Serializable {
     protected void paintChildren(Graphics g) {
         if (grid) {
             printGrid(g);
+        }
+        if (loading) {
+            paintLoading(g);
         }
         paintConnections(g);
         debugComponents(g);
@@ -247,12 +256,14 @@ public class ZoomPanel extends JPanel implements Serializable {
     }
 
     public synchronized void translate(double xDifference, double yDifference, boolean translateDraggable) {
-        for (ZoomableComponent zoomableComponent : components.values()) {
-            if (translateDraggable || !zoomableComponent.getMoveAdapter().isBeingDragged()) {
-                zoomableComponent.translate(xDifference, yDifference);
+        if (!loading) {
+            for (ZoomableComponent zoomableComponent : components.values()) {
+                if (translateDraggable || !zoomableComponent.getMoveAdapter().isBeingDragged()) {
+                    zoomableComponent.translate(xDifference, yDifference);
+                }
             }
+            cameraLocation.transalte(-xDifference, -yDifference);
         }
-        cameraLocation.transalte(-xDifference, -yDifference);
     }
 
     public Point2D getCameraLocation() {
@@ -272,15 +283,17 @@ public class ZoomPanel extends JPanel implements Serializable {
     }
 
     public synchronized void zoom(double zDifference, int fromX, int fromY) {
-        this.z *= zDifference;
-        for (ZoomableComponent zoomableComponent : components.values()) {            
-            if (!zoomableComponent.getMoveAdapter().isBeingDragged()) {
-                zoomableComponent.zoom(zDifference, fromX, fromY);
+        if (!loading) {
+            this.z *= zDifference;
+            for (ZoomableComponent zoomableComponent : components.values()) {            
+                if (!zoomableComponent.getMoveAdapter().isBeingDragged()) {
+                    zoomableComponent.zoom(zDifference, fromX, fromY);
+                }
             }
+            updateConnectionsSize();
+            zoomCamera(zDifference, fromX, fromY);
+            this.repaint();
         }
-        updateConnectionsSize();
-        zoomCamera(zDifference, fromX, fromY);
-        this.repaint();
     }
 
     private void zoomCamera(double zDifference, int translateX, int translateY) {
@@ -515,5 +528,47 @@ public class ZoomPanel extends JPanel implements Serializable {
             selected.add(component);
         }
         return selected;
+    }
+    
+    
+    /*
+     * Concurent modifications and threads
+     */
+
+    public void setLoading(boolean loading) {
+        if (loading && (loadingThread == null || !loadingThread.isAlive())) {
+            loadingThread = new Thread() {
+                @Override
+                public synchronized void run() {
+                    while (ZoomPanel.this.loading) {
+                        loadingRing++;
+                        if (loadingRing > 36) {
+                            loadingRing = 0;
+                        }
+                        ZoomPanel.this.repaint();
+                        try {
+                            wait(200);
+                        } catch (InterruptedException ex) {}
+                    }
+                }
+            };
+            loadingThread.setPriority(Thread.MIN_PRIORITY);
+            loadingThread.start();
+        }
+        this.loading = loading;
+    }
+    
+    
+    private void paintLoading(Graphics g) {
+        g.setColor(loadingColor);
+        g.fillRect(0, 0, this.getSize().width, this.getSize().height);
+        int x = getSize().width/2;
+        int y = getSize().height/2;
+        int size = Math.min(getSize().width, getSize().height) / 4;
+        g.setColor(Color.GRAY);
+        g.fillArc(x - size/2, y - size/2, size, size, loadingRing*10, 60);
+        g.fillArc(x - size/2, y - size/2, size, size, loadingRing*10 + 180, 60);
+        g.setColor(loadingColor);
+        g.fillOval(x - size/4, y - size/4, size/2, size/2);
     }
 }

@@ -15,6 +15,7 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.LinkedList;
 import javax.swing.JLabel;
 import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
 import lt.dinosy.datalib.Source;
@@ -41,7 +43,6 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private Data.Image data;
     private volatile BufferedImage originalImage = null;
     private double scaleFactor = 1;
-    private Thread loading;
     private boolean loadingFromNew = false;
     private boolean selectable = true;
     private boolean selected = false;
@@ -57,6 +58,109 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         memory,
         part
     }
+    
+    /*
+     * Image loading optimization
+     */
+    private static Thread loading;
+    private static Stack<Loadable> loadingQueue = new Stack<Loadable>();
+    private static class Loadable {
+        public String path;
+        public String cached;
+        public ZoomableImage container;
+        public boolean loaded = false;
+
+        public Loadable(String path, String cached, ZoomableImage container) {
+            this.path = path;
+            this.cached = cached;
+            this.container = container;
+        }
+    }
+    
+    /**
+     * Thread free stack
+     */
+    public static class Stack<T> implements Iterable<T> {
+        private T element;
+        private volatile Stack<T> next = null;
+        
+        public Stack() {
+            this.element = null;
+        }
+        
+        public Stack(T element) {
+            this.element = element;
+        }
+        
+        public synchronized void add(T element) {
+            if (element != null && this.element != null) {
+                Stack<T> stack = new Stack<T>(element);
+                getLast().setNext(stack);
+            } else if (this.element == null) {
+                this.element = element;
+            }
+        }
+        
+        protected synchronized Stack<T> getNext() {
+            return next;
+        }
+        
+        protected synchronized void setNext(Stack<T> stack) {
+            next = stack;
+        }
+        
+        protected T getElement() {
+            return element;
+        }
+
+        private synchronized Stack<T> getLast() {
+            Stack<T> last = this;
+            while (last.getNext() != null) {
+                last = last.getNext();
+            }
+            return last;
+        }
+        
+        public synchronized int size() {
+            Stack<T> last = this;
+            int size = 1;
+            while (last.getNext() != null) {
+                last = last.getNext();
+                size++;
+            }
+            return size;
+        }
+        
+        public synchronized void clear() {
+            next = null;
+            element = null;
+        }
+        
+        public Iterator<T> iterator() {
+            return new Iterator<T>() {
+                private Stack<T> last = Stack.this;
+                
+                public boolean hasNext() {
+                    return last != null && last.getElement() != null;
+                }
+
+                public T next() {
+                    T element = last.getElement();
+                    last = last.getNext();
+                    return element;
+                }
+
+                public void remove() {
+                    throw new UnsupportedOperationException("Removing elements not supported yet.");
+                }
+            };
+        }
+    }
+    
+    
+    /*
+     * Constructors
+     */
     
     private ZoomableImage() {
         setForeground(Color.cyan);
@@ -109,39 +213,75 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
      */
 
     public void loadImage() {
-        loading = new Thread() {
-            @Override
-            public void run() {
-                File file = null;
-                try {
-                    if (data.getData().startsWith("http") && data.getCached() != null) {
-                        file = new File(Firefox.webDataCache + "/" + data.getCached());
-                    } else if (data.getData().startsWith("http")) {
-                        String downloaded = Firefox.webDataCache + "/" + data.getCached();
-                        Firefox.download(data.getData(), downloaded);
-                        file = new File(downloaded);
-                    } else {
-                        file = new File(data.getData());
-                    }
-                    if (file.exists()) {
-                        originalImage = ImageIO.read(file);
-                    } else if (data.getData().startsWith("http")) {
-                        java.awt.Image image = Toolkit.getDefaultToolkit().createImage(new URL(data.getData()));
-                        //FIXME: dowload
-                        if (image.getWidth(null) > 0 && image.getHeight(null) > 0) {
-                            originalImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
-                            originalImage.getGraphics().drawImage(image, 0, 0, null);
-                        }
-                    }
-                    updateSize();
-                } catch (IOException ex) {
-                    System.err.println("Error loading image: " + file);
-                }
-            }
-        };
-        loading.start();
+        ZoomableImage.loadImage(data.getData(), data.getCached(), this);
     }
 
+    private static void loadImage(final String path, final String cached, final ZoomableImage container) {
+        loadingQueue.add(new Loadable(path, cached, container));
+        if (loading == null || !loading.isAlive()) {
+            loading = new Thread() {
+                @Override
+                public void run() {
+                    int countAfter = -1;
+                    int countBefore = -2;
+                    while (countAfter != countBefore) {
+                        countBefore = loadingQueue.size();
+                        for (Loadable loadable : loadingQueue) {
+                            if (!loadable.loaded) {
+                                load(loadable.path, loadable.cached, loadable.container);
+                                loadable.loaded = true;
+                            } else {
+                            }
+                        }
+                        countAfter = loadingQueue.size();
+                        if (countBefore == countAfter) {
+                            resetQueue();
+                        }
+                    }
+                }
+                
+                private void resetQueue() {
+                    loadingQueue.clear();
+                }
+                
+                private void load(String path, String cached, ZoomableImage container) {
+                    File file = null;
+                    try {
+                        if (path.startsWith("http") && cached != null) {
+                            file = new File(Firefox.webDataCache + "/" + cached);
+                        } else if (path.startsWith("http")) {
+                            String downloaded = Firefox.webDataCache + "/" + cached;
+                            Firefox.download(path, downloaded);
+                            file = new File(downloaded);
+                        } else {
+                            file = new File(path);
+                        }
+                        if (file.exists()) {
+                            container.setImage(ImageIO.read(file));
+                        } else if (path.startsWith("http")) {
+                            java.awt.Image image = Toolkit.getDefaultToolkit().createImage(new URL(path));
+                            //FIXME: dowload
+                            if (image.getWidth(null) > 0 && image.getHeight(null) > 0) {
+                                BufferedImage originalImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+                                originalImage.getGraphics().drawImage(image, 0, 0, null);
+                                container.setImage(originalImage);
+                            }
+                        }
+                        container.updateSize();
+                    } catch (IOException ex) {
+                        System.err.println("Error loading image: " + file);
+                    }
+                }
+            };
+            loading.setPriority(Thread.MIN_PRIORITY);
+            loading.start();
+        }
+    }
+    
+    protected void setImage(BufferedImage image) {
+        this.originalImage = image;
+    }
+    
     public String getCached() {
         if (data.getCached() != null) {
             return data.getCached();

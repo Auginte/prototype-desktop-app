@@ -726,95 +726,104 @@ public class BasicVisualization {
      * Open / Save
      */
 
-    public void loadData(String file) {
-        try {
-            if (storage.openFile(file)) {
-                List<Representation> representations = new LinkedList<Representation>();
-                HashMap<Component, Integer> zOrders = new HashMap<Component, Integer>(storage.getData().size());
-                /* Representations */
-                for (Data data : storage.getData().values()) {
-                    for (Representation representation : data.getRepresentations()) {
-                        ZoomableComponent component;
-                        if (data instanceof Data.Class) {
-                            component = panel.addComponent(new ClassRepresentation((Data.Class) data));
-                        } else if (data instanceof Data.Image) {
-                            ZoomableImage image = new ZoomableImage((Data.Image) data);
-                            component = panel.addComponent(image);
-                            image.loadImage();
-                        } else {
-                            component = panel.addComponent(new ZoomableLabel(data));
-                        }
-                        representation.setAssigned(component.getComponent());
-                        iniciateRepresentation(component, representation);
-                        if (representation instanceof Representation.PlaceHolder) {
-                            int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
-                            int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
-                            component.setLocation(x, y);
-                            if (!(data instanceof Data.Image)) {
-                                iniciateRepresentation(component, representation);
-                            }
-                        } else {
-                            component.zoom(1);
-                            Element element = (Element) representation;
-                            if (element.getForeground() != null) {
-                                component.getComponent().setForeground(element.getForeground());
-                            }
-                            if (element.getBackground() != null) {
-                                if (component.getComponent() instanceof JComponent) {
-                                    JComponent jComponent = (JComponent) component.getComponent();
-                                    jComponent.setOpaque(element.getBackground().getAlpha() == 255);
+    public void loadData(final String file) {
+        Thread openning = new Thread() {
+            @Override
+            public void run() {
+                panel.setLoading(true);
+                try {
+                    if (storage.openFile(file)) {
+                        List<Representation> representations = new LinkedList<Representation>();
+                        HashMap<Component, Integer> zOrders = new HashMap<Component, Integer>(storage.getData().size());
+                        /* Representations */
+                        for (Data data : storage.getData().values()) {
+                            for (Representation representation : data.getRepresentations()) {
+                                ZoomableComponent component;
+                                if (data instanceof Data.Class) {
+                                    component = panel.addComponent(new ClassRepresentation((Data.Class) data));
+                                } else if (data instanceof Data.Image) {
+                                    ZoomableImage image = new ZoomableImage((Data.Image) data);
+                                    component = panel.addComponent(image);
+                                    image.loadImage();
+                                } else {
+                                    component = panel.addComponent(new ZoomableLabel(data));
                                 }
-                                component.getComponent().setBackground(element.getBackground());
+                                representation.setAssigned(component.getComponent());
+                                iniciateRepresentation(component, representation);
+                                if (representation instanceof Representation.PlaceHolder) {
+                                    int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
+                                    int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
+                                    component.setLocation(x, y);
+                                    if (!(data instanceof Data.Image)) {
+                                        iniciateRepresentation(component, representation);
+                                    }
+                                } else {
+                                    component.zoom(1);
+                                    Element element = (Element) representation;
+                                    if (element.getForeground() != null) {
+                                        component.getComponent().setForeground(element.getForeground());
+                                    }
+                                    if (element.getBackground() != null) {
+                                        if (component.getComponent() instanceof JComponent) {
+                                            JComponent jComponent = (JComponent) component.getComponent();
+                                            jComponent.setOpaque(element.getBackground().getAlpha() == 255);
+                                        }
+                                        component.getComponent().setBackground(element.getBackground());
+                                    }
+                                    zOrders.put(component.getComponent(), element.getZIndex());
+                                }
+                                representations.add(representation);
                             }
-                            zOrders.put(component.getComponent(), element.getZIndex());
                         }
-                        representations.add(representation);
-                    }
-                }
-                
-                /* Relations */
-                for (Representation representation : representations) {
-                    for (Relation relation : representation.getData().getRelations()) {
-                        if (relation.getFrom() == representation.getData()) {
-                            Component from = (Component) representation.getAssigned();
-                            Component to = getComponent(relation.getTo(), representations);
-                            assert to != null;
-                            if (relation instanceof Association) {
-                                String name = ((Association) relation).getName();
-                                panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
-                            } else if (relation instanceof Relation.Generalization) {
-                                panel.addConnnection(new Connection(from, to, new Arrow.Generalization()));
-                            } else {
-                                panel.addConnnection(new Connection(from, to));
-                            }
-                        }
-                    }
-                }
-                
-                /* Z Order */
-                int n = panel.getComponentCount();
-                for (Component component : zOrders.keySet()) {
-                    if (zOrders.get(component) < n) {
-                        panel.setComponentZOrder(component, zOrders.get(component));
-                    }
-                }
-                
-                savedTo = file;                
-                panel.repaint();   
-            }
 
-        //TODO: normal exception handling
-        } catch (URISyntaxException ex) {
-            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "URISyntaxException loading data", ex);
-        } catch (ParserConfigurationException ex) {
-            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "XML ParserConfigurationException loading data", ex);
-        } catch (SAXException ex) {
-            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "SAXException loading data", ex);
-        } catch (IOException ex) {
-            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "IOException loading data", ex);
-        } catch (BadVersionException ex) {
-            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Not compatible file version", ex);
-        }
+                        /* Relations */
+                        for (Representation representation : representations) {
+                            for (Relation relation : representation.getData().getRelations()) {
+                                if (relation.getFrom() == representation.getData()) {
+                                    Component from = (Component) representation.getAssigned();
+                                    Component to = getComponent(relation.getTo(), representations);
+                                    assert to != null;
+                                    if (relation instanceof Association) {
+                                        String name = ((Association) relation).getName();
+                                        panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
+                                    } else if (relation instanceof Relation.Generalization) {
+                                        panel.addConnnection(new Connection(from, to, new Arrow.Generalization()));
+                                    } else {
+                                        panel.addConnnection(new Connection(from, to));
+                                    }
+                                }
+                            }
+                        }
+
+                        /* Z Order */
+                        int n = panel.getComponentCount();
+                        for (Component component : zOrders.keySet()) {
+                            if (zOrders.get(component) < n) {
+                                panel.setComponentZOrder(component, zOrders.get(component));
+                            }
+                        }                        
+                        
+                        savedTo = file;                
+                        panel.repaint();   
+                    }
+
+                //TODO: normal exception handling
+                } catch (URISyntaxException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "URISyntaxException loading data", ex);
+                } catch (ParserConfigurationException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "XML ParserConfigurationException loading data", ex);
+                } catch (SAXException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "SAXException loading data", ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "IOException loading data", ex);
+                } catch (BadVersionException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Not compatible file version", ex);
+                }
+                panel.setLoading(false);
+            }  
+        };
+        openning.setPriority(Thread.MIN_PRIORITY + 1);
+        openning.start();
     }
 
     private Component getComponent(Data data, List<Representation> representations) {
