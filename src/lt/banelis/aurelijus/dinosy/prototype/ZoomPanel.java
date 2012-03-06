@@ -554,6 +554,8 @@ public class ZoomPanel extends JPanel implements Serializable {
             };
             loadingThread.setPriority(Thread.MIN_PRIORITY);
             loadingThread.start();
+        } else if (loading == false) {
+            repaint();
         }
         this.loading = loading;
     }

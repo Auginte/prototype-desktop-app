@@ -228,9 +228,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                         countBefore = loadingQueue.size();
                         for (Loadable loadable : loadingQueue) {
                             if (!loadable.loaded) {
-                                load(loadable.path, loadable.cached, loadable.container);
-                                loadable.loaded = true;
-                            } else {
+                                loadable.loaded = load(loadable.path, loadable.cached, loadable.container);
                             }
                         }
                         countAfter = loadingQueue.size();
@@ -244,7 +242,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                     loadingQueue.clear();
                 }
                 
-                private void load(String path, String cached, ZoomableImage container) {
+                private boolean load(String path, String cached, ZoomableImage container) {
                     File file = null;
                     try {
                         if (path.startsWith("http") && cached != null) {
@@ -258,19 +256,15 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                         }
                         if (file.exists()) {
                             container.setImage(ImageIO.read(file));
-                        } else if (path.startsWith("http")) {
-                            java.awt.Image image = Toolkit.getDefaultToolkit().createImage(new URL(path));
-                            //FIXME: dowload
-                            if (image.getWidth(null) > 0 && image.getHeight(null) > 0) {
-                                BufferedImage originalImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
-                                originalImage.getGraphics().drawImage(image, 0, 0, null);
-                                container.setImage(originalImage);
-                            }
+                            container.updateSize();
+                            return true;
+                        } else {
+                            return false;
                         }
-                        container.updateSize();
                     } catch (IOException ex) {
                         System.err.println("Error loading image: " + file);
                     }
+                    return false;
                 }
             };
             loading.setPriority(Thread.MIN_PRIORITY);

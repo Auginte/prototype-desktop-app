@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.TimerTask;
 import javax.swing.JFileChooser;
 import javax.swing.JPopupMenu;
+import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.OkularThread;
 import lt.banelis.parser.Class;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Source;
@@ -752,7 +753,7 @@ private void sourceOkularClipboardMouseEntered(java.awt.event.MouseEvent evt) {/
 private void sourceOkularClipboardMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sourceOkularClipboardMouseClicked
     if (evt.getClickCount() > 1 && visualization.getLastClipboardSource() instanceof Okular) {
         Okular source = (Okular) visualization.getLastClipboardSource();
-        addImage(source.getCachedImage(), source);
+        addImage(source.getCachedImage(), source, true);
     }
 }//GEN-LAST:event_sourceOkularClipboardMouseClicked
 
@@ -854,14 +855,17 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
     }
     
     BasicVisualization.ClipboardSourceListener clipboardSourceListener = new BasicVisualization.ClipboardSourceListener() {
-        public void newOkular(Okular source) {
+        public void newOkular(Okular source, OkularThread clipboardToHdd) {
             sourceOkularClipboard.setText("<HTML><B>Page:</B> " + source.getPage() + "<BR/>" +
                     "<B>URL:</B> " + source.getSource() + "<BR/>" +
                     "<B>Rect:</B> " + source.getPosition().l + "x" + source.getPosition().t + " | " + source.getPosition().r + "x" + source.getPosition().b + "<BR/>" +
                     "<B>Date:</B> " + source.getDateSting() +
                     "<HTML>");
             if (sourceOkularAuto.isSelected()) {
-                addImage(source.getCachedImage(), source);
+                ZoomableImage image = addImage(source.getCachedImage(), source, false);
+                clipboardToHdd.setImage(image);
+                clipboardToHdd.setPriority(Thread.MIN_PRIORITY);
+                clipboardToHdd.start();
             }
         }
 
@@ -886,11 +890,16 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
         }
     };
     
-    private void addImage(String file, Source source) {
+    private ZoomableImage addImage(String file, Source source, boolean loadImage) {
         ZoomableImage image = new ZoomableImage(file, source);
-        image.loadImage();
         ZoomableComponent component = zoomPanel1.addComponent(image);
         component.setLocation(zoomPanel1.getWidth() / 2, zoomPanel1.getHeight() / 2);
+        component.setSize(600, 600);
+        image.setSize(component.getSize().width, component.getSize().height);
+        if (loadImage) {
+            image.loadImage();
+        }
+        return image;
     }
     
     /**

@@ -424,9 +424,21 @@ public class BasicVisualization {
     public static interface ClipboardSourceListener {
         public void checking();
         public void noNew();
-        public void newOkular(Source.Okular source);
+        public void newOkular(Source.Okular source, OkularThread clipboardToHdd);
         public void newFirefox(Source.Internet source);
         public void otherData(String data);
+    }
+    
+    public abstract static class OkularThread extends Thread {
+        private ZoomableImage image = null;
+
+        public void setImage(ZoomableImage image) {
+            this.image = image;
+        }
+
+        public ZoomableImage getImage() {
+            return image;
+        }
     }
 
     public void setClipboardSourceListener(ClipboardSourceListener clipboardSourceListener) {
@@ -483,6 +495,7 @@ public class BasicVisualization {
                     }
 
                     /* Gathering clipboard data */
+                    //TODO: optimise on other side, performance leak with big images
                     final Transferable contents = clipboard.getContents(null);
                     int page = 0;
                     String url = "";
@@ -529,22 +542,31 @@ public class BasicVisualization {
                             final String finalUrl = url;
                             final int finalPage = page;
                             final Source.Okular.Boundary finalBoundary = boundary;
-                            File destination = generateClipboardFile(finalUrl);
-                            FileOutputStream output = null;
-                            try {
-                                InputStream imageStream = (InputStream) contents.getTransferData(finalFlavor);
-                                output = new FileOutputStream(destination);
-                                int nextChar;
-                                while ( (nextChar = imageStream.read()) != -1 ) {
-                                    output.write(nextChar);
+                            final File destination = generateClipboardFile(finalUrl);
+                            OkularThread clipboardToHdd = new OkularThread() {
+                                @Override
+                                public void run() {
+                                    FileOutputStream output = null;
+                                    try {
+                                        //TODO: optimise: add first, load second
+                                        InputStream imageStream = (InputStream) contents.getTransferData(finalFlavor);
+                                        output = new FileOutputStream(destination);
+                                        int nextChar;
+                                        while ( (nextChar = imageStream.read()) != -1 ) {
+                                            output.write(nextChar);
+                                        }
+                                        imageStream.close();
+                                        output.close();
+                                        if (getImage() != null) {
+                                            getImage().loadImage();
+                                        }
+                                    } catch (Exception ex) {
+                                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Can not save image from clipboard to " + destination, ex);
+                                    }
                                 }
-                                imageStream.close();
-                                output.close();
-                            } catch (Exception ex) {
-                                Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Can not save image from clipboard to " + destination, ex);
-                            }
+                            };
                             Source.Okular source = new Source.Okular(new Date(), finalUrl, finalPage, finalBoundary, destination.getPath());
-                            clipboardSourceListener.newOkular(source);
+                            clipboardSourceListener.newOkular(source, clipboardToHdd);
                             lastClipboardSource = source;
                         } else {
                             clipboardSourceListener.noNew();
@@ -555,6 +577,7 @@ public class BasicVisualization {
                     checkingClipboard = false;
                 }
             };
+            clipboardThread.setPriority(Thread.MAX_PRIORITY - 1);
             clipboardThread.start();
         }
     };
@@ -822,7 +845,7 @@ public class BasicVisualization {
                 panel.setLoading(false);
             }  
         };
-        openning.setPriority(Thread.MIN_PRIORITY + 1);
+        openning.setPriority(Thread.MAX_PRIORITY - 1);
         openning.start();
     }
 
@@ -879,7 +902,7 @@ public class BasicVisualization {
             component.setLocation(element.getPosition());
             component.setSize(element.getSize());
         } else if (!(component.getComponent() instanceof ZoomableImage)) {
-            component.setSize(new Dimension(100, 100));
+            component.setSize(new Dimension(600, 600));
         }
     }
 
