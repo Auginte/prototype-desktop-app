@@ -14,11 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JPanel;
-//import lt.dinosy.datalib.Data;
-//import lt.dinosy.datalib.Relation;
 
 /**
  * Panel with zooming capabilities.
@@ -93,7 +89,7 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
         setLayout(null);
     }
-
+    
     @Override
     protected void paintChildren(Graphics g) {
         if (grid) {
@@ -103,8 +99,42 @@ public class ZoomPanel extends JPanel implements Serializable {
             paintLoading(g);
         }
         paintConnections(g);
+        debugPaintProcessor(g);
         debugComponents(g);
         super.paintChildren(g);
+    }
+
+    //FIXME: debuging
+    private static Runtime runtime = Runtime.getRuntime();
+    private void debugPaintProcessor(Graphics g) {
+        g.setColor(Color.RED);
+        float percent = runtime.freeMemory() / (float) runtime.totalMemory();
+        g.fillRect(0, 0, (int) (getWidth() * percent), getHeight() / 8);
+        g.setColor(Color.YELLOW);
+        int n = 0;
+        for (Component component : getComponents()) {
+            if (component instanceof ZoomableImage) {
+                n++;
+            }
+        }
+        if (n > 0) {
+            float h = (getHeight() - getHeight() / 8) / (n+1);
+            int i = 0;
+            int avg = ZoomableImage.getAveragePriority();
+            for (Component component : getComponents()) {
+                if (component instanceof ZoomableImage) {
+                    ZoomableImage zi = (ZoomableImage) component;
+                    if (zi.getPriority() < avg / 3) {
+                        g.setColor(Color.ORANGE);                        
+                    } else {
+                        g.setColor(Color.YELLOW);
+                    }
+                    g.drawString(i + " " + zi.getPriority(), 10, (int) (getHeight() / 8 + i*h));
+                    i++;
+                }
+            }
+            g.drawString("AVG:" + ZoomableImage.getAveragePriority(), 0, (int) (getHeight() / 8 + i*h));
+        }
     }
 
 

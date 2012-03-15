@@ -1,6 +1,8 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import java.awt.Container;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -12,7 +14,7 @@ import java.awt.RenderingHints;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Toolkit;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.Iterator;
@@ -22,9 +24,9 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.awt.image.BufferedImage;
-import java.net.URL;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.JLabel;
 import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
 import lt.dinosy.datalib.Source;
@@ -52,7 +54,8 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private int lastHeight = -1;
     private transient BufferedImage cachedImage = null;
     private Optimization optimization = Optimization.part;
-
+    private Loadable loadable;
+    
     private enum Optimization {
         time,
         memory,
@@ -63,18 +66,106 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
      * Image loading optimization
      */
     private static Thread loading;
+    private static Runtime runtime = Runtime.getRuntime();
     private static Stack<Loadable> loadingQueue = new Stack<Loadable>();
     private static class Loadable {
         public String path;
         public String cached;
         public ZoomableImage container;
         public boolean loaded = false;
+        public int priority = 0;
+        
+        private static volatile int prioritySum = 0;
+        private static volatile int priorityCount = 0;
+        
+        public void drawPriority(Graphics g) {
+            updatePriority();
+            if (isCritical()) {
+                g.setColor(Color.RED);
+            } else {
+                g.setColor(Color.GREEN);
+            }
+            g.drawRect(0, 0, container.getSize().width, container.getSize().height);
+            g.fillRect(1, 1, container.getSize().width, container.getSize().height / 8);
+            
+        }
+        
+        private void updatePriority() {
+            float percent = runtime.freeMemory() / (float) runtime.totalMemory();
+            Container parent = container.getParent();
+            int x = container.getLocation().x;
+            int y = container.getLocation().y;
+            int w = container.getSize().width;
+            int h = container.getSize().height;
+            int cw = parent.getSize().width;
+            int ch = parent.getSize().height;
+            prioritySum -= priority;
+            priority = (int) (Math.max(w, h) * percent * 50);
+            if (x + w < 0) {
+                priority = 0;
+            }
+            if (y + h < 0) {
+                priority = 0;
+            }
+            if (x > cw) {
+                priority = 0;
+            }
+            if (y > ch) {
+                priority = 0;
+            }
+            prioritySum += priority;
+            checkCritical();
+        }
+        
+        private void checkCritical() {
+            if (isCritical()) {
+                loaded = false;
+                container.originalImage = null;
+            } else if (!loaded) {
+                ZoomableImage.updateLoadingStack();
+            }
+        }
+        
+        public boolean isCritical() {
+            int average = getAveratePriority();
+            int divider = 1;
+            float percent = runtime.freeMemory() / (float) runtime.totalMemory();
+            if (percent < 50) {
+                divider = 2;
+            } else if (percent < 40) {
+                divider = 3;
+            } else if (percent < 30) {
+                divider = 4;
+            } else if (percent < 25) {
+                divider = 6;
+            } else if (percent < 20) {
+                divider = 8;
+            }
+            return priority < average / divider;
+        }
 
+        public static int getAveratePriority() {
+            return (int) (prioritySum / (float) priorityCount);
+        }
+        
         public Loadable(String path, String cached, ZoomableImage container) {
+            priorityCount++;
             this.path = path;
             this.cached = cached;
             this.container = container;
         }
+    }
+    
+    public int getPriority() {
+        if (loadable != null) {
+            return loadable.priority;
+        } else {
+            return 1;
+        }
+    }
+    
+    public static int getAveragePriority() {
+        return Loadable.getAveratePriority();
     }
     
     /**
@@ -217,24 +308,54 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     }
 
     private static void loadImage(final String path, final String cached, final ZoomableImage container) {
-        loadingQueue.add(new Loadable(path, cached, container));
+        container.loadable = new Loadable(path, cached, container);
+        loadingQueue.add(container.loadable);
+        updateLoadingStack();
+    }
+    
+    private static boolean loadingRepeater = false;
+    
+    private static void updateLoadingStack() {
+        if (!loadingRepeater) {
+            javax.swing.Timer timer = new javax.swing.Timer(2000, new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                    if (!loading.isAlive()) {
+                        updateLoadingStack();
+                    }
+                }
+            });
+            timer.start();
+            loadingRepeater = true;
+        }
         if (loading == null || !loading.isAlive()) {
             loading = new Thread() {
                 @Override
-                public void run() {
+                public synchronized void run() {
                     int countAfter = -1;
                     int countBefore = -2;
                     while (countAfter != countBefore) {
                         countBefore = loadingQueue.size();
                         for (Loadable loadable : loadingQueue) {
-                            if (!loadable.loaded) {
+                            float percent = runtime.freeMemory() / (float) runtime.totalMemory();
+                            boolean toLoad = true;
+                            if (!loadable.loaded && percent > 30) {
+                                toLoad = true;
+                            } else if (!loadable.loaded) {
+                                loadable.updatePriority();
+                                toLoad = loadable.priority > Loadable.getAveratePriority();
+                            } else {
+                                toLoad = false;
+                            }
+                            if (toLoad) {
                                 loadable.loaded = load(loadable.path, loadable.cached, loadable.container);
+                            } else if (percent < 40) {
+                                loadable.checkCritical();
                             }
                         }
                         countAfter = loadingQueue.size();
-                        if (countBefore == countAfter) {
-                            resetQueue();
-                        }
+//                        if (countBefore == countAfter) {
+//                            resetQueue();
+//                        }
                     }
                 }
                 
@@ -323,6 +444,9 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         }
         paintSelected(g);
         paintFocus(g);
+        if (loadable != null) {
+            loadable.drawPriority(g);
+        }
     }
 
     public void zoomed(double z) {
