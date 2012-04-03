@@ -55,6 +55,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private transient BufferedImage cachedImage = null;
     private Optimization optimization = Optimization.part;
     private Loadable loadable;
+    private static final int LOADING_UPDATE_INTERVAL = 500;
     
     private enum Optimization {
         time,
@@ -317,7 +318,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     
     private static void updateLoadingStack() {
         if (!loadingRepeater) {
-            javax.swing.Timer timer = new javax.swing.Timer(2000, new ActionListener() {
+            javax.swing.Timer timer = new javax.swing.Timer(LOADING_UPDATE_INTERVAL, new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
                     if (!loading.isAlive()) {
                         updateLoadingStack();
@@ -444,9 +445,9 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         }
         paintSelected(g);
         paintFocus(g);
-        if (loadable != null) {
-            loadable.drawPriority(g);
-        }
+//        if (loadable != null) {
+//            loadable.drawPriority(g);
+//        }
     }
 
     public void zoomed(double z) {

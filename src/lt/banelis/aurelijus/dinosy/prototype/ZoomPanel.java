@@ -99,7 +99,7 @@ public class ZoomPanel extends JPanel implements Serializable {
             paintLoading(g);
         }
         paintConnections(g);
-        debugPaintProcessor(g);
+//        debugPaintProcessor(g);
         debugComponents(g);
         super.paintChildren(g);
     }

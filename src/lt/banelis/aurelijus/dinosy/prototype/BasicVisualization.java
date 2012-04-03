@@ -1373,7 +1373,12 @@ public class BasicVisualization {
      */
     public abstract class AddOperation extends PanelOperation {
         public AddOperation(String what, Key... keys) {
-            super("Add " + what, keys);
+            super(what, keys);
+        }
+
+        @Override
+        public final String getName() {
+            return "Add " + super.getName();
         }
     }
     
@@ -1684,6 +1689,16 @@ public class BasicVisualization {
         }
     );
 
+    public boolean execOperation(String name) {
+        for (Operation operation : operations) {
+            if (operation.getName().equalsIgnoreCase(name)) {
+                operation.perform();
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private void selectAll(ZoomPanel panel, boolean deselect) {
         for (Component component : panel.getComponents()) {
             if (component instanceof Selectable && ((Selectable) component).isSelectable()) {

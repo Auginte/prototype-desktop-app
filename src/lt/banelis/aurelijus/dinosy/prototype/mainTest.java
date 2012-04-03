@@ -10,6 +10,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -18,15 +21,28 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TimerTask;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.InputVerifier;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
 import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.OkularThread;
 import lt.banelis.parser.Class;
 import lt.dinosy.datalib.Data;
+import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Source;
 import lt.dinosy.datalib.Source.Book;
 import lt.dinosy.datalib.Source.Event;
@@ -42,6 +58,9 @@ public class mainTest extends javax.swing.JFrame {
     private BasicVisualization visualization;
     private JPopupMenu contextMenu;
     private Date sourceTypeDate = null;
+    private DefaultComboBoxModel booksSourcesModel = null;
+    private boolean booksModelChaning = false;
+    private DefaultComboBoxModel booksNamesModel = null;
     
     /** Creates new form mainTest */
     public mainTest() {
@@ -63,6 +82,23 @@ public class mainTest extends javax.swing.JFrame {
             }
         }
     };
+    
+    private FocusListener focusListener = new FocusListener() {
+        public void focusGained(FocusEvent event) {
+            selectedBook.setText("");
+            System.out.println("SELECTED: " + event.getComponent());
+            if (event.getComponent() instanceof DataRepresentation) {
+                Source source = ((DataRepresentation) event.getComponent()).getData().getSource();
+                System.out.println("\tS: " + source);
+                if (source instanceof Source.Book) {
+                    Source.Book book = (Source.Book) source;
+                    selectedBook.setText(book.getSource() + ": " + book.getPage());
+                }
+            }
+        }
+
+        public void focusLost(FocusEvent event) { }
+    };
         
     private void initPopups() {
         contextMenu = phpUml.getPopup();
@@ -74,11 +110,14 @@ public class mainTest extends javax.swing.JFrame {
             @Override
             public void added(Component component) {
                 component.addMouseListener(contextMenuListener);
+                updateBooksSources();
+                component.addFocusListener(focusListener);
             }
             @Override
             public void addedAll() {
                 for (Component component : zoomPanel1.getComponents()) {
                     component.addMouseListener(contextMenuListener);
+                    component.addFocusListener(focusListener);
                 }
             }
         });
@@ -135,6 +174,9 @@ public class mainTest extends javax.swing.JFrame {
         sourceBookPage = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         sourceBookIsbn = new javax.swing.JTextField();
+        booksNamesCombo = new javax.swing.JComboBox();
+        booksLabel = new javax.swing.JLabel();
+        selectedBook = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
         sourceOkularAuto = new javax.swing.JCheckBox();
         sourceOkularClipboard = new javax.swing.JLabel();
@@ -149,6 +191,7 @@ public class mainTest extends javax.swing.JFrame {
         jButton11 = new javax.swing.JButton();
         jButton13 = new javax.swing.JButton();
         jButton12 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
         zoomPanel1 = new lt.banelis.aurelijus.dinosy.prototype.ZoomPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -157,6 +200,8 @@ public class mainTest extends javax.swing.JFrame {
                 formKeyPressed(evt);
             }
         });
+
+        topPanel.setLayout(new java.awt.BorderLayout());
 
         sourcePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Source"));
 
@@ -186,7 +231,7 @@ public class mainTest extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 578, Short.MAX_VALUE)
+            .addGap(0, 576, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -219,7 +264,7 @@ public class mainTest extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(4, 4, 4)
-                .addComponent(sourceEventName, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
+                .addComponent(sourceEventName, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -296,7 +341,7 @@ public class mainTest extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel9)
                         .addGap(2, 2, 2)
-                        .addComponent(sourceinternetTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
+                        .addComponent(sourceinternetTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -325,8 +370,8 @@ public class mainTest extends javax.swing.JFrame {
         jLabel4.setText("Name:");
 
         sourceBookName.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                sourceBookNameKeyTyped(evt);
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                sourceBookNameKeyReleased(evt);
             }
         });
 
@@ -334,9 +379,14 @@ public class mainTest extends javax.swing.JFrame {
         jLabel5.setText("Page:");
 
         sourceBookPage.setText("1");
+        sourceBookPage.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+                sourceBookPageMouseWheelMoved(evt);
+            }
+        });
         sourceBookPage.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                sourceBookPageKeyTyped(evt);
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                sourceBookPageKeyReleased(evt);
             }
         });
 
@@ -348,28 +398,51 @@ public class mainTest extends javax.swing.JFrame {
             }
         });
 
+        booksNamesCombo.setEditable(true);
+        booksNamesCombo.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                booksNamesComboItemStateChanged(evt);
+            }
+        });
+
+        booksLabel.setText("Used:");
+
+        selectedBook.setEditable(false);
+        selectedBook.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addComponent(jLabel4)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4)
+                    .addComponent(booksLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sourceBookName, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(booksNamesCombo, javax.swing.GroupLayout.Alignment.LEADING, 0, 206, Short.MAX_VALUE)
+                    .addComponent(sourceBookName, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sourceBookPage, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sourceBookIsbn, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sourceBookPage, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sourceBookIsbn, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(selectedBook, javax.swing.GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                .addContainerGap(36, Short.MAX_VALUE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(booksNamesCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(booksLabel)
+                    .addComponent(selectedBook, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(sourceBookName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -423,8 +496,7 @@ public class mainTest extends javax.swing.JFrame {
                     .addComponent(sourceLastUpdated, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(sourceEventDate, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)))
-                .addGap(12, 12, 12))
+                        .addComponent(sourceEventDate, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE))))
         );
         sourcePanelLayout.setVerticalGroup(
             sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -436,11 +508,13 @@ public class mainTest extends javax.swing.JFrame {
                         .addComponent(sourceEventDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(sourceLastUpdated)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
                         .addComponent(jButton1))
                     .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
+
+        topPanel.add(sourcePanel, java.awt.BorderLayout.WEST);
 
         buttonsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Controll section"));
 
@@ -510,80 +584,69 @@ public class mainTest extends javax.swing.JFrame {
             }
         });
 
+        jButton3.setText("Copy-screen");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout buttonsPanelLayout = new javax.swing.GroupLayout(buttonsPanel);
         buttonsPanel.setLayout(buttonsPanelLayout);
         buttonsPanelLayout.setHorizontalGroup(
             buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 584, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, buttonsPanelLayout.createSequentialGroup()
+                .addComponent(jButton3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton9)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton13)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton11)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton7))
             .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(buttonsPanelLayout.createSequentialGroup()
                     .addContainerGap()
-                    .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, buttonsPanelLayout.createSequentialGroup()
-                            .addComponent(jCheckBox1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, buttonsPanelLayout.createSequentialGroup()
-                            .addComponent(jButton8)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButton9)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButton12)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButton13)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButton10)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButton11)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButton7)))
+                    .addComponent(jCheckBox1)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE)
                     .addContainerGap()))
         );
         buttonsPanelLayout.setVerticalGroup(
             buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGroup(buttonsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButton12)
+                        .addComponent(jButton13)
+                        .addComponent(jButton8)
+                        .addComponent(jButton9)
+                        .addComponent(jButton3))
+                    .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButton10)
+                        .addComponent(jButton11)
+                        .addComponent(jButton7)))
+                .addContainerGap(84, Short.MAX_VALUE))
             .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(buttonsPanelLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton8)
-                            .addComponent(jButton9)
-                            .addComponent(jButton12)
-                            .addComponent(jButton13))
-                        .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton10)
-                            .addComponent(jButton11)
-                            .addComponent(jButton7)))
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGap(48, 48, 48)
                     .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jCheckBox1)
                         .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addContainerGap(38, Short.MAX_VALUE)))
         );
 
-        javax.swing.GroupLayout topPanelLayout = new javax.swing.GroupLayout(topPanel);
-        topPanel.setLayout(topPanelLayout);
-        topPanelLayout.setHorizontalGroup(
-            topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(topPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(buttonsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sourcePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        topPanelLayout.setVerticalGroup(
-            topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, topPanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(sourcePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-        );
+        topPanel.add(buttonsPanel, java.awt.BorderLayout.CENTER);
 
-        getContentPane().add(topPanel, java.awt.BorderLayout.PAGE_START);
+        getContentPane().add(topPanel, java.awt.BorderLayout.NORTH);
 
         zoomPanel1.setBackground(java.awt.Color.black);
         zoomPanel1.setFocusCycleRoot(true);
@@ -600,11 +663,11 @@ public class mainTest extends javax.swing.JFrame {
         zoomPanel1.setLayout(zoomPanel1Layout);
         zoomPanel1Layout.setHorizontalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1353, Short.MAX_VALUE)
+            .addGap(0, 1394, Short.MAX_VALUE)
         );
         zoomPanel1Layout.setVerticalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 742, Short.MAX_VALUE)
+            .addGap(0, 762, Short.MAX_VALUE)
         );
 
         getContentPane().add(zoomPanel1, java.awt.BorderLayout.CENTER);
@@ -729,17 +792,8 @@ private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-
     updateParentSource();
 }//GEN-LAST:event_jTabbedPane1StateChanged
 
-private void sourceBookPageKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookPageKeyTyped
-    try {
-        Integer.parseInt(sourceBookPage.getText());
-        sourceBookPage.setBackground(Color.white);
-    } catch (NumberFormatException ex) {
-        sourceBookPage.setBackground(Color.red);
-    }
-}//GEN-LAST:event_sourceBookPageKeyTyped
-
 private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    updateParentSource();
+    
 }//GEN-LAST:event_jButton1ActionPerformed
 
 private void sourceOkularAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceOkularAutoActionPerformed
@@ -772,10 +826,6 @@ private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:
     private void sourceEventPlaceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceEventPlaceKeyTyped
         updateParentSource();
     }//GEN-LAST:event_sourceEventPlaceKeyTyped
-
-    private void sourceBookNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookNameKeyTyped
-        updateParentSource();
-    }//GEN-LAST:event_sourceBookNameKeyTyped
 
     private void sourceBookIsbnKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookIsbnKeyTyped
         updateParentSource();
@@ -812,6 +862,51 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
     updateParentSource();
 }//GEN-LAST:event_sourceinternetUrlKeyReleased
 
+private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    visualization.execOperation("Add screenShot");
+}//GEN-LAST:event_jButton3ActionPerformed
+
+private void booksNamesComboItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_booksNamesComboItemStateChanged
+    if (!booksModelChaning && booksNamesModel != null && booksNamesModel.getSize() > 0 && booksNamesModel.getSelectedItem() != null) {
+        sourceBookName.setText(booksNamesModel.getSelectedItem().toString());
+        updateParentSource();
+    }
+}//GEN-LAST:event_booksNamesComboItemStateChanged
+
+private void sourceBookNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookNameKeyReleased
+    updateParentSource();
+}//GEN-LAST:event_sourceBookNameKeyReleased
+
+private void sourceBookPageKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookPageKeyReleased
+    try {
+        Integer.parseInt(sourceBookPage.getText());
+        sourceBookPage.setBackground(Color.white);
+        updateParentSource();
+    } catch (NumberFormatException ex) {
+        sourceBookPage.setBackground(Color.red);
+    }
+}//GEN-LAST:event_sourceBookPageKeyReleased
+
+private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_sourceBookPageMouseWheelMoved
+    try {
+        int value = Integer.parseInt(sourceBookPage.getText());
+        value += -evt.getWheelRotation() * evt.getScrollAmount() / 3;
+        setBookPage(value);
+        updateParentSource();
+        
+    } catch (NumberFormatException ex) {
+        sourceBookPage.setBackground(Color.red);
+    }   
+}//GEN-LAST:event_sourceBookPageMouseWheelMoved
+
+    private void setBookPage(int value) {
+        if (value < 1) {
+            value = 1;
+        }
+        sourceBookPage.setBackground(Color.white);
+        sourceBookPage.setText(Integer.toString(value));
+    }
+
     private void initSources() {
         visualization.setClipboardSourceListener(clipboardSourceListener);
     }
@@ -820,7 +915,7 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
         None,
         Event,
         Internet,
-        Firefox,
+//        Firefox,
         Book,
         Okular
         //TODO: Firefox and Okular integration
@@ -852,6 +947,60 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
     
     public void loadProject(String file) {
         visualization.loadData(file);
+    }
+    
+    public Set<Source> getUniqueSources(java.lang.Class<? extends Source> restriction) {
+        Set<Source> sources = new HashSet<Source>(zoomPanel1.getComponentCount() / 5);
+        for (Component component : zoomPanel1.getComponents()) {
+            if (component instanceof DataRepresentation) {
+                Source source = ((DataRepresentation) component).getData().getSource();
+                if (restriction == null || restriction.isInstance(source)) {
+                    sources.add(((DataRepresentation) component).getData().getSource());
+                }
+            }
+        }
+        return sources;
+    }
+    
+    private void updateBooksSources() {
+//        /* Sources */
+//        if (booksSourcesModel == null) {
+//            booksSourcesModel = new DefaultComboBoxModel();
+//            booksCombo.setModel(booksSourcesModel);
+//        }
+//        List<Source> sortedSources = new ArrayList<Source>(getUniqueSources(Source.Book.class));
+//        Collections.sort(sortedSources, new Comparator<Source>() {
+//            public int compare(Source s1, Source s2) {
+//                return s1.getSource().compareTo(s2.getSource());
+//            }
+//        });
+//        booksSourcesModel.removeAllElements();
+//        for (Source source : sortedSources) {
+//            Source.Book book = (Source.Book) source;
+//            booksNamesCombo.addItem(book);
+//        }
+
+        /* Names */
+        booksModelChaning = true;
+        if (booksNamesModel == null) {
+            booksNamesModel = new DefaultComboBoxModel();
+            booksNamesCombo.setModel(booksNamesModel);
+        }
+        booksNamesModel.removeAllElements();
+        HashSet<String> names = new HashSet<String>();
+        for (Source source : getUniqueSources(Source.Book.class)) {
+            Source.Book book = (Source.Book) source;
+            if (book.getSource().length() > 0) {
+                names.add(book.getSource());
+            }
+        }
+        List<String> sortedNames = new ArrayList<String>(names);
+        Collections.sort(sortedNames);
+        for (String name : sortedNames) {
+            booksNamesModel.addElement(name);
+        }
+        booksLabel.setText("Used (" + booksNamesModel.getSize() + "):");
+        booksModelChaning = false;
     }
     
     BasicVisualization.ClipboardSourceListener clipboardSourceListener = new BasicVisualization.ClipboardSourceListener() {
@@ -931,6 +1080,8 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel booksLabel;
+    private javax.swing.JComboBox booksNamesCombo;
     private javax.swing.JPanel buttonsPanel;
     private javax.swing.JComboBox ciscoCourse;
     private javax.swing.JButton jButton1;
@@ -939,6 +1090,7 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
     private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton13;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
@@ -959,6 +1111,7 @@ private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FI
     private javax.swing.JPanel jPanel5;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTextField selectedBook;
     private javax.swing.JTextField sourceBookIsbn;
     private javax.swing.JTextField sourceBookName;
     private javax.swing.JTextField sourceBookPage;
