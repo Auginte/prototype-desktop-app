@@ -1293,7 +1293,7 @@ public class BasicVisualization {
         }
 
         @Override
-        public void keyReleased(KeyEvent e) {
+        public synchronized void keyReleased(KeyEvent e) {
             for (Operation operation : operations) {
                 checkAllKeys(operation, e);
             }
@@ -1780,7 +1780,7 @@ public class BasicVisualization {
                 });
             }
         },
-        new PanelOperation("Paste from clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_V)) {
+        new PanelOperation("Paste from clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_V, true)) {
             @Override
             protected void perform(ZoomPanel panel) {
                 try {
