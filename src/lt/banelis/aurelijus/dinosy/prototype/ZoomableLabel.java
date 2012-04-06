@@ -1,6 +1,9 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
 import java.awt.Component;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.List;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -15,6 +18,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -479,5 +483,4 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         }
         g.setColor(oldColor);
     }
-
 }

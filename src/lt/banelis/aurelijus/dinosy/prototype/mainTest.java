@@ -86,10 +86,8 @@ public class mainTest extends javax.swing.JFrame {
     private FocusListener focusListener = new FocusListener() {
         public void focusGained(FocusEvent event) {
             selectedBook.setText("");
-            System.out.println("SELECTED: " + event.getComponent());
             if (event.getComponent() instanceof DataRepresentation) {
                 Source source = ((DataRepresentation) event.getComponent()).getData().getSource();
-                System.out.println("\tS: " + source);
                 if (source instanceof Source.Book) {
                     Source.Book book = (Source.Book) source;
                     selectedBook.setText(book.getSource() + ": " + book.getPage());

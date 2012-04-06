@@ -4,12 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.FlavorEvent;
 import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -21,6 +24,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Dimension2D;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -643,6 +649,62 @@ public class BasicVisualization {
         return lastClipboardSource;
     }
     
+    //TODO: error handling
+    //TODO: meny objects
+    private static class TransferableData implements Serializable {
+        private Data data;
+        private Representation representation;
+        public TransferableData(ZoomableComponent component) {
+            if (component.getComponent() instanceof DataRepresentation) {
+                DataRepresentation dataRepresentation = (DataRepresentation) component.getComponent(); 
+                data = dataRepresentation.getData();
+                representation = createRepresentation(dataRepresentation.getData(), component, component.getComponent());
+            } else {
+                System.err.println("Clipboard: Compnent is not DataReperesentation: " + component.getComponent());
+            }
+        }
+        
+        public void paste(ZoomPanel panel) {
+            //TODO: implement other types
+            if (representation instanceof Representation.Element) {
+                ZoomableComponent component = null;
+                if (data instanceof Data.Image) {
+                    Data.Image newData = new Data.Image(data.getData(), data.getSource());
+                    ZoomableImage zoomableImage = new ZoomableImage(newData);
+                    zoomableImage.loadImage();
+                    component = panel.addComponent(zoomableImage);                    
+                    zoomableImage.requestFocusInWindow();
+                } else if (data instanceof Data.Plain) {
+                    //TODO: copy image
+                    Data.Plain newData = new Data.Plain(data.getData(), data.getSource());
+                    ZoomableLabel zoomableLabel = new ZoomableLabel(newData);
+                    component = panel.addComponent(zoomableLabel);
+                    zoomableLabel.requestFocusInWindow();
+                }
+                if (component != null) {
+                    if (representation instanceof Representation.Element) {
+                        Representation.Element element = (Representation.Element) representation;
+                        element.set(translated(element.getPosition(), 10, 10), element.getZ(), element.getSize());
+                    }
+                    updateRepresentation(component, representation, panel);
+                } else {
+                    System.err.println("Clipboard: Not valid data: " + data);
+                }
+            } else {
+                System.err.println("Clipboard: Not valid representation: " + representation);
+            }
+        }
+        
+        private Point2D translated(Point2D point, int x, int y) {
+            return new DoublePoint(point.getX() + x, point.getY() + y);
+        }
+        
+        @Override
+        public String toString() {
+            return "{" + data.getData() + "}";
+        }
+    }
+    private static final DataFlavor dataFlavor = new DataFlavor(TransferableData.class, "data/dinosy");
     
     /*
      * Connections
@@ -771,29 +833,9 @@ public class BasicVisualization {
                                 } else {
                                     component = panel.addComponent(new ZoomableLabel(data));
                                 }
-                                representation.setAssigned(component.getComponent());
-                                iniciateRepresentation(component, representation);
-                                if (representation instanceof Representation.PlaceHolder) {
-                                    int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
-                                    int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
-                                    component.setLocation(x, y);
-                                    if (!(data instanceof Data.Image)) {
-                                        iniciateRepresentation(component, representation);
-                                    }
-                                } else {
-                                    component.zoom(1);
-                                    Element element = (Element) representation;
-                                    if (element.getForeground() != null) {
-                                        component.getComponent().setForeground(element.getForeground());
-                                    }
-                                    if (element.getBackground() != null) {
-                                        if (component.getComponent() instanceof JComponent) {
-                                            JComponent jComponent = (JComponent) component.getComponent();
-                                            jComponent.setOpaque(element.getBackground().getAlpha() == 255);
-                                        }
-                                        component.getComponent().setBackground(element.getBackground());
-                                    }
-                                    zOrders.put(component.getComponent(), element.getZIndex());
+                                updateRepresentation(component, representation, panel);
+                                if (representation instanceof Representation.Element) {
+                                    zOrders.put(component.getComponent(), ((Element) representation).getZIndex());
                                 }
                                 representations.add(representation);
                             }
@@ -848,6 +890,29 @@ public class BasicVisualization {
         openning.setPriority(Thread.MAX_PRIORITY - 1);
         openning.start();
     }
+    
+    private static void updateRepresentation(ZoomableComponent component, Representation representation, ZoomPanel panel) {
+        representation.setAssigned(component.getComponent());
+        iniciateRepresentation(component, representation);
+        if (representation instanceof Representation.PlaceHolder) {
+            int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
+            int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
+            component.setLocation(x, y);
+        } else {
+            component.zoom(1);
+            Element element = (Element) representation;
+            if (element.getForeground() != null) {
+                component.getComponent().setForeground(element.getForeground());
+            }
+            if (element.getBackground() != null) {
+                if (component.getComponent() instanceof JComponent) {
+                    JComponent jComponent = (JComponent) component.getComponent();
+                    jComponent.setOpaque(element.getBackground().getAlpha() == 255);
+                }
+                component.getComponent().setBackground(element.getBackground());
+            }
+        }    
+    }
 
     private Component getComponent(Data data, List<Representation> representations) {
         for (Representation representation : representations) {
@@ -895,7 +960,7 @@ public class BasicVisualization {
         }
     }
 
-    private void iniciateRepresentation(ZoomableComponent component, Representation representation) {
+    private static void iniciateRepresentation(ZoomableComponent component, Representation representation) {
         if (representation instanceof Representation.Element) {
             Representation.Element element = (Element) representation;
             component.zoom(element.getZ());
@@ -1305,6 +1370,8 @@ public class BasicVisualization {
         }
 
         public abstract void perform();
+        
+        //TODO: public boolean isActive
     }
 
     /**
@@ -1686,6 +1753,58 @@ public class BasicVisualization {
                     }
                 });
             }
+        },
+        new FocusedOperation("Copy to clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_C, true)) {
+            @Override
+            protected void perform(final ZoomableComponent focused, ZoomPanel panel) {
+                clipboard.setContents(new Transferable() {
+                    private DataFlavor[] flavors = new DataFlavor[] { dataFlavor };
+                    
+                    public DataFlavor[] getTransferDataFlavors() {
+                        return flavors;
+                    }
+                    
+                    public boolean isDataFlavorSupported(DataFlavor flavor) {
+                        return flavor.equals(flavor);
+                    }
+
+                    public TransferableData getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                        if (flavor.equals(flavor)) {
+                            return new TransferableData(focused);
+                        } else {
+                            throw new UnsupportedFlavorException(flavor);
+                        }
+                    }
+                }, new ClipboardOwner() {
+                    public void lostOwnership(Clipboard clip, Transferable transf) {}
+                });
+            }
+        },
+        new PanelOperation("Paste from clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_V)) {
+            @Override
+            protected void perform(ZoomPanel panel) {
+                try {
+                    if (clipboard.isDataFlavorAvailable(dataFlavor)) {
+                        TransferableData transferable = (TransferableData) clipboard.getData(dataFlavor);
+                        transferable.paste(panel);
+                    } else if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+                        Image image = (Image) clipboard.getData(DataFlavor.imageFlavor);
+                        if (image instanceof BufferedImage) {
+                            final String clipboardFile = Settings.getDateCacheDirecotry() + "/pasted-" + BasicVisualization.getTimeForFile() + ".png";
+                            if (defaultSource == null) {
+                                defaultSource = new Source.Event();
+                            }
+                            ZoomableImage component = new ZoomableImage(new Data.Image(clipboardFile, defaultSource), (BufferedImage) image, 1);
+                            component.setSize(image.getWidth(null), image.getHeight(null));
+                            ZoomableComponent zoomableComponent = panel.addComponent(component);
+                            setToCenter(zoomableComponent);
+                            component.save();
+                        }
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Pasting exception", ex);
+                }
+            }
         }
     );
 
@@ -1717,21 +1836,32 @@ public class BasicVisualization {
         }
         ZoomableImage image = new ZoomableImage(path, defaultSource);
         ZoomableComponent component = panel.addComponent(image);
-        image.loadImage();
         if (x == null || y == null) {
-            x = (panel.getWidth() / 2) - (component.getSize().width / 2);
-            y = (panel.getHeight() / 2) - (component.getSize().height / 2);
+            setToCenter(component);
+        } else {
+            component.setLocation(x, y);
         }
+        image.loadImage();
         ((JComponent) component.getComponent()).setToolTipText(path);
-        component.setLocation(x, y);
         return component;
+    }
+    
+    private void setToCenter(ZoomableComponent component) {
+        int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
+        int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
+        component.setLocation(x, y);
     }
     
     private ZoomableLabel addText(String text, int x, int y, int widh, int height, boolean edit) {
         if (defaultSource == null) {
             defaultSource = new Source.Event();
         }
-        ZoomableLabel label = new ZoomableLabel(new Data.Plain(text, defaultSource));
+        ZoomableLabel label = new ZoomableLabel();
+        return addText(new Data.Plain(text, defaultSource), panel, x, y, widh, height, edit);
+    }
+    
+    private ZoomableLabel addText(Data.Plain data, ZoomPanel panel, int x, int y, int widh, int height, boolean edit) {
+        ZoomableLabel label = new ZoomableLabel(data);
         if (edit) {
             label.switchEditable();
         }
@@ -1990,7 +2120,7 @@ public class BasicVisualization {
     private interface ColorAction {
         public void colorChosen(Color color, boolean transparent);
     }
-    
+       
     /*
      * Utilities
      */

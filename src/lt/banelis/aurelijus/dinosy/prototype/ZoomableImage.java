@@ -390,8 +390,25 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                 }
             };
             loading.setPriority(Thread.MIN_PRIORITY);
+            //FIXME: Exception in thread "Thread-294" java.lang.IllegalThreadStateException 	at java.lang.Thread.start(Thread.java:655) 	at lt.banelis.aurelijus.dinosy.prototype.ZoomableImage.updateLoadingStack(ZoomableImage.java:393)
             loading.start();
         }
+    }
+    
+    public void save() {
+        //TODO: saving in queue and lost buffer
+        Thread saving = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    ImageIO.write(originalImage, "png", new File(data.getData()));
+                } catch (IOException ex) {
+                    Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error saving image " + data.getData(), ex);
+                }
+            }
+        };
+        saving.setPriority(Thread.MIN_PRIORITY);
+        saving.start();
     }
     
     protected void setImage(BufferedImage image) {
