@@ -56,12 +56,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -90,7 +92,7 @@ import lt.dinosy.datalib.PsiaudoClipboard;
 import lt.dinosy.datalib.Relation;
 import lt.dinosy.datalib.Relation.Association;
 import lt.dinosy.datalib.Settings;
-import sun.misc.BASE64Decoder;
+import net.sourceforge.iharder.Base64;
 
 /**
  * Basic elements of visualization
@@ -499,7 +501,7 @@ public class BasicVisualization {
                     if (clipboardSourceListener != null) {
                         clipboardSourceListener.checking();
                     }
-
+                    
                     /* Gathering clipboard data */
                     //TODO: optimise on other side, performance leak with big images
                     final Transferable contents = clipboard.getContents(null);
@@ -516,6 +518,7 @@ public class BasicVisualization {
                             }
                             if (dataFlavor.getMimeType().startsWith("text/x-okular-")) {
                                 String data = getFromReader(dataFlavor.getReaderForText(contents));
+                                System.out.println(">" + data);
                                 if (dataFlavor.getMimeType().equals("text/x-okular-page; class=java.io.InputStream")) {
                                     page = Integer.parseInt(data.trim());
                                 } else if (dataFlavor.getMimeType().equals("text/x-okular-url; class=java.io.InputStream")) {
@@ -532,6 +535,7 @@ public class BasicVisualization {
                             } else if (otherData.length() < 1 && dataFlavor.getPrimaryType().equals("text") && streamRepresentation) {
                                 otherData = getFromReader(dataFlavor.getReaderForText(contents));
                             }
+                                    
                         } catch (Exception ex) {
                             Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Clipboard error", ex);
                         }
@@ -594,12 +598,11 @@ public class BasicVisualization {
             if (map.containsKey("xpath") && map.containsKey("url") && map.containsKey("title") && map.containsKey("data") && map.containsKey("date") && map.containsKey("saved")) {
                 Date date = Source.parseDate(map.get("date"));
                 defaultSource = new Source.Internet(date, map.get("url"), map.get("xpath"), map.get("title"), map.get("saved"), null);
-                BASE64Decoder decoder = new BASE64Decoder();
                 String data = "[]";
                 try {
-                    data = new String(decoder.decodeBuffer(map.get("data")));
+                    data = new String(Base64.decode(map.get("data")));
                 } catch (IOException ex) {
-                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Base64 decoder error", ex);
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if (map.containsKey("type") && map.get("type").equals(Firefox.Type.image.name())) {
                     addImage(data, null, null);
@@ -668,18 +671,22 @@ public class BasicVisualization {
             //TODO: implement other types
             if (representation instanceof Representation.Element) {
                 ZoomableComponent component = null;
-                if (data instanceof Data.Image) {
-                    Data.Image newData = new Data.Image(data.getData(), data.getSource());
-                    ZoomableImage zoomableImage = new ZoomableImage(newData);
-                    zoomableImage.loadImage();
-                    component = panel.addComponent(zoomableImage);                    
-                    zoomableImage.requestFocusInWindow();
-                } else if (data instanceof Data.Plain) {
-                    //TODO: copy image
-                    Data.Plain newData = new Data.Plain(data.getData(), data.getSource());
-                    ZoomableLabel zoomableLabel = new ZoomableLabel(newData);
-                    component = panel.addComponent(zoomableLabel);
-                    zoomableLabel.requestFocusInWindow();
+                try {
+                    if (data instanceof Data.Image) {
+                        Data.Image newData = new Data.Image(data.getData(), data.getSource().clone());
+                        ZoomableImage zoomableImage = new ZoomableImage(newData);
+                        zoomableImage.loadImage();
+                        component = panel.addComponent(zoomableImage);                    
+                        zoomableImage.requestFocusInWindow();
+                    } else if (data instanceof Data.Plain) {
+                        //TODO: copy image
+                        Data.Plain newData = new Data.Plain(data.getData(), data.getSource().clone());
+                        ZoomableLabel zoomableLabel = new ZoomableLabel(newData);
+                        component = panel.addComponent(zoomableLabel);
+                        zoomableLabel.requestFocusInWindow();
+                    }
+                } catch (CloneNotSupportedException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Source clonning should be supported", ex);
                 }
                 if (component != null) {
                     if (representation instanceof Representation.Element) {
@@ -829,7 +836,6 @@ public class BasicVisualization {
                                 } else if (data instanceof Data.Image) {
                                     ZoomableImage image = new ZoomableImage((Data.Image) data);
                                     component = panel.addComponent(image);
-                                    image.loadImage();
                                 } else {
                                     component = panel.addComponent(new ZoomableLabel(data));
                                 }
@@ -1085,20 +1091,10 @@ public class BasicVisualization {
                     title.setEnabled(false);
                     menu.add(title);
                 }
-                if (internetSource.getSource().contains("/CCNA/")) {
-                     String course = "";
-                     if (internetSource.getSource().contains("cid=0600000000&")) {
-                         course = "1";
-                     } else if (internetSource.getSource().contains("cid=0900000000&")) {
-                        course = "2";
-                     } else if (internetSource.getSource().contains("cid=1300000000&")) {
-                        course = "3"; 
-                     } else if (internetSource.getSource().contains("cid=1400000000&")) {
-                         course = "4"; 
-                     }
-                    
-                     JMenuItem item2 = new JMenuItem("CCNA" + course + ": " + internetSource.getXpaht());
-                     menu.add(item2);
+                int ccnaCource = getCCNA(internetSource.getSource());
+                if (ccnaCource > 0) {
+                    JMenuItem item2 = new JMenuItem("CCNA" + ccnaCource + ": " + internetSource.getXpaht());
+                    menu.add(item2);
                 }
             } else if (source instanceof Source.Okular) {
                 item.addActionListener(new ActionListener() {
@@ -1132,6 +1128,23 @@ public class BasicVisualization {
         }
     }
     
+    //FIXME: refactor to plugin or so
+    public static int getCCNA(String sourceUrl) {
+        int course = 0;
+        if (sourceUrl.contains("/CCNA/")) {
+            if (sourceUrl.contains("cid=0600000000&")) {
+                course = 1;
+            } else if (sourceUrl.contains("cid=0900000000&")) {
+            course = 2;
+            } else if (sourceUrl.contains("cid=1300000000&")) {
+            course = 3; 
+            } else if (sourceUrl.contains("cid=1400000000&")) {
+                course = 4; 
+            }
+        }
+        return course;
+    }
+       
     private static void sourceInformationProject(JMenuItem item, final Source dataSource) {
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -1794,11 +1807,12 @@ public class BasicVisualization {
                             if (defaultSource == null) {
                                 defaultSource = new Source.Event();
                             }
-                            ZoomableImage component = new ZoomableImage(new Data.Image(clipboardFile, defaultSource), (BufferedImage) image, 1);
+                            ZoomableImage component = new ZoomableImage(new Data.Image(clipboardFile, defaultSource));
+                            ImageLoader.getInstance().addImage(component, (BufferedImage) image);
                             component.setSize(image.getWidth(null), image.getHeight(null));
                             ZoomableComponent zoomableComponent = panel.addComponent(component);
                             setToCenter(zoomableComponent);
-                            component.save();
+                            component.save((BufferedImage) image);
                         }
                     }
                 } catch (Exception ex) {
@@ -2007,7 +2021,7 @@ public class BasicVisualization {
         reader.close();
         writter.close();
     }
-    
+       
     private static void copyFile(File sourceFile, File destFile) throws IOException {
         if(!destFile.exists()) {
             destFile.createNewFile();
@@ -2033,7 +2047,8 @@ public class BasicVisualization {
 
     private static String urlEncode(String text) {
         try {
-            return java.net.URLEncoder.encode(text, "UTF-8");
+            text = java.net.URLEncoder.encode(text, "UTF-8");
+            return text.replace("+", "%2B");
         } catch (UnsupportedEncodingException ex) {
             return text;
         }

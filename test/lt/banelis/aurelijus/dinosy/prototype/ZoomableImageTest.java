@@ -28,7 +28,7 @@ public class ZoomableImageTest {
 
     @Test
     public void testStack() {
-        ZoomableImage.Stack<String> stack = new ZoomableImage.Stack<String>("Pirmas");
+        ImageLoader.Stack<String> stack = new ImageLoader.Stack<String>("Pirmas");
         stack.add("antras");
         stack.add("trecias");
         String[] result = new String[3];
@@ -42,7 +42,7 @@ public class ZoomableImageTest {
     
     @Test
     public void testConcurent() {
-        ZoomableImage.Stack<String> stack = new ZoomableImage.Stack<String>("Pirmas");
+        ImageLoader.Stack<String> stack = new ImageLoader.Stack<String>("Pirmas");
         stack.add("antras");
         stack.add("trecias");
         int i = 1;
@@ -57,7 +57,7 @@ public class ZoomableImageTest {
     
     @Test
     public void testClear() {
-        ZoomableImage.Stack<String> stack = new ZoomableImage.Stack<String>("Pirmas");
+        ImageLoader.Stack<String> stack = new ImageLoader.Stack<String>("Pirmas");
         stack.add("antras");
         stack.add("trecias");
         int i = 0;

@@ -38,7 +38,7 @@ public class ZoomPanel extends JPanel implements Serializable {
     private volatile boolean loading = false;
     private static int loadingRing = 1;
     private Thread loadingThread = null;
-    private Color loadingColor = new Color(40, 40, 40);
+    private static Color loadingColor = new Color(40, 40, 40);
     
     private static Color addColor(Color color, int delta) {
         int c[] = new int[3];
@@ -96,7 +96,7 @@ public class ZoomPanel extends JPanel implements Serializable {
             printGrid(g);
         }
         if (loading) {
-            paintLoading(g);
+            paintLoading(g, getSize().width, getSize().height);
         }
         paintConnections(g);
 //        debugPaintProcessor(g);
@@ -120,7 +120,7 @@ public class ZoomPanel extends JPanel implements Serializable {
         if (n > 0) {
             float h = (getHeight() - getHeight() / 8) / (n+1);
             int i = 0;
-            int avg = ZoomableImage.getAveragePriority();
+            int avg = ImageLoader.getAveragePriority();
             for (Component component : getComponents()) {
                 if (component instanceof ZoomableImage) {
                     ZoomableImage zi = (ZoomableImage) component;
@@ -133,7 +133,7 @@ public class ZoomPanel extends JPanel implements Serializable {
                     i++;
                 }
             }
-            g.drawString("AVG:" + ZoomableImage.getAveragePriority(), 0, (int) (getHeight() / 8 + i*h));
+            g.drawString("AVG:" + ImageLoader.getAveragePriority(), 0, (int) (getHeight() / 8 + i*h));
         }
     }
 
@@ -591,12 +591,12 @@ public class ZoomPanel extends JPanel implements Serializable {
     }
     
     
-    private void paintLoading(Graphics g) {
+    public static void paintLoading(Graphics g, int width, int height) {
         g.setColor(loadingColor);
-        g.fillRect(0, 0, this.getSize().width, this.getSize().height);
-        int x = getSize().width/2;
-        int y = getSize().height/2;
-        int size = Math.min(getSize().width, getSize().height) / 4;
+        g.fillRect(0, 0, width, height);
+        int x = width/2;
+        int y = height/2;
+        int size = Math.min(width, height) / 4;
         g.setColor(Color.GRAY);
         g.fillArc(x - size/2, y - size/2, size, size, loadingRing*10, 60);
         g.fillArc(x - size/2, y - size/2, size, size, loadingRing*10 + 180, 60);
