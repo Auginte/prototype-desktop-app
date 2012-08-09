@@ -534,7 +534,7 @@ public class ZoomPanel extends JPanel implements Serializable {
      * Focusable, selectable elements
      */
 
-    public ZoomableComponent getFocusOwner() {
+    public synchronized ZoomableComponent getFocusOwner() {
         for (Component component : components.keySet()) {
             if (component.isFocusOwner()) {
                 return components.get(component);
@@ -588,6 +588,10 @@ public class ZoomPanel extends JPanel implements Serializable {
             repaint();
         }
         this.loading = loading;
+    }
+
+    public boolean isLoading() {
+        return loading;
     }
     
     

@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TimerTask;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -62,19 +63,27 @@ public class mainTest extends javax.swing.JFrame {
     private DefaultComboBoxModel booksSourcesModel = null;
     private boolean booksModelChaning = false;
     private DefaultComboBoxModel booksNamesModel = null;
+    private static final int AUTO_SAVE_INTERVAL = 60000;
+    
+    BasicVisualization.Progress progress = new BasicVisualization.Progress() {
+        public void update(double percent, String operaion) {
+            setTitle(Math.round(percent*100) + "%: " + operaion);
+        }
+    };
     
     /** Creates new form mainTest */
     public mainTest() {
         initComponents();
         phpUml = new PhpUml(zoomPanel1);
-        visualization = new BasicVisualization(zoomPanel1);
+        visualization = new BasicVisualization(zoomPanel1, progress);
         visualization.initAll();
         initPopups();
         initSources();
         initKeyShortcuts(getContentPane());
         initMemoryMonitor();
+        initAutoSave();
     }
-
+    
     private MouseListener contextMenuListener = new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent evt) {
@@ -84,6 +93,24 @@ public class mainTest extends javax.swing.JFrame {
             }
         }
     };
+    
+    private void initAutoSave() {
+        javax.swing.Timer timer = new javax.swing.Timer(AUTO_SAVE_INTERVAL, new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                if (autosaveCheckbox.isSelected() && visualization.getSavedTo() != null && !zoomPanel1.isLoading()) {
+                    visualization.save();
+                    setTitle("Autosaved: " + getTime());
+                }
+            }
+        });
+        timer.start();
+    }
+    
+    private static String getTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return dateFormat.format(new Date());
+    }
     
     private void initMemoryMonitor() {
         memoryMonitor.setLayout(new BorderLayout());
@@ -100,7 +127,7 @@ public class mainTest extends javax.swing.JFrame {
                 int h = 0;
                 int mw = (int) (g.getClipBounds().width * runtime.freeMemory() / runtime.maxMemory());
                 int tmw = (int) (g.getClipBounds().width * runtime.freeMemory() / runtime.totalMemory());
-                setToolTipText("Free/MAX free/total loaded");
+//                setToolTipText("Free/MAX free/total loaded");
                 ImageLoader imageLoader = ImageLoader.getInstance();
                 int nLoaded = imageLoader.getLoadedCount();
                 int nUnloaded = imageLoader.getRemoveCount();
@@ -267,6 +294,7 @@ public class mainTest extends javax.swing.JFrame {
         jButton12 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         memoryMonitor = new javax.swing.JPanel();
+        autosaveCheckbox = new javax.swing.JCheckBox();
         zoomPanel1 = new lt.banelis.aurelijus.dinosy.prototype.ZoomPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -698,26 +726,36 @@ public class mainTest extends javax.swing.JFrame {
             .addGap(0, 61, Short.MAX_VALUE)
         );
 
+        autosaveCheckbox.setSelected(true);
+        autosaveCheckbox.setText("Autosave");
+
         javax.swing.GroupLayout buttonsPanelLayout = new javax.swing.GroupLayout(buttonsPanel);
         buttonsPanel.setLayout(buttonsPanelLayout);
         buttonsPanelLayout.setHorizontalGroup(
             buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                .addGroup(buttonsPanelLayout.createSequentialGroup()
-                    .addComponent(jButton3)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jButton9)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jButton12)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                    .addComponent(jButton8)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jButton7))
-                .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(buttonsPanelLayout.createSequentialGroup()
-                .addComponent(jCheckBox1)
-                .addGap(18, 18, 18)
-                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 339, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(buttonsPanelLayout.createSequentialGroup()
+                        .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(buttonsPanelLayout.createSequentialGroup()
+                                .addComponent(jButton3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton9))
+                            .addComponent(jCheckBox1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(buttonsPanelLayout.createSequentialGroup()
+                                .addComponent(jButton12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton7))
+                            .addGroup(buttonsPanelLayout.createSequentialGroup()
+                                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(autosaveCheckbox)))))
+                .addGap(229, 229, 229))
         );
         buttonsPanelLayout.setVerticalGroup(
             buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -731,7 +769,8 @@ public class mainTest extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBox1)
-                    .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(autosaveCheckbox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(memoryMonitor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -759,7 +798,7 @@ public class mainTest extends javax.swing.JFrame {
         );
         zoomPanel1Layout.setVerticalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 709, Short.MAX_VALUE)
+            .addGap(0, 761, Short.MAX_VALUE)
         );
 
         getContentPane().add(zoomPanel1, java.awt.BorderLayout.CENTER);
@@ -1199,6 +1238,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox autosaveCheckbox;
     private javax.swing.JLabel booksLabel;
     private javax.swing.JComboBox booksNamesCombo;
     private javax.swing.JPanel buttonsPanel;

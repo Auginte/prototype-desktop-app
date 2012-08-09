@@ -281,11 +281,20 @@ public class ImageLoader {
         private void updatePriority() {
             float percent = runtime.freeMemory() / (float) runtime.totalMemory();
             Container parent = container.getParent();
+            if (container instanceof Selectable) {
+                Selectable selectable = (Selectable) container;
+                if (selectable.isSelected()) {
+                    state = State.selected;
+                } else if (state == State.selected) {
+                    state = State.loaded;
+                }
+            }
+            prioritySum -= priority;
+            int vip = 0;
             if (state == State.toSave || state == State.selected) {
-                prioritySum -= priority;
-                priority = 5000;
-                prioritySum += priority;
-            } else if (parent != null && container != null && parent.getSize() != null && container.getSize() != null) {
+                vip = 5000;
+            }
+            if (parent != null && container != null && parent.getSize() != null && container.getSize() != null) {
                 int x = container.getLocation().x;
                 int y = container.getLocation().y;
                 int w = container.getSize().width;
@@ -295,7 +304,6 @@ public class ImageLoader {
                 int right = x + w;
                 int bottom = y + h;
                 int size = (int) (Math.max(w, h) * percent);
-                prioritySum -= priority;
                 if (x > cw || y > ch || right < 0 || bottom < 0) {
                     if (size / 1000 > 1000) {
                         size = 1000;
@@ -318,10 +326,11 @@ public class ImageLoader {
                     priority -= (cw/2) - (x-w/2);
                     priority -= (ch/2) - (y-h/2);
                 }               
-                prioritySum += priority;
             } else {
                 priority = -501;
             }
+            priority += vip;
+            prioritySum += priority;
         }
         
         public int getPriority() {
@@ -485,6 +494,7 @@ public class ImageLoader {
         }
         /* Load / unload */
         boolean memoryLeak = false;
+        final int loadablePerCycle = 10;
         for (Loadable loadable : loadingQueue) {
             //FIXME: normal image removal: java.lang.NullPointerException
             if (loadable != null) {
@@ -493,9 +503,11 @@ public class ImageLoader {
                     removed++;
                 } else if (loadable.needLoading() && !memoryLeak) {
                     try {
-//                        System.out.println("\tL " + loadable.debugTooltip());
                         loadable.load();
                         loaded++;
+                        if (loaded > loadablePerCycle) {
+                            memoryLeak = true;
+                        }
                     } catch (OutOfMemoryError ex) {
                         System.out.println("Out of memory: " + ex);
                         memoryLeak = true;
@@ -507,7 +519,6 @@ public class ImageLoader {
             n2++;
         }
         cycleCount++;
-//        System.out.println("NL " + loaded + " L:R " + totalLoaded + ":" + removed + " N1/N2" + n1 + "/" + n2);
         loading = false;
     }
     

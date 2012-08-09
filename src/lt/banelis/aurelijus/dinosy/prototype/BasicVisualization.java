@@ -117,10 +117,11 @@ public class BasicVisualization {
     private DataConnections dataConnections;
     protected static String externalSketching = "/usr/bin/mypaint";
     protected static Color defaultForeground = Color.cyan;
+    private Progress progress = emptyProgress;
     
     //FIXME: normal source implemntation
     public Source defaultSource = null;
-
+    
     private BasicVisualization() {
         Collections.sort(operations, new Comparator<BasicVisualization.Operation>() {
             public int compare(Operation o1, Operation o2) {
@@ -135,6 +136,11 @@ public class BasicVisualization {
         dataConnections = new DataConnections(panel);
     }
 
+    public BasicVisualization(ZoomPanel panel, Progress progress) {
+        this(panel);
+        this.progress = progress;
+    }
+    
     public void initAll() {
         initZooming();
         initSelectable();
@@ -143,6 +149,17 @@ public class BasicVisualization {
         initConnections();
         initClipboard();
     }
+
+    /*
+     * Progress
+     */
+    
+    public static interface Progress {
+        public void update(double percent, String operaion);
+    }
+    private static Progress emptyProgress = new Progress() {
+        public void update(double percent, String operaion) { }
+    };
 
     
     /*
@@ -817,17 +834,25 @@ public class BasicVisualization {
     /*
      * Open / Save
      */
-
+    
     public void loadData(final String file) {
+        loadData(file, progress);
+    }
+    
+    public void loadData(final String file, final Progress progress) {
         Thread openning = new Thread() {
             @Override
             public void run() {
                 panel.setLoading(true);
+                progress.update(0, "Loading XML file");
                 try {
                     if (storage.openFile(file)) {
+                        progress.update(0.2, "Creating elements");
                         List<Representation> representations = new LinkedList<Representation>();
                         HashMap<Component, Integer> zOrders = new HashMap<Component, Integer>(storage.getData().size());
                         /* Representations */
+                        int n = storage.getData().values().size();
+                        int i = 0;
                         for (Data data : storage.getData().values()) {
                             for (Representation representation : data.getRepresentations()) {
                                 ZoomableComponent component;
@@ -845,36 +870,44 @@ public class BasicVisualization {
                                 }
                                 representations.add(representation);
                             }
+                            progress.update(0.2 + (i / (double) n * 0.6), "Creating elements");
+                            i++;
                         }
+                        progress.update(0.8, "Drawing relations");
 
                         /* Relations */
-                        for (Representation representation : representations) {
-                            for (Relation relation : representation.getData().getRelations()) {
-                                if (relation.getFrom() == representation.getData()) {
-                                    Component from = (Component) representation.getAssigned();
-                                    Component to = getComponent(relation.getTo(), representations);
-                                    assert to != null;
-                                    if (relation instanceof Association) {
-                                        String name = ((Association) relation).getName();
-                                        panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
-                                    } else if (relation instanceof Relation.Generalization) {
-                                        panel.addConnnection(new Connection(from, to, new Arrow.Generalization()));
-                                    } else {
-                                        panel.addConnnection(new Connection(from, to));
+                        //TODO: optimize relalions
+                        if (storage.hasRelations()) {
+                            for (Representation representation : representations) {
+                                for (Relation relation : representation.getData().getRelations()) {
+                                    if (relation.getFrom() == representation.getData()) {
+                                        Component from = (Component) representation.getAssigned();
+                                        Component to = getComponent(relation.getTo(), representations);
+                                        assert to != null;
+                                        if (relation instanceof Association) {
+                                            String name = ((Association) relation).getName();
+                                            panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
+                                        } else if (relation instanceof Relation.Generalization) {
+                                            panel.addConnnection(new Connection(from, to, new Arrow.Generalization()));
+                                        } else {
+                                            panel.addConnnection(new Connection(from, to));
+                                        }
                                     }
                                 }
                             }
                         }
-
-                        /* Z Order */
-                        int n = panel.getComponentCount();
-                        for (Component component : zOrders.keySet()) {
-                            if (zOrders.get(component) < n) {
-                                panel.setComponentZOrder(component, zOrders.get(component));
-                            }
-                        }                        
+                        progress.update(0.9, "Setting Z-Order");
                         
-                        savedTo = file;                
+                        /* Z Order */
+                        //FIXME: optimized z-Order
+//                        int n = panel.getComponentCount();
+//                        for (Component component : zOrders.keySet()) {
+//                            if (zOrders.get(component) < n) {
+//                                panel.setComponentZOrder(component, zOrders.get(component));
+//                            }
+//                        }
+                        
+                        setSavedTo(file);                
                         panel.repaint();   
                     }
 
@@ -889,8 +922,10 @@ public class BasicVisualization {
                     Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "IOException loading data", ex);
                 } catch (BadVersionException ex) {
                     Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Not compatible file version", ex);
+                } finally {
+                    panel.setLoading(false);
+                    progress.update(1, "Loaded");
                 }
-                panel.setLoading(false);
             }  
         };
         openning.setPriority(Thread.MAX_PRIORITY - 1);
@@ -929,30 +964,42 @@ public class BasicVisualization {
         return null;
     }
     
+    
     public void save(List<Component> components, String file) {
-        List<Data> data = new LinkedList<Data>();
-        Set<Representation> representations = new HashSet<Representation>();
-        for (Component component : components) {
-            if (component instanceof DataRepresentation) {
-                DataRepresentation object = (DataRepresentation) component;
-                ZoomableComponent zoomableComponent = panel.getZoomableComponent(component);
-                object.updateData(zoomableComponent);
-                data.add(object.getData());
-                for (Representation representation : object.getData().getRepresentations()) {
-                    if (representation instanceof Element) {
-                        Element element = (Element) representation;
-                        element.setZIndex(panel.getComponentZOrder(component));
-                        element.setForeground(component.getForeground(), defaultForeground);
-                        if (component instanceof JComponent) {
-                            JComponent jComponent = (JComponent) component;
-                            element.setBackground(jComponent.getBackground(), jComponent.isOpaque());
-                        }
-                    }
-                    representations.add(representation);
-                }
-            }
-        }
+        save(components, file, progress);
+    }
+    
+    public void save(List<Component> components, String file, Progress progress) {
         try {
+            panel.setLoading(true);
+            progress.update(0, "Saving elements");
+            List<Data> data = new LinkedList<Data>();
+            Set<Representation> representations = new HashSet<Representation>();
+            int n = components.size();
+            int i = 0;
+            for (Component component : components) {
+                if (component instanceof DataRepresentation) {
+                    DataRepresentation object = (DataRepresentation) component;
+                    ZoomableComponent zoomableComponent = panel.getZoomableComponent(component);
+                    object.updateData(zoomableComponent);
+                    data.add(object.getData());
+                    for (Representation representation : object.getData().getRepresentations()) {
+                        if (representation instanceof Element) {
+                            Element element = (Element) representation;
+                            element.setZIndex(panel.getComponentZOrder(component));
+                            element.setForeground(component.getForeground(), defaultForeground);
+                            if (component instanceof JComponent) {
+                                JComponent jComponent = (JComponent) component;
+                                element.setBackground(jComponent.getBackground(), jComponent.isOpaque());
+                            }
+                        }
+                        representations.add(representation);
+                    }
+                }
+                progress.update(i / n * 0.8, "Converting to XML");
+                i++;
+            }
+            progress.update(0.8, "Saving to file system");
             storage.save(data, representations, file);
             savedTo = file;
         } catch (NotUniqueIdsException ex) {
@@ -963,6 +1010,9 @@ public class BasicVisualization {
             Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            panel.setLoading(false);
+            progress.update(1, "Saved");
         }
     }
 
@@ -1210,6 +1260,13 @@ public class BasicVisualization {
         return result;
     }
     
+    public void setSavedTo(String savedTo) {
+        this.savedTo = savedTo;
+    }
+
+    public String getSavedTo() {
+        return savedTo;
+    }
     
     /*
      * Key opertations
@@ -1511,11 +1568,7 @@ public class BasicVisualization {
         new PanelOperation("Save", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_S)) {
             @Override
             protected void perform(ZoomPanel panel) {
-                if (savedTo != null) {
-                    save(Arrays.asList(panel.getComponents()), savedTo);
-                } else {
-                    saveAs();
-                }
+                save();
             }
         },
         new PanelOperation("Save as ...", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_S)) {
@@ -1531,7 +1584,7 @@ public class BasicVisualization {
                 jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
                     loadData(jfc.getSelectedFile().getPath());
-                    savedTo = jfc.getSelectedFile().getPath();
+                    setSavedTo(jfc.getSelectedFile().getPath());
                 }
             }
         },
@@ -1910,6 +1963,14 @@ public class BasicVisualization {
     
     private static String getTimeForFile() {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH;mm;ss").format(new Date());
+    }
+    
+    public void save() {
+        if (savedTo != null) {
+            save(Arrays.asList(panel.getComponents()), savedTo);
+        } else {
+            saveAs();
+        }
     }
     
     private void saveAs() {

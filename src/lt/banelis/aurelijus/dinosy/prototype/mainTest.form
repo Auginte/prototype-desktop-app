@@ -549,24 +549,36 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Group type="102" attributes="0">
-                          <Component id="jButton3" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jButton9" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jButton12" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Component id="jButton8" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jButton7" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Component id="memoryMonitor" max="32767" attributes="0"/>
-                  </Group>
                   <Group type="102" attributes="0">
-                      <Component id="jCheckBox1" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="jProgressBar1" min="-2" pref="339" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Component id="memoryMonitor" max="32767" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jButton3" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jButton9" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Component id="jCheckBox1" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Group type="102" attributes="0">
+                                      <Component id="jButton12" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                      <Component id="jButton8" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jButton7" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jProgressBar1" min="-2" pref="204" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="autosaveCheckbox" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                          </Group>
+                      </Group>
+                      <EmptySpace min="-2" pref="229" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -584,6 +596,7 @@
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jCheckBox1" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jProgressBar1" alignment="3" min="-2" max="-2" attributes="1"/>
+                          <Component id="autosaveCheckbox" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="memoryMonitor" min="-2" max="-2" attributes="0"/>
@@ -670,6 +683,12 @@
                 </DimensionLayout>
               </Layout>
             </Container>
+            <Component class="javax.swing.JCheckBox" name="autosaveCheckbox">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Autosave"/>
+              </Properties>
+            </Component>
           </SubComponents>
         </Container>
       </SubComponents>
