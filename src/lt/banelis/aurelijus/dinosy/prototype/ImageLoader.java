@@ -24,6 +24,10 @@ public class ImageLoader {
     public static boolean usePriority = true;  //FIXME: normal implementation
     private static final int LOADING_UPDATE_INTERVAL = 1000;
     public static long cycleCount = 0;
+    public static Stack<Loadable> loadingQueue = new Stack<Loadable>();
+    //FIXME: normal lookup
+    private static Loadable emptyLoadable = new Loadable("", "", null);
+    
     
     public static ImageLoader getInstance() {
         if (singleton == null) {
@@ -40,17 +44,19 @@ public class ImageLoader {
     /**
      *  Use addImage(ZoomableImage object, String file, BufferedImage image)
      */
-    public void addImage(ZoomableImage object, String file) {
+    public Loadable addImage(ZoomableImage object, String file) {
         for (Loadable loadable : loadingQueue) {
             if (loadable.container == object) {
-                return;
+                return loadable;
             }
         }
-        loadingQueue.add(new Loadable(file, file, object));
+        Loadable loadable = new Loadable(file, file, object);
+        loadingQueue.add(loadable);
+        return loadable; 
     }
-    
+
     public void addImage(ZoomableImage object, BufferedImage image) {
-        Loadable loadable = new Loadable(object.getData().getData(), object.getData().getData(), object);
+        Loadable loadable = addImage(object, object.getData().getData());
         loadable.save(image);
     }    
     
@@ -94,9 +100,15 @@ public class ImageLoader {
     public String getLoadingText(ZoomableImage object) {
         return "Loading: " + getPriority(object);
     }
-    
-    //FIXME: normal lookup
-    private static Loadable emptyLoadable = new Loadable("", "", null);
+
+    public long getModified(ZoomableImage object) {
+        File file = new File(getLoadable(object).path);
+        if (file.exists()) {
+            return file.lastModified();
+        } else {
+            return -1;
+        }
+    }   
     
     private Loadable getLoadable(ZoomableImage object) {
         Loadable result = emptyLoadable;
@@ -107,7 +119,7 @@ public class ImageLoader {
         }
         return result;
     }
-        
+    
     public void drawPriority(ZoomableImage object, Graphics g) {
         getLoadable(object).drawPriority(g);
     }
@@ -143,7 +155,6 @@ public class ImageLoader {
     public int getWeak() {
         return Loadable.weakPriority();
     }
-    
     
     public static enum State {
         empty,
@@ -226,13 +237,17 @@ public class ImageLoader {
     private volatile static boolean loading;
     private static Runtime runtime = Runtime.getRuntime();
     //FIXME: make private
-    public static Stack<Loadable> loadingQueue = new Stack<Loadable>();
+    
+    /**
+     * Element with different loading states.
+     */
     public static class Loadable {
         public String path;
         public String cached;
         public ZoomableImage container;
         public int priority = 3;
         public BufferedImage image = null;
+        private long lastModified = 0;
         
         private static volatile int prioritySum = 0;
         private static volatile int priorityCount = 0;
@@ -381,6 +396,13 @@ public class ImageLoader {
         }
         
         public boolean load() {
+            long modified = (new File(path)).lastModified();
+            if (modified == lastModified && image != null) {
+                return true;
+            } else if (image != null) {
+                lastModified = modified;
+            }
+
             File file = null;
             try {
                 if (path.startsWith("http") && cached != null) {
@@ -431,6 +453,18 @@ public class ImageLoader {
             state = State.removing;
         }
         
+        
+        public void save(BufferedImage myImage) {
+            image = myImage;
+            
+            //TODO: saving in queue and lost buffer
+            (new SavingThread(myImage, this, path)).start();
+        }
+    
+        
+        /** 
+         * Writing image buffer to file.
+         */
         private static class SavingThread extends Thread {
             private BufferedImage image;
             private Loadable loadable;
@@ -454,12 +488,6 @@ public class ImageLoader {
                     Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error saving image " + path, ex);
                 }
             }
-        }
-        
-        public void save(BufferedImage myImage) {
-            image = myImage;
-            //TODO: saving in queue and lost buffer
-            (new SavingThread(myImage, this, path)).start();
         }
     }
     
@@ -509,7 +537,7 @@ public class ImageLoader {
                             memoryLeak = true;
                         }
                     } catch (OutOfMemoryError ex) {
-                        System.out.println("Out of memory: " + ex);
+                        System.err.println("Out of memory: " + ex);
                         memoryLeak = true;
                     }
                 } else {

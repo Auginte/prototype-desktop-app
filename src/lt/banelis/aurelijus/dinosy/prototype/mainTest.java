@@ -19,6 +19,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,7 +43,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
-import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.OkularThread;
 import lt.banelis.parser.Class;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Source;
@@ -1153,17 +1153,14 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     }
     
     BasicVisualization.ClipboardSourceListener clipboardSourceListener = new BasicVisualization.ClipboardSourceListener() {
-        public void newOkular(Okular source, OkularThread clipboardToHdd) {
+        public void newOkular(Okular source, String file, BufferedImage image) {
             sourceOkularClipboard.setText("<HTML><B>Page:</B> " + source.getPage() + "<BR/>" +
                     "<B>URL:</B> " + source.getSource() + "<BR/>" +
                     "<B>Rect:</B> " + source.getPosition().l + "x" + source.getPosition().t + " | " + source.getPosition().r + "x" + source.getPosition().b + "<BR/>" +
                     "<B>Date:</B> " + source.getDateSting() +
                     "<HTML>");
             if (sourceOkularAuto.isSelected()) {
-                ZoomableImage image = addImage(source.getCachedImage(), source, false);
-                clipboardToHdd.setImage(image);
-                clipboardToHdd.setPriority(Thread.MIN_PRIORITY);
-                clipboardToHdd.start();
+                visualization.addImage(source, file, image);
             }
         }
 

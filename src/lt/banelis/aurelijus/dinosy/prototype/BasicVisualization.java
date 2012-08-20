@@ -68,6 +68,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.border.Border;
@@ -449,23 +450,12 @@ public class BasicVisualization {
     public static interface ClipboardSourceListener {
         public void checking();
         public void noNew();
-        public void newOkular(Source.Okular source, OkularThread clipboardToHdd);
+        public void newOkular(Source.Okular source, String file, BufferedImage image);
         public void newFirefox(Source.Internet source);
         public void otherData(String data);
     }
     
-    public abstract static class OkularThread extends Thread {
-        private ZoomableImage image = null;
-
-        public void setImage(ZoomableImage image) {
-            this.image = image;
-        }
-
-        public ZoomableImage getImage() {
-            return image;
-        }
-    }
-
+   
     public void setClipboardSourceListener(ClipboardSourceListener clipboardSourceListener) {
         this.clipboardSourceListener = clipboardSourceListener;
     }
@@ -488,16 +478,16 @@ public class BasicVisualization {
     public void forceClipboardCheck() {
         long now = (new Date()).getTime();
         if (!checkingClipboard && now != lastChecked) {
-            Thread clipThread = new Thread() {
-                @Override
-                public void run() {
+            Timer clipThread = new Timer(0, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
                     long now = (new Date()).getTime();
                     if (!checkingClipboard && now != lastChecked) {
                         clipboardListener.flavorsChanged(null);
                         lastChecked = now;
                     }
                 }
-            };
+            });
+            clipThread.setRepeats(false);
             clipThread.start();
         }
     }
@@ -535,7 +525,6 @@ public class BasicVisualization {
                             }
                             if (dataFlavor.getMimeType().startsWith("text/x-okular-")) {
                                 String data = getFromReader(dataFlavor.getReaderForText(contents));
-                                System.out.println(">" + data);
                                 if (dataFlavor.getMimeType().equals("text/x-okular-page; class=java.io.InputStream")) {
                                     page = Integer.parseInt(data.trim());
                                 } else if (dataFlavor.getMimeType().equals("text/x-okular-url; class=java.io.InputStream")) {
@@ -565,36 +554,20 @@ public class BasicVisualization {
                             lastSource = (Source.Okular) lastClipboardSource;
                         }
                         if (lastSource == null || lastSource.getPage() != page || !lastSource.getSource().equals(url) || !lastSource.getPosition().equals(boundary)) {
-                            final DataFlavor finalFlavor = okularImage;
-                            final String finalUrl = url;
-                            final int finalPage = page;
-                            final Source.Okular.Boundary finalBoundary = boundary;
-                            final File destination = generateClipboardFile(finalUrl);
-                            OkularThread clipboardToHdd = new OkularThread() {
-                                @Override
-                                public void run() {
-                                    FileOutputStream output = null;
-                                    try {
-                                        //TODO: optimise: add first, load second
-                                        InputStream imageStream = (InputStream) contents.getTransferData(finalFlavor);
-                                        output = new FileOutputStream(destination);
-                                        int nextChar;
-                                        while ( (nextChar = imageStream.read()) != -1 ) {
-                                            output.write(nextChar);
-                                        }
-                                        imageStream.close();
-                                        output.close();
-                                        if (getImage() != null) {
-                                            getImage().loadImage();
-                                        }
-                                    } catch (Exception ex) {
-                                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Can not save image from clipboard to " + destination, ex);
-                                    }
-                                }
-                            };
-                            Source.Okular source = new Source.Okular(new Date(), finalUrl, finalPage, finalBoundary, destination.getPath());
-                            clipboardSourceListener.newOkular(source, clipboardToHdd);
-                            lastClipboardSource = source;
+                            DataFlavor finalFlavor = okularImage;
+                            String finalUrl = url;
+                            int finalPage = page;
+                            Source.Okular.Boundary finalBoundary = boundary;
+                            File destination = generateClipboardFile(finalUrl);
+                            Source.Okular source = new Source.Okular(new Date(), finalUrl, finalPage, finalBoundary, destination.getPath());                                                       
+                            try {
+                                //TODO: big images - need threading
+                                BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
+                                clipboardSourceListener.newOkular(source, destination.getPath(), image);
+                                lastClipboardSource = source;
+                            } catch (Exception ex) {
+                                Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Can not extract image from clipboard: " + source, ex);
+                            }
                         } else {
                             clipboardSourceListener.noNew();
                         }
@@ -1860,12 +1833,7 @@ public class BasicVisualization {
                             if (defaultSource == null) {
                                 defaultSource = new Source.Event();
                             }
-                            ZoomableImage component = new ZoomableImage(new Data.Image(clipboardFile, defaultSource));
-                            ImageLoader.getInstance().addImage(component, (BufferedImage) image);
-                            component.setSize(image.getWidth(null), image.getHeight(null));
-                            ZoomableComponent zoomableComponent = panel.addComponent(component);
-                            setToCenter(zoomableComponent);
-                            component.save((BufferedImage) image);
+                            addImage(defaultSource, clipboardFile, (BufferedImage) image);
                         }
                     }
                 } catch (Exception ex) {
@@ -1908,9 +1876,19 @@ public class BasicVisualization {
         } else {
             component.setLocation(x, y);
         }
+        image.setSize(100, 100);
         image.loadImage();
         ((JComponent) component.getComponent()).setToolTipText(path);
         return component;
+    }
+    
+    public void addImage(Source source, String file, BufferedImage image) {
+        ZoomableImage component = new ZoomableImage(new Data.Image(file, source));
+        ImageLoader.getInstance().addImage(component, file);
+        component.save(image);
+        component.setSize(image.getWidth(null), image.getHeight(null));
+        ZoomableComponent zoomableComponent = panel.addComponent(component);
+        setToCenter(zoomableComponent);
     }
     
     private void setToCenter(ZoomableComponent component) {
@@ -1939,6 +1917,7 @@ public class BasicVisualization {
         return label;
     }
     
+    //TODO: use robot.
     private void addScreenShot(final long delay, final File outputDirectory) {
         Thread captureProgram = new Thread() {
             @Override

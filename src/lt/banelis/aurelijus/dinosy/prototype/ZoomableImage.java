@@ -12,18 +12,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
 import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
 import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
 import lt.dinosy.datalib.Data;
@@ -51,6 +47,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private Optimization optimization = Optimization.part;
     private ImageLoader imageLoader = ImageLoader.getInstance();    //TODO: change using contruktor or etc
     private static boolean imageLoaded = false;
+    private long lastModified = 0;
     
     private enum Optimization {
         time,
@@ -107,12 +104,15 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                 ZoomPanel panel = (ZoomPanel) ZoomableImage.this.getParent();
                 ZoomableComponent zoomable = panel.getZoomableComponent(this);
                 //TODO: by width
-                if (loadingFromNew) {
+                long modified = imageLoader.getModified(this);
+                if (loadingFromNew || modified != lastModified) {
                     scaleFactor = zoomable.reinisiateOriginalSize(originalImage.getWidth(), originalImage.getHeight());
                     repaint();
+                    loadingFromNew = false;
                 } else {
                     this.setSize(zoomable.getSize().width, zoomable.getSize().height);
                 }
+                lastModified = modified;
             } else {
                 this.setSize(originalImage.getWidth(), originalImage.getHeight());
             }
@@ -126,13 +126,9 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
      */
 
     public void loadImage() {
-//        if (!imageLoaded) {
         if (imageLoader.getState(this) != ImageLoader.State.loaded) {
             imageLoader.addImage(this, data.getData());
         }
-//        } else {
-//            System.out.println(imageLoader.getState(this) + ": " + imageLoader.isWeak(this) + " : " + data.getData());
-//        }
         imageLoaded = true;
     }
 
