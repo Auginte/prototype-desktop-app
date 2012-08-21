@@ -56,14 +56,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -1202,8 +1200,8 @@ public class BasicVisualization {
         
     private static void consumeAll(InputStream stream) {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-        String line = null;
         try {
+            String line;
             while ( (line = br.readLine()) != null) {
                 if ("debug".equals("on")) {
                     System.err.println(line);
@@ -1876,7 +1874,7 @@ public class BasicVisualization {
         } else {
             component.setLocation(x, y);
         }
-        image.setSize(100, 100);
+        image.setSize(ZoomableComponent.deafaultBounding.width, ZoomableComponent.deafaultBounding.height);
         image.loadImage();
         ((JComponent) component.getComponent()).setToolTipText(path);
         return component;

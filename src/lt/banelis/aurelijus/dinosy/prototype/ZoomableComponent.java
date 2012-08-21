@@ -5,12 +5,11 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
- * Component, that adds zoom attribute to usual AWT Component
- *
+ * Component, that adds zoom attribute to usual AWT Component.
+ * 
  * @author Aurelijus Banelis
  */
 public class ZoomableComponent implements Serializable {
@@ -22,6 +21,19 @@ public class ZoomableComponent implements Serializable {
     private Dimension derivedSize;
     private double z;
     private MoveAdapter moveAdapter = null;
+
+   /** Initial sizes for images.
+    * 
+    * @todo size calculation convention
+    *  1) Size and position specified using constructor.
+    *      Used when loading from saved files.
+    *  2) Using default size/position
+    *      a) Updating size inside bounding box
+    *          When picture is updated externally
+    *      b) Update size using zoom functions
+    */
+    public static Dimension deafaultBounding = new Dimension(300, 300);
+   
 
     public ZoomableComponent(Component component, double z) {
         this.component = component;
@@ -96,12 +108,11 @@ public class ZoomableComponent implements Serializable {
 
     public double reinisiateOriginalSize(int width, int height) {
         originalSize.setSize(width, height);
-        int canvas = (int) Math.min(getSize().getWidth(), getSize().getHeight());
-        if (width > height) {
-            z = canvas / (double) width;
+        if (getSize().width / width < getSize().height / height) {
+            z = getSize().width / (double) width;
         } else {
-            z = canvas / (double) height;
-        }        
+            z = getSize().height / (double) height;
+        }
         setSize(width * z, height * z);
         return z;
     }

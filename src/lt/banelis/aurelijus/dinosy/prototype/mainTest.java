@@ -289,7 +289,6 @@ public class mainTest extends javax.swing.JFrame {
         jButton9 = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();
         jButton7 = new javax.swing.JButton();
-        jButton8 = new javax.swing.JButton();
         jCheckBox1 = new javax.swing.JCheckBox();
         jButton12 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -684,14 +683,6 @@ public class mainTest extends javax.swing.JFrame {
             }
         });
 
-        jButton8.setText("Test PHP");
-        jButton8.setToolTipText("Load test PHP project");
-        jButton8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton8ActionPerformed(evt);
-            }
-        });
-
         jCheckBox1.setText("Generalizations");
         jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -737,24 +728,19 @@ public class mainTest extends javax.swing.JFrame {
                 .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(buttonsPanelLayout.createSequentialGroup()
-                        .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(buttonsPanelLayout.createSequentialGroup()
-                                .addComponent(jButton3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton9))
-                            .addComponent(jCheckBox1))
+                        .addComponent(jCheckBox1)
+                        .addGap(46, 46, 46)
+                        .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(buttonsPanelLayout.createSequentialGroup()
-                                .addComponent(jButton12)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton8)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton7))
-                            .addGroup(buttonsPanelLayout.createSequentialGroup()
-                                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(autosaveCheckbox)))))
+                        .addComponent(autosaveCheckbox))
+                    .addGroup(buttonsPanelLayout.createSequentialGroup()
+                        .addComponent(jButton3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton7)))
                 .addGap(229, 229, 229))
         );
         buttonsPanelLayout.setVerticalGroup(
@@ -764,7 +750,6 @@ public class mainTest extends javax.swing.JFrame {
                     .addComponent(jButton3)
                     .addComponent(jButton9)
                     .addComponent(jButton12)
-                    .addComponent(jButton8)
                     .addComponent(jButton7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -794,7 +779,7 @@ public class mainTest extends javax.swing.JFrame {
         zoomPanel1.setLayout(zoomPanel1Layout);
         zoomPanel1Layout.setHorizontalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1394, Short.MAX_VALUE)
+            .addGap(0, 1448, Short.MAX_VALUE)
         );
         zoomPanel1Layout.setVerticalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -975,11 +960,6 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
             zoomPanel1.repaint();
         }
     }//GEN-LAST:event_jCheckBox1ActionPerformed
-
-    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
-        phpUml.clear();
-        phpUml.loadPhpProject("/home/aurelijus/TEST-project/", jProgressBar1);
-    }//GEN-LAST:event_jButton8ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         phpUml.clear();
@@ -1189,7 +1169,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         ZoomableImage image = new ZoomableImage(file, source);
         ZoomableComponent component = zoomPanel1.addComponent(image);
         component.setLocation(zoomPanel1.getWidth() / 2, zoomPanel1.getHeight() / 2);
-        component.setSize(600, 600);
+        component.setSize(ZoomableComponent.deafaultBounding.width, ZoomableComponent.deafaultBounding.height);
         image.setSize(component.getSize().width, component.getSize().height);
         if (loadImage) {
             image.loadImage();
@@ -1249,7 +1229,6 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton7;
-    private javax.swing.JButton jButton8;
     private javax.swing.JButton jButton9;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;

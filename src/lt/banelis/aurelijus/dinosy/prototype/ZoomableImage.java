@@ -70,21 +70,14 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
 
     public ZoomableImage(Data.Image data) {
         this(data, 1);
+        loadingFromNew = true;
     }
 
-    public ZoomableImage(Data.Image data, double scaleFactor) {
+    public ZoomableImage(Data.Image data, double scaleFactor) {        
         this();
         iniciateData(data);
         this.scaleFactor = scaleFactor;
     }
-
-//    public ZoomableImage(Data.Image data, BufferedImage originalImage, double scaleFactor) {
-//        this();
-//        this.data = data;
-//        //FIXME: not use this
-//        imageLoader.addImage(this, externalProgram);
-//        this.scaleFactor = scaleFactor;
-//    }
 
 
     public ZoomableImage(String file, Source source) {
@@ -117,7 +110,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                 this.setSize(originalImage.getWidth(), originalImage.getHeight());
             }
         } else if (loadingFromNew) {
-            this.setSize(100, 100);
+            this.setSize(ZoomableComponent.deafaultBounding.width, ZoomableComponent.deafaultBounding.height);
         }
     }
 
@@ -352,8 +345,8 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
    
     private static void consumeAll(InputStream stream) {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
-        String line = null;
         try {
+            String line;
             while ( (line = br.readLine()) != null) {
                 if ("debug".equals("on")) {
                     System.err.println(line);
