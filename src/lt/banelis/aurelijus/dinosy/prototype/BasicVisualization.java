@@ -1117,13 +1117,12 @@ public class BasicVisualization {
                     JMenuItem item2 = new JMenuItem("CCNA" + ccnaCource + ": " + internetSource.getXpaht());
                     menu.add(item2);
                 }
+            } else if ((source instanceof Source.Book) && source.getSource().endsWith(".pdf")) {
+                Source.Book bookSource = (Source.Book) representation.getData().getSource();
+                sourceOkular(item, bookSource.getSource(), bookSource.getPage());                                
             } else if (source instanceof Source.Okular) {
-                item.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        Source.Okular source = (Source.Okular) representation.getData().getSource();
-                        runExternal(new String[] {"/usr/bin/okular", "-p", String.valueOf(source.getPage()), source.getSource()});
-                    }
-                });
+                Source.Okular okularSource = (Source.Okular) representation.getData().getSource();
+                sourceOkular(item, okularSource.getSource(), okularSource.getPage());
             } else if (source instanceof Source.Project) {
                 sourceInformationProject(item, source);
             } else if (source instanceof Source.Model) {
@@ -1147,6 +1146,14 @@ public class BasicVisualization {
             menu.add(item);
             menu.addSeparator();
         }
+    }
+    
+    private void sourceOkular(JMenuItem item, final String path, final int page) {
+        item.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                runExternal(new String[] {"/usr/bin/okular", "-p", String.valueOf(page), path });
+            }
+        });
     }
     
     //FIXME: refactor to plugin or so
