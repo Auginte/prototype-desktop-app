@@ -3,7 +3,6 @@
  *
  * Created on Jun 22, 2011, 12:16:11 AM
  */
-
 package lt.banelis.aurelijus.dinosy.prototype;
 
 import java.awt.BorderLayout;
@@ -56,6 +55,7 @@ import lt.dinosy.datalib.Source.Okular;
  * @author Aurelijus Banelis
  */
 public class mainTest extends javax.swing.JFrame {
+
     private PhpUml phpUml;
     private BasicVisualization visualization;
     private JPopupMenu contextMenu;
@@ -64,14 +64,15 @@ public class mainTest extends javax.swing.JFrame {
     private boolean booksModelChaning = false;
     private DefaultComboBoxModel booksNamesModel = null;
     private static final int AUTO_SAVE_INTERVAL = 60000;
-    
     BasicVisualization.Progress progress = new BasicVisualization.Progress() {
         public void update(double percent, String operaion) {
-            setTitle(Math.round(percent*100) + "%: " + operaion);
+            setTitle(Math.round(percent * 100) + "%: " + operaion);
         }
     };
-    
-    /** Creates new form mainTest */
+
+    /**
+     * Creates new form mainTest
+     */
     public mainTest() {
         initComponents();
         phpUml = new PhpUml(zoomPanel1);
@@ -82,8 +83,8 @@ public class mainTest extends javax.swing.JFrame {
         initKeyShortcuts(getContentPane());
         initMemoryMonitor();
         initAutoSave();
+        hideUnnecessary();
     }
-    
     private MouseListener contextMenuListener = new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent evt) {
@@ -93,7 +94,7 @@ public class mainTest extends javax.swing.JFrame {
             }
         }
     };
-    
+
     private void initAutoSave() {
         javax.swing.Timer timer = new javax.swing.Timer(AUTO_SAVE_INTERVAL, new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
@@ -105,24 +106,25 @@ public class mainTest extends javax.swing.JFrame {
         });
         timer.start();
     }
-    
+
     private static String getTime() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return dateFormat.format(new Date());
     }
-    
+
     private void initMemoryMonitor() {
         memoryMonitor.setLayout(new BorderLayout());
         final Runtime runtime = Runtime.getRuntime();
         final JPanel updateArea = new JPanel() {
             private int i;
             private final Color memoryColor = new Color(255, 88, 88);
+
             @Override
             protected void paintComponent(Graphics g) {
                 g.setColor(Color.BLACK);
                 g.fillRect(0, 0, g.getClipBounds().width, g.getClipBounds().height);
-                
+
                 g.setColor(memoryColor);
                 int h = 0;
                 int mw = (int) (g.getClipBounds().width * runtime.freeMemory() / runtime.maxMemory());
@@ -133,22 +135,22 @@ public class mainTest extends javax.swing.JFrame {
                 int nUnloaded = imageLoader.getRemoveCount();
                 int nAll = imageLoader.getAllCount();
                 int lw = (int) (g.getClipBounds().width * nLoaded / nAll);
-                
+
                 g.fillRect(0, 0, mw, 5);
-                g.fillRect(0, h+=5, tmw, 5);
+                g.fillRect(0, h += 5, tmw, 5);
                 g.setColor(Color.YELLOW);
-                g.fillRect(0, h+=5, lw, 5);
-                
+                g.fillRect(0, h += 5, lw, 5);
+
                 g.setColor(Color.RED);
                 h += 15;
                 g.drawString("MEM: " + runtime.freeMemory() + "/" + runtime.maxMemory(), 0, h);
                 g.drawString("Queue/Comp: " + ImageLoader.loadingQueue.size() + "/" + zoomPanel1.getComponentCount(), 200, h);
                 g.drawString("Load/All: " + nLoaded + "/" + nAll, 350, h);
-                g.drawString("remove/All: " + nUnloaded + "/" + nAll, 350, h+=15);
+                g.drawString("remove/All: " + nUnloaded + "/" + nAll, 350, h += 15);
                 g.drawString("Loader cycle: " + ImageLoader.cycleCount, 0, h);
                 g.drawString("AVG WEAK: " + ImageLoader.getAveragePriority() + " " + imageLoader.getWeak(), 200, h);
-                h+=5;
-                
+                h += 5;
+
                 g.translate(0, h);
                 g.setClip(0, 0, g.getClipBounds().width, g.getClipBounds().height - h);
                 imageLoader.debugPriorities(g);
@@ -160,10 +162,23 @@ public class mainTest extends javax.swing.JFrame {
             public void actionPerformed(ActionEvent e) {
                 updateArea.repaint();
             }
-        }); 
+        });
         timer.start();
     }
-    
+
+    private void hideUnnecessary() {
+        jButton2.setVisible(false);
+        ciscoCourse.setVisible(false);
+        ccna1.setVisible(false);
+        ccna2.setVisible(false);
+        ccna3.setVisible(false);
+        ccna4.setVisible(false);
+        jButton9.setVisible(false);
+        jButton12.setVisible(false);
+        jButton7.setVisible(false);
+        jProgressBar1.setVisible(false);
+        jCheckBox1.setVisible(false);
+    }
     private FocusListener focusListener = new FocusListener() {
         public void focusGained(FocusEvent event) {
             selectedBook.setText("");
@@ -197,9 +212,10 @@ public class mainTest extends javax.swing.JFrame {
             }
         }
 
-        public void focusLost(FocusEvent event) { }
+        public void focusLost(FocusEvent event) {
+        }
     };
-        
+
     private void initPopups() {
         contextMenu = phpUml.getPopup();
         contextMenu.addSeparator();
@@ -213,6 +229,7 @@ public class mainTest extends javax.swing.JFrame {
                 updateBooksSources();
                 component.addFocusListener(focusListener);
             }
+
             @Override
             public void addedAll() {
                 for (Component component : zoomPanel1.getComponents()) {
@@ -223,7 +240,6 @@ public class mainTest extends javax.swing.JFrame {
         });
     }
 
-    
     private void initKeyShortcuts(Container component) {
         for (Component subComponent : component.getComponents()) {
             if (subComponent.isFocusable()) {
@@ -240,7 +256,6 @@ public class mainTest extends javax.swing.JFrame {
             }
         });
     }
-
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -808,7 +823,6 @@ public class mainTest extends javax.swing.JFrame {
     }//GEN-LAST:event_zoomPanel1MouseClicked
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
-        
     }//GEN-LAST:event_formKeyPressed
 
     private ClassRepresentation getRepresentation(Class classObject) {
@@ -827,7 +841,7 @@ public class mainTest extends javax.swing.JFrame {
     }
 
 private void sourceEventDateKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceEventDateKeyTyped
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             sourceTypeDate = format.parse(sourceEventDate.getText());
             sourceEventDate.setBackground(Color.white);
@@ -838,30 +852,28 @@ private void sourceEventDateKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:e
 }//GEN-LAST:event_sourceEventDateKeyTyped
 
 private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
-    updateParentSource();
+        updateParentSource();
 }//GEN-LAST:event_jTabbedPane1StateChanged
 
 private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    
 }//GEN-LAST:event_jButton1ActionPerformed
 
 private void sourceOkularAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceOkularAutoActionPerformed
-    
 }//GEN-LAST:event_sourceOkularAutoActionPerformed
 
 private void sourceOkularClipboardMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sourceOkularClipboardMouseEntered
-    visualization.forceClipboardCheck();
+        visualization.forceClipboardCheck();
 }//GEN-LAST:event_sourceOkularClipboardMouseEntered
 
 private void sourceOkularClipboardMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sourceOkularClipboardMouseClicked
-    if (evt.getClickCount() > 1 && visualization.getLastClipboardSource() instanceof Okular) {
-        Okular source = (Okular) visualization.getLastClipboardSource();
-        addImage(source.getCachedImage(), source, true);
-    }
+        if (evt.getClickCount() > 1 && visualization.getLastClipboardSource() instanceof Okular) {
+            Okular source = (Okular) visualization.getLastClipboardSource();
+            addImage(source.getCachedImage(), source, true);
+        }
 }//GEN-LAST:event_sourceOkularClipboardMouseClicked
 
 private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_zoomPanel1MouseEntered
-    updateParentSource();
+        updateParentSource();
 }//GEN-LAST:event_zoomPanel1MouseEntered
 
     private void sourceinternetTitleKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetTitleKeyTyped
@@ -881,67 +893,51 @@ private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:
     }//GEN-LAST:event_sourceBookIsbnKeyTyped
 
 private void sourceinternetXpathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceinternetXpathActionPerformed
-    updateParentSource();
+        updateParentSource();
 }//GEN-LAST:event_sourceinternetXpathActionPerformed
 
 private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-    String courseCode = "";
-    switch (ciscoCourse.getSelectedIndex()) {
-        case 0:
-            courseCode = "0600000000";
-        break;
-        case 1:
-            courseCode = "0900000000";
-        break;
-        case 2:
-            courseCode = "1300000000";
-        break;
-        default:
-            courseCode = "1400000000";
-    }
-    sourceinternetUrl.setText("https://liepa.mif.vu.lt/CCNA/Exploration4English/theme/cheetah.html?cid=" + courseCode + "&l1=en&l2=none&chapter=");
-    sourceinternetUrl.requestFocusInWindow();
 }//GEN-LAST:event_jButton2ActionPerformed
 
 private void sourceinternetXpathKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetXpathKeyReleased
-    updateParentSource();
+        updateParentSource();
 }//GEN-LAST:event_sourceinternetXpathKeyReleased
 
 private void sourceinternetUrlKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetUrlKeyReleased
-    updateParentSource();
+        updateParentSource();
 }//GEN-LAST:event_sourceinternetUrlKeyReleased
 
 private void booksNamesComboItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_booksNamesComboItemStateChanged
-    if (!booksModelChaning && booksNamesModel != null && booksNamesModel.getSize() > 0 && booksNamesModel.getSelectedItem() != null) {
-        sourceBookName.setText(booksNamesModel.getSelectedItem().toString());
-        updateParentSource();
-    }
+        if (!booksModelChaning && booksNamesModel != null && booksNamesModel.getSize() > 0 && booksNamesModel.getSelectedItem() != null) {
+            sourceBookName.setText(booksNamesModel.getSelectedItem().toString());
+            updateParentSource();
+        }
 }//GEN-LAST:event_booksNamesComboItemStateChanged
 
 private void sourceBookNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookNameKeyReleased
-    updateParentSource();
+        updateParentSource();
 }//GEN-LAST:event_sourceBookNameKeyReleased
 
 private void sourceBookPageKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceBookPageKeyReleased
-    try {
-        Integer.parseInt(sourceBookPage.getText());
-        sourceBookPage.setBackground(Color.white);
-        updateParentSource();
-    } catch (NumberFormatException ex) {
-        sourceBookPage.setBackground(Color.red);
-    }
+        try {
+            Integer.parseInt(sourceBookPage.getText());
+            sourceBookPage.setBackground(Color.white);
+            updateParentSource();
+        } catch (NumberFormatException ex) {
+            sourceBookPage.setBackground(Color.red);
+        }
 }//GEN-LAST:event_sourceBookPageKeyReleased
 
 private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_sourceBookPageMouseWheelMoved
-    try {
-        int value = Integer.parseInt(sourceBookPage.getText());
-        value += -evt.getWheelRotation() * evt.getScrollAmount() / 3;
-        setBookPage(value);
-        updateParentSource();
-        
-    } catch (NumberFormatException ex) {
-        sourceBookPage.setBackground(Color.red);
-    }   
+        try {
+            int value = Integer.parseInt(sourceBookPage.getText());
+            value += -evt.getWheelRotation() * evt.getScrollAmount() / 3;
+            setBookPage(value);
+            updateParentSource();
+
+        } catch (NumberFormatException ex) {
+            sourceBookPage.setBackground(Color.red);
+        }
 }//GEN-LAST:event_sourceBookPageMouseWheelMoved
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -949,7 +945,6 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton12ActionPerformed
-        visualization.loadData("/home/aurelijus/Dropbox/Dinosy/cisco.xml");
     }//GEN-LAST:event_jButton12ActionPerformed
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
@@ -985,8 +980,6 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     }//GEN-LAST:event_jProgressBar1MouseClicked
 
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
-        zoomPanel1.removeAll();
-        visualization.loadData("/home/aurelijus/Dropbox/Dinosy/projecting.xml");
     }//GEN-LAST:event_jButton9ActionPerformed
 
     private void ccna1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ccna1ActionPerformed
@@ -1023,7 +1016,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
             field.setText("0");
         }
     }
-    
+
     private void setBookPage(int value) {
         if (value < 1) {
             value = 1;
@@ -1031,7 +1024,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         sourceBookPage.setBackground(Color.white);
         sourceBookPage.setText(Integer.toString(value));
     }
-    
+
     private void updateCiscoSource() {
         sourceinternetXpath.setText(ccna1.getText() + "." + ccna2.getText() + "." + ccna3.getText() + "." + ccna4.getText());
     }
@@ -1041,10 +1034,11 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     }
 
     enum SourceType {
+
         None,
         Event,
         Internet,
-//        Firefox,
+        //        Firefox,
         Book,
         Okular
         //TODO: Firefox and Okular integration
@@ -1057,7 +1051,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
             if (sourceTypeDate == null) {
                 sourceTypeDate = new Date();
             }
-            switch(sourceType) {
+            switch (sourceType) {
                 case Event:
                     visualization.defaultSource = new Event(sourceTypeDate, sourceEventName.getText(), sourceEventPlace.getText());
                     break;
@@ -1073,11 +1067,11 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         }
         sourceLastUpdated.setText("Updated: " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
     }
-    
+
     public void loadProject(String file) {
         visualization.loadData(file);
     }
-    
+
     public Set<Source> getUniqueSources(java.lang.Class<? extends Source> restriction) {
         Set<Source> sources = new HashSet<Source>(zoomPanel1.getComponentCount() / 5);
         for (Component component : zoomPanel1.getComponents()) {
@@ -1090,7 +1084,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         }
         return sources;
     }
-    
+
     private void updateBooksSources() {
 //        /* Sources */
 //        if (booksSourcesModel == null) {
@@ -1131,14 +1125,13 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         booksLabel.setText("Used (" + booksNamesModel.getSize() + "):");
         booksModelChaning = false;
     }
-    
     BasicVisualization.ClipboardSourceListener clipboardSourceListener = new BasicVisualization.ClipboardSourceListener() {
         public void newOkular(Okular source, String file, BufferedImage image) {
-            sourceOkularClipboard.setText("<HTML><B>Page:</B> " + source.getPage() + "<BR/>" +
-                    "<B>URL:</B> " + source.getSource() + "<BR/>" +
-                    "<B>Rect:</B> " + source.getPosition().l + "x" + source.getPosition().t + " | " + source.getPosition().r + "x" + source.getPosition().b + "<BR/>" +
-                    "<B>Date:</B> " + source.getDateSting() +
-                    "<HTML>");
+            sourceOkularClipboard.setText("<HTML><B>Page:</B> " + source.getPage() + "<BR/>"
+                    + "<B>URL:</B> " + source.getSource() + "<BR/>"
+                    + "<B>Rect:</B> " + source.getPosition().l + "x" + source.getPosition().t + " | " + source.getPosition().r + "x" + source.getPosition().b + "<BR/>"
+                    + "<B>Date:</B> " + source.getDateSting()
+                    + "<HTML>");
             if (sourceOkularAuto.isSelected()) {
                 visualization.addImage(source, file, image);
             }
@@ -1149,9 +1142,9 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         }
 
         public void otherData(String data) {
-            sourceOkularClipboard.setText("<HTML><B>Not okular data in clipboard:</B><BR/>" +
-                    data + "<BR/>" +
-                    "<B>Date</B>:" + Source.parseDate(new Date()) + "</HTML>");
+            sourceOkularClipboard.setText("<HTML><B>Not okular data in clipboard:</B><BR/>"
+                    + data + "<BR/>"
+                    + "<B>Date</B>:" + Source.parseDate(new Date()) + "</HTML>");
         }
 
         public void checking() {
@@ -1164,7 +1157,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
             }
         }
     };
-    
+
     private ZoomableImage addImage(String file, Source source, boolean loadImage) {
         ZoomableImage image = new ZoomableImage(file, source);
         ZoomableComponent component = zoomPanel1.addComponent(image);
@@ -1176,13 +1169,14 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         }
         return image;
     }
-    
+
     /**
-    * @param args the command line arguments
-    */
+     * @param args the command line arguments
+     */
     public static void main(final String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             private Logger l = Logger.getLogger("");
+
             public void run() {
                 try {
                     FileHandler handler = new FileHandler("log.xml");
@@ -1213,7 +1207,6 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     static File openResource(String name) throws URISyntaxException {
         return new File(new URI(mainTest.class.getResource(name).toString()));
     }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox autosaveCheckbox;
     private javax.swing.JLabel booksLabel;
@@ -1265,5 +1258,4 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     private javax.swing.JPanel topPanel;
     private lt.banelis.aurelijus.dinosy.prototype.ZoomPanel zoomPanel1;
     // End of variables declaration//GEN-END:variables
-
 }

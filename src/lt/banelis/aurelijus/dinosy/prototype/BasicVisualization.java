@@ -3,6 +3,7 @@ package lt.banelis.aurelijus.dinosy.prototype;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -38,6 +39,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
@@ -99,8 +101,8 @@ import net.sourceforge.iharder.Base64;
  * @author Aurelijus Banelis
  */
 public class BasicVisualization {
+
     static final Key editKey = new Key(Key.Modifier.NONE, KeyEvent.VK_ENTER);
-    
     private ZoomPanel panel;
     private Controller storage = new Controller();
     private String savedTo;
@@ -114,13 +116,12 @@ public class BasicVisualization {
     private volatile boolean checkingClipboard = false;
     private volatile long lastChecked = 0;
     private DataConnections dataConnections;
-    protected static String externalSketching = "/usr/bin/mypaint";
+    protected static String externalSketching = Settings.getInstance().getSketchingProgram();
     protected static Color defaultForeground = Color.cyan;
     private Progress progress = emptyProgress;
-    
     //FIXME: normal source implemntation
     public Source defaultSource = null;
-    
+
     private BasicVisualization() {
         Collections.sort(operations, new Comparator<BasicVisualization.Operation>() {
             public int compare(Operation o1, Operation o2) {
@@ -139,7 +140,7 @@ public class BasicVisualization {
         this(panel);
         this.progress = progress;
     }
-    
+
     public void initAll() {
         initZooming();
         initSelectable();
@@ -152,19 +153,18 @@ public class BasicVisualization {
     /*
      * Progress
      */
-    
     public static interface Progress {
+
         public void update(double percent, String operaion);
     }
     private static Progress emptyProgress = new Progress() {
-        public void update(double percent, String operaion) { }
+        public void update(double percent, String operaion) {
+        }
     };
 
-    
     /*
      * Selection
      */
-    
     public void initSelectable() {
         /* Selecting separate elements */
         panel.addChangeListener(new ZoomPanel.ContentChangeAdapter() {
@@ -194,7 +194,6 @@ public class BasicVisualization {
         panel.addMouseListener(selectBoxListener);
         panel.addMouseMotionListener(selectBoxListener);
     }
-
     private MouseInputListener selectBoxListener = new MouseInputAdapter() {
         private Border borderSelect = BorderFactory.createLineBorder(Selectable.selectionColor);
         private Border borderDeselect = BorderFactory.createLineBorder(Selectable.deselectionColor);
@@ -209,7 +208,7 @@ public class BasicVisualization {
                 if (shiftDown && !middle) {
                     BasicVisualization.this.selectAll(panel, true);
                 }
-                
+
                 /* Selecting new */
                 if (panel.getZoomableComponent(selectionBox.getComponent()) == null) {
                     selectionBox = panel.addComponent(selectionBox.getComponent());
@@ -324,11 +323,9 @@ public class BasicVisualization {
         });
     }
 
-    
     /*
      * Clonning
      */
-    
     private void initMouseCloning() {
         panel.addChangeListener(new ZoomPanel.ContentChangeAdapter() {
             @Override
@@ -347,7 +344,7 @@ public class BasicVisualization {
             component.addMouseListener(getMouseClonning());
         }
     }
-    
+
     private MouseListener getMouseClonning() {
         return new MouseAdapter() {
             @Override
@@ -375,7 +372,7 @@ public class BasicVisualization {
         if (clone != null) {
             clone.setLocation((int) component.getLocation().getX(), (int) component.getLocation().getY());
             clone.setSize((int) component.getSize().getWidth(), (int) component.getSize().getHeight());
-            if ( component instanceof Zoomable) {
+            if (component instanceof Zoomable) {
                 panel.addComponent(clone, ((Zoomable) component).getZ());
             } else {
                 panel.addComponent(clone);
@@ -387,10 +384,11 @@ public class BasicVisualization {
             }
         }
     }
-    
+
     private void initDragAndDrop() {
         panel.setTransferHandler(new TransferHandler() {
             private static final String stringListFlavor = "text/uri-list; class=java.lang.String; charset=Unicode";
+
             @Override
             public boolean canImport(TransferSupport support) {
                 return true;
@@ -428,32 +426,33 @@ public class BasicVisualization {
                 }
                 return succeeded;
             }
-            
+
             private boolean isImage(String file) {
                 return isExtention(file, "jpg") || isExtention(file, "png") || isExtention(file, "gif") || isExtention(file, "bmp");
             }
-            
+
             private boolean isExtention(String file, String extention) {
                 return file.toLowerCase().endsWith("." + extention.toLowerCase());
             }
-            
         });
     }
-    
-    
+
     /*
      * Clipboard
      */
-    
     public static interface ClipboardSourceListener {
+
         public void checking();
+
         public void noNew();
+
         public void newOkular(Source.Okular source, String file, BufferedImage image);
+
         public void newFirefox(Source.Internet source);
+
         public void otherData(String data);
     }
-    
-   
+
     public void setClipboardSourceListener(ClipboardSourceListener clipboardSourceListener) {
         this.clipboardSourceListener = clipboardSourceListener;
     }
@@ -461,8 +460,8 @@ public class BasicVisualization {
     public ClipboardSourceListener getClipboardSourceListener() {
         return clipboardSourceListener;
     }
-
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
     private void initClipboard() {
         Thread clipboardThread = new Thread() {
             @Override
@@ -472,7 +471,7 @@ public class BasicVisualization {
         };
         clipboardThread.start();
     }
-    
+
     public void forceClipboardCheck() {
         long now = (new Date()).getTime();
         if (!checkingClipboard && now != lastChecked) {
@@ -489,14 +488,13 @@ public class BasicVisualization {
             clipThread.start();
         }
     }
-        
     private FlavorListener clipboardListener = new FlavorListener() {
         public void flavorsChanged(FlavorEvent e) {
             Thread clipboardThread = new Thread() {
                 @Override
                 public void run() {
                     BasicVisualization.this.psiaudoClipboardCheck();
-                    
+
                     /* One instance for performance */
                     if (checkingClipboard) {
                         return;
@@ -506,7 +504,7 @@ public class BasicVisualization {
                     if (clipboardSourceListener != null) {
                         clipboardSourceListener.checking();
                     }
-                    
+
                     /* Gathering clipboard data */
                     //TODO: optimise on other side, performance leak with big images
                     final Transferable contents = clipboard.getContents(null);
@@ -539,7 +537,7 @@ public class BasicVisualization {
                             } else if (otherData.length() < 1 && dataFlavor.getPrimaryType().equals("text") && streamRepresentation) {
                                 otherData = getFromReader(dataFlavor.getReaderForText(contents));
                             }
-                                    
+
                         } catch (Exception ex) {
                             Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Clipboard error", ex);
                         }
@@ -557,7 +555,7 @@ public class BasicVisualization {
                             int finalPage = page;
                             Source.Okular.Boundary finalBoundary = boundary;
                             File destination = generateClipboardFile(finalUrl);
-                            Source.Okular source = new Source.Okular(new Date(), finalUrl, finalPage, finalBoundary, destination.getPath());                                                       
+                            Source.Okular source = new Source.Okular(new Date(), finalUrl, finalPage, finalBoundary, destination.getPath());
                             try {
                                 //TODO: big images - need threading
                                 BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
@@ -579,7 +577,7 @@ public class BasicVisualization {
             clipboardThread.start();
         }
     };
-        
+
     private void psiaudoClipboardCheck() {
         List<Map<String, String>> fromClipboard = PsiaudoClipboard.getFromClipboard();
         for (Map<String, String> map : fromClipboard) {
@@ -595,7 +593,7 @@ public class BasicVisualization {
                 if (map.containsKey("type") && map.get("type").equals(Firefox.Type.image.name())) {
                     addImage(data, null, null);
                 } else {
-                    addText(data, panel.getWidth() / 2, panel.getHeight() / 2, 100, 20, false);        
+                    addText(data, panel.getWidth() / 2, panel.getHeight() / 2, 100, 20, false);
                 }
                 if (map.containsKey("saved")) {
                     ZoomableComponent image = addImage(map.get("saved") + ".png", null, null);
@@ -608,20 +606,20 @@ public class BasicVisualization {
             panel.repaint();
         }
     }
-    
+
     private File generateClipboardFile(String url) {
         int slash = url.lastIndexOf(System.getProperty("file.separator"));
         if (slash < 0) {
             slash = 0;
         }
         String fileName = url.substring(slash).trim() + "." + (new Date()).getTime() + ".png";
-        return new File(Settings.getDateCacheDirecotry(), fileName);
+        return new File(Settings.getInstance().getDateCacheDirecotry().getPath(), fileName);
     }
-    
+
     private static int intGroup(Matcher matcher, int group) {
         return Integer.parseInt(matcher.group(group));
     }
-    
+
     private static String getFromReader(Reader reader) {
         StringBuilder result = new StringBuilder();
         try {
@@ -639,22 +637,24 @@ public class BasicVisualization {
     public Source getLastClipboardSource() {
         return lastClipboardSource;
     }
-    
+
     //TODO: error handling
     //TODO: meny objects
     private static class TransferableData implements Serializable {
+
         private Data data;
         private Representation representation;
+
         public TransferableData(ZoomableComponent component) {
             if (component.getComponent() instanceof DataRepresentation) {
-                DataRepresentation dataRepresentation = (DataRepresentation) component.getComponent(); 
+                DataRepresentation dataRepresentation = (DataRepresentation) component.getComponent();
                 data = dataRepresentation.getData();
                 representation = createRepresentation(dataRepresentation.getData(), component, component.getComponent());
             } else {
                 System.err.println("Clipboard: Compnent is not DataReperesentation: " + component.getComponent());
             }
         }
-        
+
         public void paste(ZoomPanel panel) {
             //TODO: implement other types
             if (representation instanceof Representation.Element) {
@@ -664,7 +664,7 @@ public class BasicVisualization {
                         Data.Image newData = new Data.Image(data.getData(), data.getSource().clone());
                         ZoomableImage zoomableImage = new ZoomableImage(newData);
                         zoomableImage.loadImage();
-                        component = panel.addComponent(zoomableImage);                    
+                        component = panel.addComponent(zoomableImage);
                         zoomableImage.requestFocusInWindow();
                     } else if (data instanceof Data.Plain) {
                         //TODO: copy image
@@ -689,22 +689,21 @@ public class BasicVisualization {
                 System.err.println("Clipboard: Not valid representation: " + representation);
             }
         }
-        
+
         private Point2D translated(Point2D point, int x, int y) {
             return new DoublePoint(point.getX() + x, point.getY() + y);
         }
-        
+
         @Override
         public String toString() {
             return "{" + data.getData() + "}";
         }
     }
     private static final DataFlavor dataFlavor = new DataFlavor(TransferableData.class, "data/dinosy");
-    
+
     /*
      * Connections
      */
-    
     private void initConnections() {
         panel.addChangeListener(new ZoomPanel.ContentChangeListener() {
             public void added(Component component) {
@@ -722,13 +721,14 @@ public class BasicVisualization {
                 panel.repaint();
             }
 
-            public void removedAll() { }
+            public void removedAll() {
+            }
         });
         for (Component component : panel.getComponents()) {
             addConnectionListener(component);
         }
     }
-    
+
     private void addConnectionListener(Component component) {
         MouseAdapter connectionsListener = new MouseAdapter() {
             @Override
@@ -775,7 +775,7 @@ public class BasicVisualization {
                     }
                 }
             }
-            
+
             private boolean isModifier(MouseEvent e) {
                 int modifier = MouseEvent.CTRL_DOWN_MASK + MouseEvent.ALT_DOWN_MASK;
                 return BasicVisualization.isModifier(e, modifier);
@@ -786,8 +786,7 @@ public class BasicVisualization {
             component.addMouseMotionListener(connectionsListener);
         }
     }
-    
-   
+
     private void addAssociationConnection(Component from, Component to) {
         if (from instanceof DataRepresentation && to instanceof DataRepresentation) {
             Data dataFrom = ((DataRepresentation) from).getData();
@@ -800,16 +799,14 @@ public class BasicVisualization {
             panel.addConnnection(new Connection(from, to, new Arrow.Association(name)));
         }
     }
-    
-    
+
     /*
      * Open / Save
      */
-    
     public void loadData(final String file) {
         loadData(file, progress);
     }
-    
+
     public void loadData(final String file, final Progress progress) {
         Thread openning = new Thread() {
             @Override
@@ -868,7 +865,7 @@ public class BasicVisualization {
                             }
                         }
                         progress.update(0.9, "Setting Z-Order");
-                        
+
                         /* Z Order */
                         //FIXME: optimized z-Order
 //                        int n = panel.getComponentCount();
@@ -877,12 +874,12 @@ public class BasicVisualization {
 //                                panel.setComponentZOrder(component, zOrders.get(component));
 //                            }
 //                        }
-                        
-                        setSavedTo(file);                
-                        panel.repaint();   
+
+                        setSavedTo(file);
+                        panel.repaint();
                     }
 
-                //TODO: normal exception handling
+                    //TODO: normal exception handling
                 } catch (URISyntaxException ex) {
                     Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "URISyntaxException loading data", ex);
                 } catch (ParserConfigurationException ex) {
@@ -897,12 +894,12 @@ public class BasicVisualization {
                     panel.setLoading(false);
                     progress.update(1, "Loaded");
                 }
-            }  
+            }
         };
         openning.setPriority(Thread.MAX_PRIORITY - 1);
         openning.start();
     }
-    
+
     private static void updateRepresentation(ZoomableComponent component, Representation representation, ZoomPanel panel) {
         representation.setAssigned(component.getComponent());
         iniciateRepresentation(component, representation);
@@ -923,7 +920,7 @@ public class BasicVisualization {
                 }
                 component.getComponent().setBackground(element.getBackground());
             }
-        }    
+        }
     }
 
     private Component getComponent(Data data, List<Representation> representations) {
@@ -934,12 +931,11 @@ public class BasicVisualization {
         }
         return null;
     }
-    
-    
+
     public void save(List<Component> components, String file) {
         save(components, file, progress);
     }
-    
+
     public void save(List<Component> components, String file, Progress progress) {
         try {
             panel.setLoading(true);
@@ -1007,7 +1003,7 @@ public class BasicVisualization {
 
     public JPopupMenu getOperationsPopup() {
         JPopupMenu result = new JPopupMenu();
-        
+
         /* Type specific operations */
         if ((panel.getSelected().size() > 0)) {
             HashMap<String, List<Operation>> distinct = new HashMap<String, List<Operation>>();
@@ -1040,7 +1036,7 @@ public class BasicVisualization {
                 result.addSeparator();
             }
         }
-        
+
         /* Common operations for focused elements */
         if (panel.getFocusOwner() != null) {
             result.add(menuSeparator("Focused:"));
@@ -1051,12 +1047,12 @@ public class BasicVisualization {
             }
             result.addSeparator();
         }
-        
+
         /* Source information */
         if (panel.getFocusOwner() != null) {
             sourceInformation(result, panel.getFocusOwner().getComponent());
         }
-        
+
         /* Common operations for selected elements */
         if (panel.getSelected().size() > 0) {
             result.add(menuSeparator("Selected:"));
@@ -1067,7 +1063,7 @@ public class BasicVisualization {
             }
             result.addSeparator();
         }
-        
+
         /* Adding new elements */
         result.add(menuSeparator("Add new:"));
         for (Operation operation : operations) {
@@ -1076,7 +1072,7 @@ public class BasicVisualization {
             }
         }
         result.addSeparator();
-        
+
         /* All the reset operations (usually panel related) */
         result.add(menuSeparator("Common:"));
         for (Operation operation : operations) {
@@ -1086,7 +1082,7 @@ public class BasicVisualization {
         }
         return result;
     }
-    
+
     private void sourceInformation(JPopupMenu menu, Component focused) {
         if (focused instanceof DataRepresentation) {
             menu.add(menuSeparator("Source:"));
@@ -1101,7 +1097,12 @@ public class BasicVisualization {
                 final Source.Internet internetSource = (Source.Internet) source;
                 item.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        runExternal(new String[] {"/usr/bin/firefox", internetSource.getSource()});
+                        String executable = Settings.getInstance().getBrowserProgram();
+                        if (executable != null) {
+                            runExternal(new String[]{executable, internetSource.getSource()});
+                        } else {
+                            openWebpage(internetSource.getSource());
+                        }
                     }
                 });
                 if (internetSource.getTitle() != null && internetSource.getTitle().length() > 0) {
@@ -1119,7 +1120,7 @@ public class BasicVisualization {
                 }
             } else if ((source instanceof Source.Book) && source.getSource().endsWith(".pdf")) {
                 Source.Book bookSource = (Source.Book) representation.getData().getSource();
-                sourceOkular(item, bookSource.getSource(), bookSource.getPage());                                
+                sourceOkular(item, bookSource.getSource(), bookSource.getPage());
             } else if (source instanceof Source.Okular) {
                 Source.Okular okularSource = (Source.Okular) representation.getData().getSource();
                 sourceOkular(item, okularSource.getSource(), okularSource.getPage());
@@ -1136,7 +1137,12 @@ public class BasicVisualization {
                 final String address = preAddress + representation.getData().getSource().getSource();
                 item.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        runExternal(new String[] {"/usr/bin/geany", address});
+                        String executable = Settings.getInstance().getTextEditorProgram();
+                        if (executable != null) {
+                            runExternal(new String[]{executable, address});
+                        } else {
+                            openEditProgram(address);
+                        }
                     }
                 });
             } else {
@@ -1147,15 +1153,53 @@ public class BasicVisualization {
             menu.addSeparator();
         }
     }
-    
+
+    private static void openWebpage(String address) {
+        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+            try {
+                desktop.browse(new URI(address));
+            } catch (Exception ex) {
+                Logger.getLogger(Settings.class.getName()).log(Level.SEVERE, "Cannot open web browser" + address, ex);
+            }
+        }
+    }
+
+    private static void openEditProgram(String file) {
+        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+            try {
+                desktop.edit(new File(file));
+            } catch (Exception ex) {
+                Logger.getLogger(Settings.class.getName()).log(Level.SEVERE, "Cannot open edit program" + file, ex);
+            }
+        }
+    }
+
     private void sourceOkular(JMenuItem item, final String path, final int page) {
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                runExternal(new String[] {"/usr/bin/okular", "-p", String.valueOf(page), path });
+                String executable = Settings.getInstance().getPdfViewer();
+                if (executable != null) {
+                    runExternal(new String[]{executable, "-p", String.valueOf(page), path});
+                } else {
+                    openViewProgram(path);
+                }
             }
         });
     }
-    
+
+    private static void openViewProgram(String file) {
+        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+            try {
+                desktop.open(new File(file));
+            } catch (Exception ex) {
+                Logger.getLogger(Settings.class.getName()).log(Level.SEVERE, "Cannot open view program" + file, ex);
+            }
+        }
+    }
+
     //FIXME: refactor to plugin or so
     public static int getCCNA(String sourceUrl) {
         int course = 0;
@@ -1163,29 +1207,34 @@ public class BasicVisualization {
             if (sourceUrl.contains("cid=0600000000&")) {
                 course = 1;
             } else if (sourceUrl.contains("cid=0900000000&")) {
-            course = 2;
+                course = 2;
             } else if (sourceUrl.contains("cid=1300000000&")) {
-            course = 3; 
+                course = 3;
             } else if (sourceUrl.contains("cid=1400000000&")) {
-                course = 4; 
+                course = 4;
             }
         }
         return course;
     }
-       
+
     private static void sourceInformationProject(JMenuItem item, final Source dataSource) {
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Source.Project source = (Source.Project) dataSource;
-                runExternal(new String[] {"/usr/bin/nautilus", source.getAddress()});
+                String executable = Settings.getInstance().getFileBrowser();
+                if (executable != null) {
+                    runExternal(new String[]{executable, source.getAddress()});
+                } else {
+                    openViewProgram(source.getAddress());
+                }
             }
         });
     }
-    
+
     private static void runExternal(final String[] commands) {
         runExternal(commands, true);
     }
-    
+
     protected static Runnable runExternal(final String[] commands, boolean start) {
         Runnable runnable = new Runnable() {
             public void run() {
@@ -1204,26 +1253,27 @@ public class BasicVisualization {
         }
         return runnable;
     }
-        
+
     private static void consumeAll(InputStream stream) {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
         try {
             String line;
-            while ( (line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 if ("debug".equals("on")) {
                     System.err.println(line);
                 }
             }
-        } catch (IOException ex) {}
+        } catch (IOException ex) {
+        }
     }
-    
+
     private static void addMenuItem(Operation operation, JPopupMenu container, ActionListener action) {
         JMenuItem item = new JMenuItem(operation.getName());
         item.setAccelerator(KeyStroke.getKeyStroke(operation.getKeys()[0].code, operation.getKeys()[0].modifier));
         item.addActionListener(action);
         container.add(item);
     }
-    
+
     private static ActionListener performOne(final Operation operation) {
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -1237,7 +1287,7 @@ public class BasicVisualization {
         result.setEnabled(false);
         return result;
     }
-    
+
     public void setSavedTo(String savedTo) {
         this.savedTo = savedTo;
     }
@@ -1245,12 +1295,12 @@ public class BasicVisualization {
     public String getSavedTo() {
         return savedTo;
     }
-    
+
     /*
      * Key opertations
      */
-
     public static class Key {
+
         public int modifier;
         public int code;
         public boolean actOnRelease = false;
@@ -1274,7 +1324,7 @@ public class BasicVisualization {
             this.code = keyCode;
             this.actOnRelease = actOnRelease;
         }
-        
+
         public boolean isKeyOwner(KeyEvent event) {
             boolean keyCode = (code == event.getKeyCode());
             int hightModifiers = 32752;
@@ -1301,13 +1351,14 @@ public class BasicVisualization {
         public void release() {
             nowPressed = false;
         }
-        
+
         @Override
         public String toString() {
             return KeyEvent.getKeyModifiersText(modifier) + " + " + KeyEvent.getKeyText(code);
         }
 
         public enum Modifier {
+
             NONE(0),
             CTRL(KeyEvent.CTRL_DOWN_MASK),
             ALT(KeyEvent.ALT_DOWN_MASK),
@@ -1315,7 +1366,6 @@ public class BasicVisualization {
             CTRL_ALT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.ALT_DOWN_MASK),
             CTRL_SHIFT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK),
             CTRL_ALT_SHIFT(KeyEvent.CTRL_DOWN_MASK + KeyEvent.SHIFT_DOWN_MASK + KeyEvent.ALT_DOWN_MASK);
-
             private int modifier;
 
             private Modifier(int modifier) {
@@ -1327,9 +1377,7 @@ public class BasicVisualization {
             }
         }
     }
-
     public KeyListener defaultKeyShortCuts = new KeyAdapter() {
-
         @Override
         public void keyPressed(KeyEvent e) {
             for (Operation operation : operations) {
@@ -1350,7 +1398,7 @@ public class BasicVisualization {
             }
         }
     };
-    
+
     private void checkKeyForSelected(Component component, ZoomPanel panel, KeyEvent e) {
         if (component instanceof HavingOperations) {
             HavingOperations specialized = (HavingOperations) component;
@@ -1359,7 +1407,7 @@ public class BasicVisualization {
             }
         }
     }
-    
+
     private static void checkAllKeys(Operation operation, KeyEvent e) {
         boolean onKeyPressed = (e.getID() == KeyEvent.KEY_PRESSED);
         for (Key key : operation.getKeys()) {
@@ -1374,8 +1422,8 @@ public class BasicVisualization {
     }
 
     /**
-     * Adds key default shortcuts to components,
-     * checking if there was not already set.
+     * Adds key default shortcuts to components, checking if there was not
+     * already set.
      */
     public void addKeyListener(Component component) {
         if (!contains(defaultKeyShortCuts, component.getKeyListeners())) {
@@ -1395,16 +1443,16 @@ public class BasicVisualization {
     /*
      * Operations
      */
-
     /**
      * General operation with zoomable components or panel itself
      */
     public static abstract class Operation {
+
         private String name;
         private Key[] keys;
         //TODO: icon, description, internalization, groups, context
 
-        public Operation(String name, Key ... keys) {
+        public Operation(String name, Key... keys) {
             this.name = name;
             this.keys = keys;
         }
@@ -1418,7 +1466,6 @@ public class BasicVisualization {
         }
 
         public abstract void perform();
-        
         //TODO: public boolean isActive
     }
 
@@ -1426,7 +1473,8 @@ public class BasicVisualization {
      * Operation specialized to ZoomPanel attributes
      */
     public abstract class PanelOperation extends Operation {
-        public PanelOperation(String name, Key ... keys) {
+
+        public PanelOperation(String name, Key... keys) {
             super(name, keys);
         }
 
@@ -1443,7 +1491,8 @@ public class BasicVisualization {
      * Operations specialized to focused zoomable element in ZoomPanel
      */
     public abstract class FocusedOperation extends Operation {
-        public FocusedOperation(String name, Key ... keys) {
+
+        public FocusedOperation(String name, Key... keys) {
             super(name, keys);
         }
 
@@ -1463,7 +1512,8 @@ public class BasicVisualization {
      * Operations performed on all selected elements in ZoomPanel
      */
     public abstract class SelectionOperation extends Operation {
-        public SelectionOperation(String name, Key ... keys) {
+
+        public SelectionOperation(String name, Key... keys) {
             super(name, keys);
         }
 
@@ -1471,7 +1521,7 @@ public class BasicVisualization {
         public void perform() {
             //TODO: optimize
             List<ZoomableComponent> selected = panel.getSelected();
-            if ( (panel.getFocusOwner() != null) && (!selected.contains(panel.getFocusOwner())) ) {
+            if ((panel.getFocusOwner() != null) && (!selected.contains(panel.getFocusOwner()))) {
                 selected.add(panel.getFocusOwner());
             }
             if (selected.size() > 0) {
@@ -1487,6 +1537,7 @@ public class BasicVisualization {
      * Operations adding new elements to panel
      */
     public abstract class AddOperation extends PanelOperation {
+
         public AddOperation(String what, Key... keys) {
             super(what, keys);
         }
@@ -1496,124 +1547,124 @@ public class BasicVisualization {
             return "Add " + super.getName();
         }
     }
-    
     /**
      * List of commonly used functions of ZoomPanel and its elements
      */
     public List<Operation> operations = Arrays.asList(
-        new PanelOperation("Zoom in", new Key(Key.Modifier.CTRL, KeyEvent.VK_PLUS), new Key(KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_EQUALS), new Key(KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_E)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.zoom(1.1);
+            new PanelOperation("Zoom in", new Key(Key.Modifier.CTRL, KeyEvent.VK_PLUS), new Key(KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_EQUALS), new Key(KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_E)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.zoom(1.1);
+        }
+    },
+            new PanelOperation("Zoom out", new Key(Key.Modifier.CTRL, KeyEvent.VK_MINUS), new Key(Key.Modifier.CTRL, KeyEvent.VK_Q)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.zoom(0.9);
+        }
+    },
+            new PanelOperation("Reset zoom", new Key(Key.Modifier.CTRL, KeyEvent.VK_ASTERISK)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.reset();
+        }
+    },
+            new PanelOperation("Go left", new Key(Key.Modifier.CTRL, KeyEvent.VK_LEFT), new Key(Key.Modifier.CTRL, KeyEvent.VK_A)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.translate(10, 0);
+        }
+    },
+            new PanelOperation("Go right", new Key(Key.Modifier.CTRL, KeyEvent.VK_RIGHT), new Key(Key.Modifier.CTRL, KeyEvent.VK_D)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.translate(-10, 0);
+        }
+    },
+            new PanelOperation("Go up", new Key(Key.Modifier.CTRL, KeyEvent.VK_UP), new Key(Key.Modifier.CTRL, KeyEvent.VK_W)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.translate(0, 10);
+        }
+    },
+            new PanelOperation("Go down", new Key(Key.Modifier.CTRL, KeyEvent.VK_DOWN), new Key(Key.Modifier.CTRL, KeyEvent.VK_S)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.translate(0, -10);
+        }
+    },
+            new PanelOperation("Save", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_S)) {
+        @Override
+        protected void perform(ZoomPanel panel) {
+            save();
+        }
+    },
+            new PanelOperation("Save as ...", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_S)) {
+        @Override
+        protected void perform(ZoomPanel panel) {
+            saveAs();
+        }
+    },
+            new PanelOperation("Open", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_O)) {
+        @Override
+        protected void perform(ZoomPanel panel) {
+            JFileChooser jfc = new JFileChooser();
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
+                loadData(jfc.getSelectedFile().getPath());
+                setSavedTo(jfc.getSelectedFile().getPath());
             }
-        },
-        new PanelOperation("Zoom out", new Key(Key.Modifier.CTRL, KeyEvent.VK_MINUS), new Key(Key.Modifier.CTRL, KeyEvent.VK_Q)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.zoom(0.9);
-            }
-        },
-        new PanelOperation("Reset zoom", new Key(Key.Modifier.CTRL, KeyEvent.VK_ASTERISK)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.reset();
-            }
-        },
-        new PanelOperation("Go left", new Key(Key.Modifier.CTRL, KeyEvent.VK_LEFT), new Key(Key.Modifier.CTRL, KeyEvent.VK_A)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.translate(10, 0);
-            }
-        },
-        new PanelOperation("Go right", new Key(Key.Modifier.CTRL, KeyEvent.VK_RIGHT), new Key(Key.Modifier.CTRL, KeyEvent.VK_D)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.translate(-10, 0);
-            }
-        },
-        new PanelOperation("Go up", new Key(Key.Modifier.CTRL, KeyEvent.VK_UP), new Key(Key.Modifier.CTRL, KeyEvent.VK_W)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.translate(0, 10);
-            }
-        },
-        new PanelOperation("Go down", new Key(Key.Modifier.CTRL, KeyEvent.VK_DOWN), new Key(Key.Modifier.CTRL, KeyEvent.VK_S)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.translate(0, -10);
-            }
-        },
-        new PanelOperation("Save", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_S)) {
-            @Override
-            protected void perform(ZoomPanel panel) {
-                save();
-            }
-        },
-        new PanelOperation("Save as ...", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_S)) {
-            @Override
-            protected void perform(ZoomPanel panel) {
-                saveAs();
-            }
-        },
-        new PanelOperation("Open", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_O)) {
-            @Override
-            protected void perform(ZoomPanel panel) {
-                JFileChooser jfc = new JFileChooser();
-                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
-                    loadData(jfc.getSelectedFile().getPath());
-                    setSavedTo(jfc.getSelectedFile().getPath());
+        }
+    },
+            new PanelOperation("Select all / none", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_A)) {
+        @Override
+        protected void perform(ZoomPanel panel) {
+            boolean deselect = false;
+            for (Component component : panel.getComponents()) {
+                if (component instanceof Selectable && ((Selectable) component).isSelectable() && ((Selectable) component).isSelected()) {
+                    deselect = true;
+                    break;
                 }
             }
-        },
-        new PanelOperation("Select all / none", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_A)) {
-            @Override
-            protected void perform(ZoomPanel panel) {
-                boolean deselect = false;
-                for (Component component : panel.getComponents()) {
-                    if (component instanceof Selectable && ((Selectable) component).isSelectable() && ((Selectable) component).isSelected()) {
-                        deselect = true;
-                        break;
-                    }
-                }
-                BasicVisualization.this.selectAll(panel, deselect);
+            BasicVisualization.this.selectAll(panel, deselect);
+        }
+    },
+            new PanelOperation("Delete all", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_DELETE, true)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            panel.removeAll();
+            panel.repaint();
+        }
+    },
+            new AddOperation("text", new Key(Key.Modifier.CTRL, KeyEvent.VK_SPACE, true)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            addText("", panel.getWidth() / 2, panel.getHeight() / 2, 100, 20, true);
+        }
+    },
+            new AddOperation("image", new Key(Key.Modifier.CTRL, KeyEvent.VK_I, true)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            JFileChooser jfc = new JFileChooser();
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
+                addImage(jfc.getSelectedFile().getPath(), null, null);
             }
-        },
-        new PanelOperation("Delete all", new Key(Key.Modifier.CTRL_SHIFT, KeyEvent.VK_DELETE, true)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                panel.removeAll();
-                panel.repaint();
-            }
-        },
-        
-        new AddOperation("text", new Key(Key.Modifier.CTRL, KeyEvent.VK_SPACE, true)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                addText("", panel.getWidth() / 2, panel.getHeight() / 2, 100, 20, true);
-            }
-        },
-        new AddOperation("image", new Key(Key.Modifier.CTRL, KeyEvent.VK_I, true)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                JFileChooser jfc = new JFileChooser();
-                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
-                    addImage(jfc.getSelectedFile().getPath(), null, null);
-                }
-            }
-        },
-        new AddOperation("screenShot", new Key(Key.Modifier.CTRL, KeyEvent.VK_PRINTSCREEN, true)) {
-            @Override
-            public void perform(ZoomPanel panel) {
-                addScreenShot(0, Settings.getDateCacheDirecotry());
-            }
-        },
-        new AddOperation("sketch", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_K, true)) {
-            @Override
-            protected void perform(ZoomPanel panel) {
-                final String sketchFile = Settings.getDateCacheDirecotry() + "/sketch-" + BasicVisualization.getTimeForFile() + ".png";
-                final Runnable externalEditing = BasicVisualization.runExternal(new String[] {BasicVisualization.externalSketching, sketchFile}, false);
+        }
+    },
+            new AddOperation("screenShot", new Key(Key.Modifier.CTRL, KeyEvent.VK_PRINTSCREEN, true)) {
+        @Override
+        public void perform(ZoomPanel panel) {
+            addScreenShot(0, Settings.getInstance().getDateCacheDirecotry());
+        }
+    },
+            new AddOperation("sketch", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_K, true)) {
+        @Override
+        protected void perform(ZoomPanel panel) {
+            if (externalSketching != null) {
+                String directory = Settings.getInstance().getDateCacheDirecotry().getPath();
+                final String sketchFile = directory + "/sketch-" + BasicVisualization.getTimeForFile() + ".png";
+                final Runnable externalEditing = BasicVisualization.runExternal(new String[]{externalSketching, sketchFile}, false);
                 Thread adding = new Thread() {
                     @Override
                     public void run() {
@@ -1623,230 +1674,232 @@ public class BasicVisualization {
                 };
                 adding.start();
             }
-        },
-        
-        new FocusedOperation("Add text near", new Key(Key.Modifier.SHIFT, KeyEvent.VK_D, true)) {
-            @Override
-            public void perform(ZoomableComponent focused, ZoomPanel panel) {
-                ZoomableLabel label = addText("", (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
-                label.setForeground(focused.getComponent().getForeground());
-                label.setBackground(focused.getComponent().getBackground());
-                if (focused.getComponent() instanceof JComponent) {
-                    JComponent jComponent = (JComponent) focused.getComponent();
-                    label.setOpaque(jComponent.isOpaque());
+        }
+    },
+            new FocusedOperation("Add text near", new Key(Key.Modifier.SHIFT, KeyEvent.VK_D, true)) {
+        @Override
+        public void perform(ZoomableComponent focused, ZoomPanel panel) {
+            ZoomableLabel label = addText("", (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
+            label.setForeground(focused.getComponent().getForeground());
+            label.setBackground(focused.getComponent().getBackground());
+            if (focused.getComponent() instanceof JComponent) {
+                JComponent jComponent = (JComponent) focused.getComponent();
+                label.setOpaque(jComponent.isOpaque());
+            }
+        }
+    },
+            new SelectionOperation("Zoom with element in", new Key(Key.Modifier.ALT, KeyEvent.VK_PLUS), new Key(Key.Modifier.ALT, KeyEvent.VK_EQUALS), new Key(Key.Modifier.ALT, KeyEvent.VK_E)) {
+        @Override
+        protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            zoomWithSelected(selected, panel, 1.1);
+        }
+    },
+            new SelectionOperation("Zoom with element out", new Key(Key.Modifier.ALT, KeyEvent.VK_MINUS), new Key(Key.Modifier.ALT, KeyEvent.VK_Q)) {
+        @Override
+        protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            zoomWithSelected(selected, panel, 0.9);
+        }
+    },
+            new SelectionOperation("Go with elements left", new Key(Key.Modifier.ALT, KeyEvent.VK_LEFT), new Key(Key.Modifier.ALT, KeyEvent.VK_A)) {
+        @Override
+        public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            translateWithSelected(selected, panel, 10, 0);
+        }
+    },
+            new SelectionOperation("Go with elements right", new Key(Key.Modifier.ALT, KeyEvent.VK_RIGHT), new Key(Key.Modifier.ALT, KeyEvent.VK_D)) {
+        @Override
+        public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            translateWithSelected(selected, panel, -10, 0);
+        }
+    },
+            new SelectionOperation("Go with elements up", new Key(Key.Modifier.ALT, KeyEvent.VK_UP), new Key(Key.Modifier.ALT, KeyEvent.VK_W)) {
+        @Override
+        public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            translateWithSelected(selected, panel, 0, 10);
+        }
+    },
+            new SelectionOperation("Go with elements down", new Key(Key.Modifier.ALT, KeyEvent.VK_DOWN), new Key(Key.Modifier.ALT, KeyEvent.VK_S)) {
+        @Override
+        public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            translateWithSelected(selected, panel, 0, -10);
+        }
+    },
+            new SelectionOperation("Delete element", new Key(Key.Modifier.NONE, KeyEvent.VK_DELETE, true)) {
+        @Override
+        public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            for (ZoomableComponent zoomableComponent : selected) {
+                Representation representation = BasicVisualization.getRepresentation(zoomableComponent);
+                if (representation != null) {
+                    Data data = ((DataRepresentation) zoomableComponent.getComponent()).getData();
+                    data.removeRepresentation(representation);
                 }
+                panel.remove(zoomableComponent.getComponent());
             }
-        },
-        new SelectionOperation("Zoom with element in", new Key(Key.Modifier.ALT, KeyEvent.VK_PLUS), new Key(Key.Modifier.ALT, KeyEvent.VK_EQUALS), new Key(Key.Modifier.ALT, KeyEvent.VK_E)) {
-            @Override
-            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                zoomWithSelected(selected, panel, 1.1);
-            }
-        },
-        new SelectionOperation("Zoom with element out", new Key(Key.Modifier.ALT, KeyEvent.VK_MINUS), new Key(Key.Modifier.ALT, KeyEvent.VK_Q)) {
-            @Override
-            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                zoomWithSelected(selected, panel, 0.9);
-            }
-        },
-        new SelectionOperation("Go with elements left", new Key(Key.Modifier.ALT, KeyEvent.VK_LEFT), new Key(Key.Modifier.ALT, KeyEvent.VK_A)) {
-            @Override
-            public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                translateWithSelected(selected, panel, 10, 0);
-            }
-        },
-        new SelectionOperation("Go with elements right", new Key(Key.Modifier.ALT, KeyEvent.VK_RIGHT), new Key(Key.Modifier.ALT, KeyEvent.VK_D)) {
-            @Override
-            public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                translateWithSelected(selected, panel, -10, 0);
-            }
-        },
-        new SelectionOperation("Go with elements up", new Key(Key.Modifier.ALT, KeyEvent.VK_UP), new Key(Key.Modifier.ALT, KeyEvent.VK_W)) {
-            @Override
-            public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                translateWithSelected(selected, panel, 0, 10);
-            }
-        },
-        new SelectionOperation("Go with elements down", new Key(Key.Modifier.ALT, KeyEvent.VK_DOWN), new Key(Key.Modifier.ALT, KeyEvent.VK_S)) {
-            @Override
-            public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                translateWithSelected(selected, panel, 0, -10);
-            }
-        },
-        new SelectionOperation("Delete element", new Key(Key.Modifier.NONE, KeyEvent.VK_DELETE, true)) {
-            @Override
-            public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                for (ZoomableComponent zoomableComponent : selected) {
-                    Representation representation = BasicVisualization.getRepresentation(zoomableComponent);
-                    if (representation != null) {
-                        Data data = ((DataRepresentation) zoomableComponent.getComponent()).getData();
-                        data.removeRepresentation(representation);
-                    }
-                    panel.remove(zoomableComponent.getComponent());
-                }
-                panel.repaint();
-            }
-        },
-        new SelectionOperation("Export to HTML", new Key(Key.Modifier.NONE, KeyEvent.VK_F12, true)) {
-            @Override
-            public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                JFileChooser jfc = new JFileChooser();
-                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                if (jfc.showSaveDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
-                    try {
-                        exportToHtml(selected, jfc.getSelectedFile().getPath());
-                    } catch (IOException ex) {
-                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Error saving file", ex);
-                    }
-                }
-            }
-        },
-        new SelectionOperation("Bring selected up", new Key(Key.Modifier.ALT, KeyEvent.VK_PAGE_UP)) {
-            @Override
-            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                for (ZoomableComponent zoomableComponent : selected) {
-                    panel.setComponentZOrder(zoomableComponent.getComponent(), 0);
-                }
-                panel.repaint();
-            }
-        },
-        new SelectionOperation("Bring selected down", new Key(Key.Modifier.ALT, KeyEvent.VK_PAGE_DOWN)) {
-            @Override
-            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                for (ZoomableComponent zoomableComponent : selected) {
-                    panel.setComponentZOrder(zoomableComponent.getComponent(), panel.getComponentCount() - 1);
-                }
-                panel.repaint();
-            }
-        },     
-        new SelectionOperation("Arrange Liner-X", new Key(Key.Modifier.CTRL, KeyEvent.VK_R, true)) {
-            final static int MARGIN = 5;
-            @Override
-            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                int addX = 0;
-                int firstX = (int) selected.get(0).getLocation().getX();
-                for (ZoomableComponent component : selected) {
-                    component.setLocation(firstX + addX, component.getLocation().getY());
-                    addX+=component.getSize().width + MARGIN;
-                }
-            }
-        },       
-        new SelectionOperation("Clone selected", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_C, true)) {
-            @Override
-            protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
-                for (ZoomableComponent zoomableComponent : selected) {
-                    BasicVisualization.this.clone(zoomableComponent.getComponent());
-                }
-            }
-        },
-        new FocusedOperation("Select cloned elements", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_C, true)) {
-            @Override
-            protected void perform(ZoomableComponent focused, ZoomPanel panel) {
-                if (focused.getComponent() instanceof DataRepresentation) {
-                    Data data = ((DataRepresentation) focused.getComponent()).getData();
-                    for (Component component : panel.getComponents()) {
-                        if (component instanceof DataRepresentation && component instanceof Selectable) {
-                            if (((DataRepresentation) component).getData() == data) {
-                                ((Selectable) component).setSelected(true);
-                            } else {
-                                ((Selectable) component).setSelected(false);
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        new SelectionOperation("Change foreground", new Key(Key.Modifier.ALT, KeyEvent.VK_F, true)) {
-            @Override
-            protected void perform(final List<ZoomableComponent> selected, ZoomPanel panel) {
-                Thread colorChoosing = new Thread() {
-                    @Override
-                    public void run() {
-                        Color defaultColor = selected.get(0).getComponent().getForeground();
-                        Color color = JColorChooser.showDialog(BasicVisualization.this.panel, "Select foreground", defaultColor);
-                        if (color != null) {
-                            for (ZoomableComponent zoomableComponent : selected) {
-                                zoomableComponent.getComponent().setForeground(color);
-                            }
-                            BasicVisualization.this.panel.repaint();
-                            BasicVisualization.this.panel.requestFocusInWindow();
-                        }
-                    }
-                };
-                colorChoosing.start();
-            }
-        },
-        new SelectionOperation("Change background", new Key(Key.Modifier.ALT, KeyEvent.VK_B, true)) {
-            @Override
-            protected void perform(final List<ZoomableComponent> selected, ZoomPanel panel) {
-                Color defaultColor = selected.get(0).getComponent().getForeground();
-                boolean defaultTransparency = true;
-                if (selected.get(0).getComponent() instanceof JComponent) {
-                    defaultTransparency = !((JComponent) selected.get(0).getComponent()).isOpaque();
-                }
-                chooseColor("Select background", defaultColor, defaultTransparency, new ColorAction() {
-                    public void colorChosen(Color color, boolean transparent) {
-                        for (ZoomableComponent zoomableComponent : selected) {
-                            if (zoomableComponent.getComponent() instanceof JComponent) {
-                                JComponent component = (JComponent) zoomableComponent.getComponent();
-                                component.setOpaque(!transparent);
-                            }
-                            zoomableComponent.getComponent().setBackground(color);
-                        }
-                        BasicVisualization.this.panel.repaint();
-                    }
-                });
-            }
-        },
-        new FocusedOperation("Copy to clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_C, true)) {
-            @Override
-            protected void perform(final ZoomableComponent focused, ZoomPanel panel) {
-                clipboard.setContents(new Transferable() {
-                    private DataFlavor[] flavors = new DataFlavor[] { dataFlavor };
-                    
-                    public DataFlavor[] getTransferDataFlavors() {
-                        return flavors;
-                    }
-                    
-                    public boolean isDataFlavorSupported(DataFlavor flavor) {
-                        return flavor.equals(flavor);
-                    }
-
-                    public TransferableData getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-                        if (flavor.equals(flavor)) {
-                            return new TransferableData(focused);
-                        } else {
-                            throw new UnsupportedFlavorException(flavor);
-                        }
-                    }
-                }, new ClipboardOwner() {
-                    public void lostOwnership(Clipboard clip, Transferable transf) {}
-                });
-            }
-        },
-        new PanelOperation("Paste from clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_V, true)) {
-            @Override
-            protected void perform(ZoomPanel panel) {
+            panel.repaint();
+        }
+    },
+            new SelectionOperation("Export to HTML", new Key(Key.Modifier.NONE, KeyEvent.VK_F12, true)) {
+        @Override
+        public void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            JFileChooser jfc = new JFileChooser();
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            if (jfc.showSaveDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
                 try {
-                    if (clipboard.isDataFlavorAvailable(dataFlavor)) {
-                        TransferableData transferable = (TransferableData) clipboard.getData(dataFlavor);
-                        transferable.paste(panel);
-                    } else if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
-                        Image image = (Image) clipboard.getData(DataFlavor.imageFlavor);
-                        if (image instanceof BufferedImage) {
-                            final String clipboardFile = Settings.getDateCacheDirecotry() + "/pasted-" + BasicVisualization.getTimeForFile() + ".png";
-                            if (defaultSource == null) {
-                                defaultSource = new Source.Event();
-                            }
-                            addImage(defaultSource, clipboardFile, (BufferedImage) image);
-                        }
-                    }
-                } catch (Exception ex) {
-                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Pasting exception", ex);
+                    exportToHtml(selected, jfc.getSelectedFile().getPath());
+                } catch (IOException ex) {
+                    Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Error saving file", ex);
                 }
             }
         }
-    );
+    },
+            new SelectionOperation("Bring selected up", new Key(Key.Modifier.ALT, KeyEvent.VK_PAGE_UP)) {
+        @Override
+        protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            for (ZoomableComponent zoomableComponent : selected) {
+                panel.setComponentZOrder(zoomableComponent.getComponent(), 0);
+            }
+            panel.repaint();
+        }
+    },
+            new SelectionOperation("Bring selected down", new Key(Key.Modifier.ALT, KeyEvent.VK_PAGE_DOWN)) {
+        @Override
+        protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            for (ZoomableComponent zoomableComponent : selected) {
+                panel.setComponentZOrder(zoomableComponent.getComponent(), panel.getComponentCount() - 1);
+            }
+            panel.repaint();
+        }
+    },
+            new SelectionOperation("Arrange Liner-X", new Key(Key.Modifier.CTRL, KeyEvent.VK_R, true)) {
+        final static int MARGIN = 5;
+
+        @Override
+        protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            int addX = 0;
+            int firstX = (int) selected.get(0).getLocation().getX();
+            for (ZoomableComponent component : selected) {
+                component.setLocation(firstX + addX, component.getLocation().getY());
+                addX += component.getSize().width + MARGIN;
+            }
+        }
+    },
+            new SelectionOperation("Clone selected", new Key(Key.Modifier.CTRL_ALT, KeyEvent.VK_C, true)) {
+        @Override
+        protected void perform(List<ZoomableComponent> selected, ZoomPanel panel) {
+            for (ZoomableComponent zoomableComponent : selected) {
+                BasicVisualization.this.clone(zoomableComponent.getComponent());
+            }
+        }
+    },
+            new FocusedOperation("Select cloned elements", new Key(Key.Modifier.CTRL_ALT_SHIFT, KeyEvent.VK_C, true)) {
+        @Override
+        protected void perform(ZoomableComponent focused, ZoomPanel panel) {
+            if (focused.getComponent() instanceof DataRepresentation) {
+                Data data = ((DataRepresentation) focused.getComponent()).getData();
+                for (Component component : panel.getComponents()) {
+                    if (component instanceof DataRepresentation && component instanceof Selectable) {
+                        if (((DataRepresentation) component).getData() == data) {
+                            ((Selectable) component).setSelected(true);
+                        } else {
+                            ((Selectable) component).setSelected(false);
+                        }
+                    }
+                }
+            }
+        }
+    },
+            new SelectionOperation("Change foreground", new Key(Key.Modifier.ALT, KeyEvent.VK_F, true)) {
+        @Override
+        protected void perform(final List<ZoomableComponent> selected, ZoomPanel panel) {
+            Thread colorChoosing = new Thread() {
+                @Override
+                public void run() {
+                    Color defaultColor = selected.get(0).getComponent().getForeground();
+                    Color color = JColorChooser.showDialog(BasicVisualization.this.panel, "Select foreground", defaultColor);
+                    if (color != null) {
+                        for (ZoomableComponent zoomableComponent : selected) {
+                            zoomableComponent.getComponent().setForeground(color);
+                        }
+                        BasicVisualization.this.panel.repaint();
+                        BasicVisualization.this.panel.requestFocusInWindow();
+                    }
+                }
+            };
+            colorChoosing.start();
+        }
+    },
+            new SelectionOperation("Change background", new Key(Key.Modifier.ALT, KeyEvent.VK_B, true)) {
+        @Override
+        protected void perform(final List<ZoomableComponent> selected, ZoomPanel panel) {
+            Color defaultColor = selected.get(0).getComponent().getForeground();
+            boolean defaultTransparency = true;
+            if (selected.get(0).getComponent() instanceof JComponent) {
+                defaultTransparency = !((JComponent) selected.get(0).getComponent()).isOpaque();
+            }
+            chooseColor("Select background", defaultColor, defaultTransparency, new ColorAction() {
+                public void colorChosen(Color color, boolean transparent) {
+                    for (ZoomableComponent zoomableComponent : selected) {
+                        if (zoomableComponent.getComponent() instanceof JComponent) {
+                            JComponent component = (JComponent) zoomableComponent.getComponent();
+                            component.setOpaque(!transparent);
+                        }
+                        zoomableComponent.getComponent().setBackground(color);
+                    }
+                    BasicVisualization.this.panel.repaint();
+                }
+            });
+        }
+    },
+            new FocusedOperation("Copy to clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_C, true)) {
+        @Override
+        protected void perform(final ZoomableComponent focused, ZoomPanel panel) {
+            clipboard.setContents(new Transferable() {
+                private DataFlavor[] flavors = new DataFlavor[]{dataFlavor};
+
+                public DataFlavor[] getTransferDataFlavors() {
+                    return flavors;
+                }
+
+                public boolean isDataFlavorSupported(DataFlavor flavor) {
+                    return flavor.equals(flavor);
+                }
+
+                public TransferableData getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                    if (flavor.equals(flavor)) {
+                        return new TransferableData(focused);
+                    } else {
+                        throw new UnsupportedFlavorException(flavor);
+                    }
+                }
+            }, new ClipboardOwner() {
+                public void lostOwnership(Clipboard clip, Transferable transf) {
+                }
+            });
+        }
+    },
+            new PanelOperation("Paste from clipboard", new Key(Key.Modifier.CTRL, KeyEvent.VK_V, true)) {
+        @Override
+        protected void perform(ZoomPanel panel) {
+            try {
+                if (clipboard.isDataFlavorAvailable(dataFlavor)) {
+                    TransferableData transferable = (TransferableData) clipboard.getData(dataFlavor);
+                    transferable.paste(panel);
+                } else if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+                    Image image = (Image) clipboard.getData(DataFlavor.imageFlavor);
+                    if (image instanceof BufferedImage) {
+                        String directory = Settings.getInstance().getDateCacheDirecotry().getPath();
+                        final String clipboardFile = directory + "/pasted-" + BasicVisualization.getTimeForFile() + ".png";
+                        if (defaultSource == null) {
+                            defaultSource = new Source.Event();
+                        }
+                        addImage(defaultSource, clipboardFile, (BufferedImage) image);
+                    }
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "Pasting exception", ex);
+            }
+        }
+    });
 
     public boolean execOperation(String name) {
         for (Operation operation : operations) {
@@ -1857,7 +1910,7 @@ public class BasicVisualization {
         }
         return false;
     }
-    
+
     private void selectAll(ZoomPanel panel, boolean deselect) {
         for (Component component : panel.getComponents()) {
             if (component instanceof Selectable && ((Selectable) component).isSelectable()) {
@@ -1869,7 +1922,7 @@ public class BasicVisualization {
             }
         }
     }
-    
+
     private ZoomableComponent addImage(String path, Integer x, Integer y) {
         if (defaultSource == null) {
             defaultSource = new Source.Event();
@@ -1886,7 +1939,7 @@ public class BasicVisualization {
         ((JComponent) component.getComponent()).setToolTipText(path);
         return component;
     }
-    
+
     public void addImage(Source source, String file, BufferedImage image) {
         ZoomableImage component = new ZoomableImage(new Data.Image(file, source));
         ImageLoader.getInstance().addImage(component, file);
@@ -1895,13 +1948,13 @@ public class BasicVisualization {
         ZoomableComponent zoomableComponent = panel.addComponent(component);
         setToCenter(zoomableComponent);
     }
-    
+
     private void setToCenter(ZoomableComponent component) {
         int x = (panel.getWidth() / 2) - (component.getSize().width / 2);
         int y = (panel.getHeight() / 2) - (component.getSize().height / 2);
         component.setLocation(x, y);
     }
-    
+
     private ZoomableLabel addText(String text, int x, int y, int widh, int height, boolean edit) {
         if (defaultSource == null) {
             defaultSource = new Source.Event();
@@ -1909,7 +1962,7 @@ public class BasicVisualization {
         ZoomableLabel label = new ZoomableLabel();
         return addText(new Data.Plain(text, defaultSource), panel, x, y, widh, height, edit);
     }
-    
+
     private ZoomableLabel addText(Data.Plain data, ZoomPanel panel, int x, int y, int widh, int height, boolean edit) {
         ZoomableLabel label = new ZoomableLabel(data);
         if (edit) {
@@ -1921,34 +1974,37 @@ public class BasicVisualization {
         label.requestFocusInWindow();
         return label;
     }
-    
+
     //TODO: use robot.
     private void addScreenShot(final long delay, final File outputDirectory) {
-        Thread captureProgram = new Thread() {
-            @Override
-            public void run() {
-                if (delay > 100) {
-                    try {
-                        Thread.sleep(delay);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "ScreenShot delay interupted", ex);
+        final String executable = Settings.getInstance().getScreenCaptureProgram();
+        if (executable != null) {
+            Thread captureProgram = new Thread() {
+                @Override
+                public void run() {
+                    if (delay > 100) {
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(BasicVisualization.class.getName()).log(Level.SEVERE, "ScreenShot delay interupted", ex);
+                        }
                     }
+                    if (outputDirectory.isDirectory()) {
+                        outputDirectory.mkdirs();
+                    }
+                    String fileName = outputDirectory.getPath() + "/" + BasicVisualization.getTimeForFile() + ".jpg";
+                    Okular.run(new String[]{executable, fileName});
+                    addImage(fileName, panel.getWidth() / 2, panel.getHeight() / 2);
                 }
-                if (outputDirectory.isDirectory()) {
-                    outputDirectory.mkdirs();
-                }
-                String fileName = outputDirectory.getPath() + "/" + BasicVisualization.getTimeForFile() + ".jpg";
-                Okular.run(new String[] {"/usr/bin/import", fileName});
-                addImage(fileName, panel.getWidth() / 2, panel.getHeight() / 2);
-            }
-        };
-        captureProgram.start();      
+            };
+            captureProgram.start();
+        }
     }
-    
+
     private static String getTimeForFile() {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH;mm;ss").format(new Date());
     }
-    
+
     public void save() {
         if (savedTo != null) {
             save(Arrays.asList(panel.getComponents()), savedTo);
@@ -1956,7 +2012,7 @@ public class BasicVisualization {
             saveAs();
         }
     }
-    
+
     private void saveAs() {
         JFileChooser jfc = new JFileChooser();
         jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1966,7 +2022,7 @@ public class BasicVisualization {
             savedTo = jfc.getSelectedFile().getPath();
         }
     }
-    
+
     public void zoomWithSelected(List<ZoomableComponent> selected, ZoomPanel panel, double zDifference) {
         for (ZoomableComponent zoomableComponent : selected) {
             zoomableComponent.getMoveAdapter().setBeingDragged(true);
@@ -1999,23 +2055,23 @@ public class BasicVisualization {
             }
         }
     }
-    
+
     private static String getHtmlStyle(ZoomableComponent component) {
         String width = "px; width: " + (int) component.getSize().width;
         if (component.getComponent() instanceof ZoomableLabel) {
             width = "";
         }
-        return "position: absolute; left: " + (int) component.getLocation().getX() +
-                "px; top: " + (int) component.getLocation().getY() +
-                width + 
-                "px; height: " + (int) component.getSize().height +
-                "px;";
+        return "position: absolute; left: " + (int) component.getLocation().getX()
+                + "px; top: " + (int) component.getLocation().getY()
+                + width
+                + "px; height: " + (int) component.getSize().height
+                + "px;";
     }
-    
+
     private static String stripHtml(String text) {
         return text.replaceAll("<(script|style)[^>]*?>(?:.|\\n)*?</\\s*\\1\\s*>", text);
     }
-    
+
     private void exportToHtml(List<ZoomableComponent> selected, String file) throws IOException {
         /* Converting elements to HTML */
         StringBuilder html = new StringBuilder();
@@ -2050,7 +2106,7 @@ public class BasicVisualization {
                 }
             }
         }
-        
+
         /* Saving output to file */
         BufferedReader reader = new BufferedReader(new InputStreamReader(BasicVisualization.class.getResourceAsStream("zoomoozTemplate.html")));
         BufferedWriter writter = new BufferedWriter(new FileWriter(file));
@@ -2066,9 +2122,9 @@ public class BasicVisualization {
         reader.close();
         writter.close();
     }
-       
+
     private static void copyFile(File sourceFile, File destFile) throws IOException {
-        if(!destFile.exists()) {
+        if (!destFile.exists()) {
             destFile.createNewFile();
         }
 
@@ -2079,12 +2135,11 @@ public class BasicVisualization {
             source = new FileInputStream(sourceFile).getChannel();
             destination = new FileOutputStream(destFile).getChannel();
             destination.transferFrom(source, 0, source.size());
-        }
-        finally {
-            if(source != null) {
+        } finally {
+            if (source != null) {
                 source.close();
             }
-            if(destination != null) {
+            if (destination != null) {
                 destination.close();
             }
         }
@@ -2098,20 +2153,20 @@ public class BasicVisualization {
             return text;
         }
     }
-    
+
     /*
      * Color chooser
      */
-    
     private class TransparencyPanel extends AbstractColorChooserPanel implements ActionListener {
+
         private boolean transparent = false;
         private Color defaultColor;
-        
+
         public TransparencyPanel(boolean transparent, Color defaultColor) {
             this.transparent = transparent;
             this.defaultColor = defaultColor;
         }
-        
+
         @Override
         protected void buildChooser() {
             setLayout(new BorderLayout());
@@ -2128,7 +2183,6 @@ public class BasicVisualization {
 
         @Override
         public void updateChooser() {
-            
         }
 
         @Override
@@ -2155,12 +2209,12 @@ public class BasicVisualization {
                 getColorSelectionModel().setSelectedColor(defaultColor);
             }
         }
-        
+
         public boolean isTransparent() {
             return transparent;
         }
     }
-    
+
     private void chooseColor(String title, final Color initialColor, boolean transparency, final ColorAction action) {
         final JColorChooser colorChooser = new JColorChooser(initialColor);
         final TransparencyPanel transparencyPanel = new TransparencyPanel(transparency, initialColor);
@@ -2176,15 +2230,15 @@ public class BasicVisualization {
         };
         JColorChooser.createDialog(panel, title, false, colorChooser, okAction, null).setVisible(true);
     }
-    
+
     private interface ColorAction {
+
         public void colorChosen(Color color, boolean transparent);
     }
-       
+
     /*
      * Utilities
      */
-
     public static Representation getSelf(DataRepresentation object) {
         for (Representation representation : object.getData().getRepresentations()) {
             if (representation.getAssigned() == object) {
@@ -2230,7 +2284,7 @@ public class BasicVisualization {
         }
         return result;
     }
-    
+
     static void setRepresentation(Representation.Element representation, ZoomableComponent component) {
         Dimension2D size = component.getOriginalSize();
         if (component.getZ() == 1) {
@@ -2238,7 +2292,7 @@ public class BasicVisualization {
         }
         representation.set(component.getLocation(), component.getZ(), size);
     }
-    
+
     private static boolean isModifier(InputEvent e, int modifier) {
         int mask = KeyEvent.BUTTON1_DOWN_MASK - 1;
         modifier = modifier & mask;

@@ -25,6 +25,7 @@ import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Data.Image;
 import lt.dinosy.datalib.Representation;
+import lt.dinosy.datalib.Settings;
 import lt.dinosy.datalib.Source;
 
 /**
@@ -33,14 +34,15 @@ import lt.dinosy.datalib.Source;
  * @author Aurelijus Banelis
  */
 public class ZoomableImage extends JLabel implements DataRepresentation, Zoomable, Selectable, HavingOperations, Cloneable {
+
     private Data.Image data;
 //    private volatile BufferedImage originalImage = null;
     private double scaleFactor = 1;
     private boolean loadingFromNew = false;
     private boolean selectable = true;
     private boolean selected = false;
-    private static String externalProgram = "/usr/bin/kolourpaint";
-    private static String externalFileManager = "/usr/bin/nautilus";
+    private static String externalProgram = Settings.getInstance().getPaintingProgram();
+    private static String externalFileManager = Settings.getInstance().getBrowserProgram();
     private int lastWidth = -1;
     private int lastHeight = -1;
     private transient BufferedImage cachedImage = null;
@@ -48,21 +50,21 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private ImageLoader imageLoader = ImageLoader.getInstance();    //TODO: change using contruktor or etc
     private static boolean imageLoaded = false;
     private long lastModified = 0;
-    
+
     private enum Optimization {
+
         time,
         memory,
         part
     }
-    
+
     public int getPriority() {
         return imageLoader.getPriority(this);
     }
-    
+
     /*
      * Constructors
      */
-    
     private ZoomableImage() {
         setForeground(Color.cyan);
         initFocusability();
@@ -73,12 +75,11 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         loadingFromNew = true;
     }
 
-    public ZoomableImage(Data.Image data, double scaleFactor) {        
+    public ZoomableImage(Data.Image data, double scaleFactor) {
         this();
         iniciateData(data);
         this.scaleFactor = scaleFactor;
     }
-
 
     public ZoomableImage(String file, Source source) {
         this();
@@ -117,7 +118,6 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     /*
      * Representation
      */
-
     public void loadImage() {
         if (imageLoader.getState(this) != ImageLoader.State.loaded) {
             imageLoader.addImage(this, data.getData());
@@ -132,18 +132,18 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
             return data.getData();
         }
     }
-    
+
     public void save(BufferedImage image) {
         imageLoader.save(this, image);
     }
-   
+
     @Override
     public void paint(Graphics g) {
         loadImage();
         BufferedImage originalImage = imageLoader.getImage(this);
         if (originalImage != null) {
-            int newW = (int)(originalImage.getWidth() * scaleFactor);
-            int newH = (int)(originalImage.getHeight() * scaleFactor);
+            int newW = (int) (originalImage.getWidth() * scaleFactor);
+            int newH = (int) (originalImage.getHeight() * scaleFactor);
             if (optimization == Optimization.time) {
                 /* Faster but more memory */
                 if (cachedImage == null || newW != lastWidth || newH != lastHeight) {
@@ -170,13 +170,13 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
                 g2.drawImage(originalImage, 0, 0, newW, newH, null);
             }
-            
+
         } else {
             ZoomPanel.paintLoading(g, getSize().width, getSize().height);
             g.drawRect(1, 1, this.getWidth() - 2, this.getHeight() - 2);
 //            imageLoader.drawPriority(this, g);
 //            g.drawString("Loading: " + data.getData(), 0, 10);
-            
+
         }
 //        imageLoader.drawPriority(this, g);
 //        setToolTipText(imageLoader.debugTooltip(this));
@@ -187,8 +187,6 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
 //        }
     }
 
-    
-    
     public void zoomed(double z) {
         scaleFactor = z;
     }
@@ -196,11 +194,10 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     public double getZ() {
         return scaleFactor;
     }
-    
+
     /*
      * Data container
      */
-
     public final void iniciateData(Data data) {
         this.data = (Image) data;
         updateSize();
@@ -229,7 +226,6 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     /*
      * Focusability
      */
-
     //TODO: implement using extend or sth
     private void initFocusability() {
         setFocusable(true);
@@ -238,7 +234,6 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
             public void mousePressed(MouseEvent e) {
                 requestFocusInWindow();
             }
-
         });
         addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
@@ -257,11 +252,9 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
         }
     }
 
-    
     /*
      * Selectable
      */
-
     public boolean isSelectable() {
         return selectable;
     }
@@ -287,74 +280,77 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
             g.setColor(oldColor);
         }
     }
-    
-    
+
     /*
      * Operations
      */
-
     public List<Operation> getOperations(ZoomPanel panel) {
         return Arrays.asList((Operation) new Operation("Edit externally", BasicVisualization.editKey) {
             @Override
             public void perform() {
-                Thread editingThread = new Thread() {
-                    @Override
-                    public void run() {
-                        String externalEdditor = externalProgram;
-                        String file = getData().getData();
-                        if (file.contains("/sketch-")) {
-                            externalEdditor = BasicVisualization.externalSketching;
+                if (externalProgram != null) {
+                    Thread editingThread = new Thread() {
+                        @Override
+                        public void run() {
+                            String externalEdditor = externalProgram;
+                            String file = getData().getData();
+                            if (file.contains("/sketch-")) {
+                                externalEdditor = BasicVisualization.externalSketching;
+                            }
+                            try {
+                                Process proc = Runtime.getRuntime().exec(new String[]{externalEdditor, file});
+                                consumeAll(proc.getInputStream());
+                                consumeAll(proc.getErrorStream());
+                                proc.waitFor();
+                                loadImage();
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "External image editing interupted", ex);
+                            } catch (IOException ex) {
+                                Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalEdditor, ex);
+                            }
                         }
-                        try {
-                            Process proc = Runtime.getRuntime().exec(new String[] {externalEdditor, file});
-                            consumeAll(proc.getInputStream());
-                            consumeAll(proc.getErrorStream());
-                            proc.waitFor();
-                            loadImage();
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "External image editing interupted", ex);
-                        } catch (IOException ex) {
-                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalEdditor, ex);
-                        }
-                    }
-                };
-                editingThread.start();
+                    };
+                    editingThread.start();
+                }
             }
         },
-        new Operation("Show file", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_ALT, KeyEvent.VK_F)) {
+                new Operation("Show file", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_ALT, KeyEvent.VK_F)) {
             @Override
             public void perform() {
-                final Runnable viewing = BasicVisualization.runExternal(new String[] {ZoomableImage.externalFileManager, getData().getData()}, false);
-                Thread updating = new Thread() {
-                    @Override
-                    public void run() {
-                       viewing.run();
-                       loadImage();
-                    }
-                };
-                updating.start();
+                if (externalFileManager != null) {
+                    final Runnable viewing = BasicVisualization.runExternal(new String[]{externalFileManager, getData().getData()}, false);
+                    Thread updating = new Thread() {
+                        @Override
+                        public void run() {
+                            viewing.run();
+                            loadImage();
+                        }
+                    };
+                    updating.start();
+                }
             }
         },
-        new Operation("Update", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_U)) {
+                new Operation("Update", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_U)) {
             @Override
             public void perform() {
                 loadImage();
             }
         });
     }
-   
+
     private static void consumeAll(InputStream stream) {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
         try {
             String line;
-            while ( (line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 if ("debug".equals("on")) {
                     System.err.println(line);
                 }
             }
-        } catch (IOException ex) {}
+        } catch (IOException ex) {
+        }
     }
-    
+
     @Override
     protected ZoomableImage clone() throws CloneNotSupportedException {
         //FIXME: update after clonning, cloning optimization
