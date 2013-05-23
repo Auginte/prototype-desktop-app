@@ -33,13 +33,13 @@ public class TreeTest {
          */
         Tree<String> tree = new Tree<String>("A");
         tree.addChild("A1");
-        tree.addChild(new Tree("A2"));
+        tree.addChild(new Tree<String>("A2"));
         LinkedList<Tree<String>> subTree = new LinkedList<Tree<String>>();
-        subTree.add(new Tree("A3"));
-        subTree.add(new Tree("A4"));
+        subTree.add(new Tree<String>("A3"));
+        subTree.add(new Tree<String>("A4"));
         tree.addChilds(subTree);
 
-        assertEquals("B", tree.getHead());
+        assertEquals("A", tree.getHead());
         assertTrue(tree.contains("A1"));
         assertTrue(tree.contains("A2"));
         assertTrue(tree.contains("A3"));
@@ -59,7 +59,7 @@ public class TreeTest {
          */
         Tree<String> tree = new Tree<String>("A", "A1", "A2");
         tree.get("A1").addChilds("A11", "A12");
-        tree.getDeep("A11").addChild(new Tree<String>("A111", new Tree("A1111")));
+        tree.getDeep("A11").addChild(new Tree<String>("A111", new Tree<String>("A1111")));
         assertNotNull(tree.getDeep("A1"));
         assertNotNull(tree.getDeep("A11"));
         assertNotNull(tree.getDeep("A111"));
@@ -83,6 +83,6 @@ public class TreeTest {
         assertEquals("B", tree.get("B").getHead());
         assertTrue(tree.get("B").contains("C2"));
         assertTrue(tree.getDeep("D").contains("F"));
-assertTrue(tree.get("B").get("C1").get("D").contains("E"));
+        assertTrue(tree.get("B").get("C1").get("D").contains("E"));
     }
 }

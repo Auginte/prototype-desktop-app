@@ -1,10 +1,13 @@
-package lt.banelis.aurelijus.dinosy.prototype;
+package lt.banelis.aurelijus.dinosy.prototype.relations;
 
+import lt.banelis.aurelijus.dinosy.prototype.relations.Connection;
 import java.awt.Component;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import lt.banelis.aurelijus.dinosy.prototype.DataRepresentation;
+import lt.banelis.aurelijus.dinosy.prototype.ZoomPanel;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Relation;
 

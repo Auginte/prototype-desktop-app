@@ -15,6 +15,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JPanel;
+import lt.banelis.aurelijus.dinosy.prototype.relations.Arrow;
+import lt.banelis.aurelijus.dinosy.prototype.relations.Connection;
 
 /**
  * Panel with zooming capabilities.
@@ -22,6 +24,7 @@ import javax.swing.JPanel;
  * @author Aurelijus Banelis
  */
 public class ZoomPanel extends JPanel implements Serializable {
+
     private double z = 1;
     private DoublePoint cameraLocation = new DoublePoint(0, 0);
     private volatile Map<Component, ZoomableComponent> components = new HashMap<Component, ZoomableComponent>();
@@ -33,19 +36,19 @@ public class ZoomPanel extends JPanel implements Serializable {
     private List<Connection> connections = new LinkedList<Connection>();
     private boolean grid = true;
     private Color gridColor = new Color(32, 32, 32);
-    //TODO: beter integration of popups and focusing
-    Component lastFocusOwner = null;
+    //FIXME: use getters, setters (beter integration of popups and focusing)
+    public Component lastFocusOwner = null;
     private volatile boolean loading = false;
     private static int loadingRing = 1;
     private Thread loadingThread = null;
     private static Color loadingColor = new Color(40, 40, 40);
-    
+
     private static Color addColor(Color color, int delta) {
         int c[] = new int[3];
         c[0] = color.getRed() + delta;
         c[1] = color.getGreen() + delta;
         c[2] = color.getBlue() + delta;
-        for (int i= 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             if (c[i] > 255) {
                 c[i] = 255;
             } else if (c[i] < 0) {
@@ -56,18 +59,30 @@ public class ZoomPanel extends JPanel implements Serializable {
     }
 
     public interface ContentChangeListener {
+
         public void added(Component component);
+
         public void addedAll();
+
         public void removed(Component component);
+
         public void removedAll();
     };
-    public abstract static class ContentChangeAdapter implements ContentChangeListener {
-        public void added(Component component) { }
-        public void addedAll() { }
-        public void removed(Component component) { }
-        public void removedAll() { }
-    }
 
+    public abstract static class ContentChangeAdapter implements ContentChangeListener {
+
+        public void added(Component component) {
+        }
+
+        public void addedAll() {
+        }
+
+        public void removed(Component component) {
+        }
+
+        public void removedAll() {
+        }
+    }
     private LinkedList<ContentChangeListener> changeListerners = new LinkedList<ContentChangeListener>();
 
     public ZoomPanel() {
@@ -80,7 +95,6 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Initianing Zoomable components
      */
-   
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -89,7 +103,7 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
         setLayout(null);
     }
-    
+
     @Override
     protected void paintChildren(Graphics g) {
         if (grid) {
@@ -103,9 +117,9 @@ public class ZoomPanel extends JPanel implements Serializable {
         debugComponents(g);
         super.paintChildren(g);
     }
-
     //FIXME: debuging
     private static Runtime runtime = Runtime.getRuntime();
+
     private void debugPaintProcessor(Graphics g) {
         g.setColor(Color.RED);
         float percent = runtime.freeMemory() / (float) runtime.totalMemory();
@@ -118,25 +132,24 @@ public class ZoomPanel extends JPanel implements Serializable {
             }
         }
         if (n > 0) {
-            float h = (getHeight() - getHeight() / 8) / (n+1);
+            float h = (getHeight() - getHeight() / 8) / (n + 1);
             int i = 0;
             int avg = ImageLoader.getAveragePriority();
             for (Component component : getComponents()) {
                 if (component instanceof ZoomableImage) {
                     ZoomableImage zi = (ZoomableImage) component;
                     if (zi.getPriority() < avg / 3) {
-                        g.setColor(Color.ORANGE);                        
+                        g.setColor(Color.ORANGE);
                     } else {
                         g.setColor(Color.YELLOW);
                     }
-                    g.drawString(i + " " + zi.getPriority(), 10, (int) (getHeight() / 8 + i*h));
+                    g.drawString(i + " " + zi.getPriority(), 10, (int) (getHeight() / 8 + i * h));
                     i++;
                 }
             }
-            g.drawString("AVG:" + ImageLoader.getAveragePriority(), 0, (int) (getHeight() / 8 + i*h));
+            g.drawString("AVG:" + ImageLoader.getAveragePriority(), 0, (int) (getHeight() / 8 + i * h));
         }
     }
-
 
     @Override
     public void validate() {
@@ -144,10 +157,9 @@ public class ZoomPanel extends JPanel implements Serializable {
         initialiseComponents();
     }
 
-
     /**
-     * Delegates zoomable component for each Swing component.
-     * Memorize original position and size of components.
+     * Delegates zoomable component for each Swing component. Memorize original
+     * position and size of components.
      */
     private synchronized void initialiseComponents() {
         if (!componentsInicialised) {
@@ -206,7 +218,7 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
         return component;
     }
-    
+
     private ZoomableComponent addZoomable(Component comp) {
         return addZoomable(comp, 1);
     }
@@ -243,7 +255,7 @@ public class ZoomPanel extends JPanel implements Serializable {
 //        g.setColor(Color.BLACK);
 //        g.fillRect(0, 0, this.getWidth(), this.getHeight());
         g.setColor(Color.GRAY);
-        g.drawRect(translateEdges, translateEdges, this.getWidth() - translateEdges*2, this.getHeight() - translateEdges*2);
+        g.drawRect(translateEdges, translateEdges, this.getWidth() - translateEdges * 2, this.getHeight() - translateEdges * 2);
 
         g.setColor(oldColor);
     }
@@ -253,7 +265,7 @@ public class ZoomPanel extends JPanel implements Serializable {
         setComponentZOrder(component, 0);
         return addZoomable(component, z);
     }
-    
+
     public ZoomableComponent addComponent(Component component) {
         return addComponent(component, 1);
     }
@@ -265,7 +277,6 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Change listeners
      */
-
     public void addChangeListener(ContentChangeListener listener) {
         changeListerners.add(listener);
     }
@@ -275,12 +286,11 @@ public class ZoomPanel extends JPanel implements Serializable {
             changeListerners.remove(listener);
         }
     }
-    
+
 
     /*
      * Using camera
      */
-
     public synchronized void translate(double xDifference, double yDifference) {
         translate(xDifference, yDifference, false);
     }
@@ -303,7 +313,6 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Zooming
      */
-
     public double getZoom() {
         return z;
     }
@@ -315,7 +324,7 @@ public class ZoomPanel extends JPanel implements Serializable {
     public synchronized void zoom(double zDifference, int fromX, int fromY) {
         if (!loading) {
             this.z *= zDifference;
-            for (ZoomableComponent zoomableComponent : components.values()) {            
+            for (ZoomableComponent zoomableComponent : components.values()) {
                 if (!zoomableComponent.getMoveAdapter().isBeingDragged()) {
                     zoomableComponent.zoom(zDifference, fromX, fromY);
                 }
@@ -351,8 +360,8 @@ public class ZoomPanel extends JPanel implements Serializable {
     public ZoomableComponent getZoomableComponent(Component component) {
         return components.get(component);
     }
-
     private static final Dimension minimumSize = new Dimension(25, 25);
+
     @Override
     public Dimension getPreferredSize() {
         if (super.getPreferredSize().width < minimumSize.getWidth() || super.getPreferredSize().height < minimumSize.getHeight()) {
@@ -360,11 +369,10 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
         return super.getPreferredSize();
     }
-    
+
     /*
      * Moving
      */
-
     private void addMovability(ZoomableComponent component) {
         if (component.getMoveAdapter() == null) {
             component.setMoveAdapter(new MoveAdapter(this, component));
@@ -402,7 +410,6 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Edges
      */
-
     private void enableTranslateEdges() {
         if (translateEdges > 0) {
             addEdgeAdapter(this);
@@ -414,6 +421,7 @@ public class ZoomPanel extends JPanel implements Serializable {
 
     /**
      * Adds adapter if not already exists
+     *
      * @todo using sub components
      */
     private void addEdgeAdapter(Component component) {
@@ -436,7 +444,6 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
     }
 
-
     public int getTranslateEdge() {
         return translateEdges;
     }
@@ -449,7 +456,6 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Connections
      */
-
     public void addConnnection(Connection connection) {
         connections.add(connection);
     }
@@ -467,11 +473,11 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
         removeConnections(toDelete);
     }
-    
+
     public void removeConnections(List<? extends Connection> toDelete) {
         connections.removeAll(toDelete);
     }
-    
+
     //TODO: why concurent modification?
     private synchronized void paintConnections(Graphics g) {
         for (Connection connection : connections) {
@@ -489,7 +495,6 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Grid
      */
-
     public boolean isGrid() {
         return grid;
     }
@@ -519,10 +524,10 @@ public class ZoomPanel extends JPanel implements Serializable {
         int initialY = (int) Math.floor(cameraLocation.getY()) % gridSize;
         if (gridSize > 2) {
             g.setColor(gridColor);
-            for (int x = -initialX; x  < this.getWidth(); x += gridSize) {
+            for (int x = -initialX; x < this.getWidth(); x += gridSize) {
                 g.drawLine(x, 0, x, this.getHeight());
             }
-            for (int y = -initialY; y  < this.getHeight(); y += gridSize) {
+            for (int y = -initialY; y < this.getHeight(); y += gridSize) {
                 g.drawLine(0, y, this.getWidth(), y);
             }
         }
@@ -533,7 +538,6 @@ public class ZoomPanel extends JPanel implements Serializable {
     /*
      * Focusable, selectable elements
      */
-
     public synchronized ZoomableComponent getFocusOwner() {
         for (Component component : components.keySet()) {
             if (component.isFocusOwner()) {
@@ -560,12 +564,10 @@ public class ZoomPanel extends JPanel implements Serializable {
         }
         return selected;
     }
-    
-    
+
     /*
      * Concurent modifications and threads
      */
-
     public void setLoading(boolean loading) {
         if (loading && (loadingThread == null || !loadingThread.isAlive())) {
             loadingThread = new Thread() {
@@ -579,7 +581,8 @@ public class ZoomPanel extends JPanel implements Serializable {
                         ZoomPanel.this.repaint();
                         try {
                             wait(200);
-                        } catch (InterruptedException ex) {}
+                        } catch (InterruptedException ex) {
+                        }
                     }
                 }
             };
@@ -594,18 +597,17 @@ public class ZoomPanel extends JPanel implements Serializable {
     public boolean isLoading() {
         return loading;
     }
-    
-    
+
     public static void paintLoading(Graphics g, int width, int height) {
         g.setColor(loadingColor);
         g.fillRect(0, 0, width, height);
-        int x = width/2;
-        int y = height/2;
+        int x = width / 2;
+        int y = height / 2;
         int size = Math.min(width, height) / 4;
         g.setColor(Color.GRAY);
-        g.fillArc(x - size/2, y - size/2, size, size, loadingRing*10, 60);
-        g.fillArc(x - size/2, y - size/2, size, size, loadingRing*10 + 180, 60);
+        g.fillArc(x - size / 2, y - size / 2, size, size, loadingRing * 10, 60);
+        g.fillArc(x - size / 2, y - size / 2, size, size, loadingRing * 10 + 180, 60);
         g.setColor(loadingColor);
-        g.fillOval(x - size/4, y - size/4, size/2, size/2);
+        g.fillOval(x - size / 4, y - size / 4, size / 2, size / 2);
     }
 }

@@ -9,7 +9,8 @@ import java.io.Serializable;
  *
  * @author Aurelijus Banelis
  */
-class DoubleDimension extends Dimension2D implements Serializable {
+public class DoubleDimension extends Dimension2D implements Serializable {
+
     private double width;
     private double height;
 

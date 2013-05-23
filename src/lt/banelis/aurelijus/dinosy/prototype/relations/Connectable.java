@@ -1,4 +1,4 @@
-package lt.banelis.aurelijus.dinosy.prototype;
+package lt.banelis.aurelijus.dinosy.prototype.relations;
 
 import java.awt.Color;
 import java.awt.Graphics;

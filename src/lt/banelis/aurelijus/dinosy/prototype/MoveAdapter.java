@@ -9,6 +9,7 @@ import javax.swing.event.MouseInputListener;
  * @author Aurelijus Banelis
  */
 public class MoveAdapter implements MouseInputListener {
+
     private ZoomPanel parent;
     private ZoomableComponent zoomable;
     private boolean enabled = false;
@@ -34,7 +35,7 @@ public class MoveAdapter implements MouseInputListener {
     }
 
     /**
-     * @return  <code>true</code> when button delegated for dragging is pressed
+     * @return <code>true</code> when button delegated for dragging is pressed
      */
     protected boolean isMoveButton(MouseEvent e) {
         boolean controllButtons = e.isShiftDown() || e.isControlDown() || e.isAltDown() || e.isAltGraphDown() || e.isMetaDown();
@@ -49,7 +50,7 @@ public class MoveAdapter implements MouseInputListener {
         this.enabled = enabled;
     }
 
-    void setBeingDragged(boolean beingDragged) {
+    public void setBeingDragged(boolean beingDragged) {
         this.beingDragged = beingDragged;
     }
 
@@ -98,9 +99,15 @@ public class MoveAdapter implements MouseInputListener {
         }
     }
 
-    
-    public void mouseClicked(MouseEvent e) { }
-    public void mouseEntered(MouseEvent e) { }
-    public void mouseExited(MouseEvent e) { }
-    public void mouseMoved(MouseEvent e) { }
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public void mouseMoved(MouseEvent e) {
+    }
 }

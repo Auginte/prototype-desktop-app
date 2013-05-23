@@ -1,42 +1,45 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
-import java.awt.Component;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.List;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import lt.banelis.aurelijus.dinosy.prototype.helpers.ColorsHelper;
+import static lt.banelis.aurelijus.dinosy.prototype.helpers.RepresentationsHelper.createRepresentation;
+import static lt.banelis.aurelijus.dinosy.prototype.helpers.RepresentationsHelper.getSelf;
+import static lt.banelis.aurelijus.dinosy.prototype.helpers.RepresentationsHelper.setRepresentation;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Common;
+import lt.banelis.aurelijus.dinosy.prototype.operations.HavingOperations;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Key;
+import lt.banelis.aurelijus.dinosy.prototype.operations.KeyModifier;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Operation;
+import lt.banelis.aurelijus.dinosy.prototype.relations.Connectable;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Representation;
 import lt.dinosy.datalib.Source;
-import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
 
 /**
  *
  * @author Aurelijus Banelis
  */
 public class ZoomableLabel extends JPanel implements DataRepresentation, Editable, Selectable, Cloneable, Idea, HavingOperations, Connectable {
+
     private transient JTextField editField = new JTextField("Some text");
     private Font resized = null;
     private int lastFontHeight = -1;
@@ -53,6 +56,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     private boolean mainIdea = false;
     private boolean needIlustration = false;
     private ConnectionState connectionState = ConnectionState.none;
+    private ZoomPanel panel;
 
     public ZoomableLabel() {
         this("Some text");
@@ -79,11 +83,10 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     /*
      * Label
      */
-
     private void constructLabel() {
         setOpaque(false);
         //FIXME: remove in production version
-        setForeground(BasicVisualization.defaultForeground);
+        setForeground(ColorsHelper.getDefaultForeground());
     }
 
     public final void setText(String text) {
@@ -109,7 +112,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         paintConnectionState(g);
         g.drawString(getText(), 0, (int) (getHeight() * 0.8));
     }
-    
+
     public int getFontSize() {
         return (int) (getHeight() * 0.8);
     }
@@ -117,7 +120,6 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     /*
      * Editable
      */
-
     private void prepareEditable() {
         this.addMouseListener(editClick);
         editField.addMouseListener(editClick);
@@ -135,16 +137,14 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         //TODO: optimise
         this.removeAll();
     }
-
     private transient MouseListener editClick = new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
-          if (editable && e.getClickCount() > 1 && e.getButton() == MouseEvent.BUTTON1 && e.getID() == MouseEvent.MOUSE_CLICKED) {
+            if (editable && e.getClickCount() > 1 && e.getButton() == MouseEvent.BUTTON1 && e.getID() == MouseEvent.MOUSE_CLICKED) {
                 switchEditable();
             }
         }
     };
-
     private transient KeyListener editEnter = new KeyAdapter() {
         @Override
         public void keyTyped(KeyEvent e) {
@@ -181,7 +181,6 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         return editable;
     }
 
-
     public boolean isEditMode() {
         return (this.getComponentCount() > 0);
     }
@@ -195,12 +194,9 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         }
     }
 
-
-
     /*
      * Zooming
      */
-
     @Override
     public void setSize(int width, int height) {
         setHeight(height);
@@ -262,7 +258,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
             return old;
         }
     }
-    
+
     private void updateFont() {
         int height = getFontSize();
         if (resized == null || lastFontHeight != height) {
@@ -273,11 +269,9 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         }
     }
 
-    
     /*
      * Data container
      */
-
     public final void iniciateData(Data data) {
         this.data = (Data.Plain) data;
     }
@@ -291,13 +285,13 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
             data = new Data.Plain(getText(), new Source.Event());
             inicializeRepresentation(component);
         } else if (!inicializeRepresentation(component)) {
-            BasicVisualization.setRepresentation((Representation.Element) getSelf(this), component);
+            setRepresentation((Representation.Element) getSelf(this), component);
         }
     }
 
     public boolean inicializeRepresentation(ZoomableComponent component) {
         if (getSelf(this) == null) {
-            Representation representation = BasicVisualization.createRepresentation(data, component, this);
+            Representation representation = createRepresentation(data, component, this);
             getData().addRepresentation(representation);
             return true;
         } else {
@@ -318,16 +312,14 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     /*
      * Focusability
      */
-
     //TODO: implement using extend or sth
     private void initFocusability() {
         setFocusable(true);
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                    requestFocusInWindow();
-                }
-
+                requestFocusInWindow();
+            }
         });
         addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
@@ -350,19 +342,16 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     /*
      * Clone
      */
-
     @Override
-    protected ZoomableLabel clone() throws CloneNotSupportedException {
+    public ZoomableLabel clone() throws CloneNotSupportedException {
         //FIXME: update after clonning
         ZoomableLabel clone = new ZoomableLabel(getData());
         return clone;
     }
 
-    
     /*
      * Selectable
      */
-
     public boolean isSelectable() {
         return selectable;
     }
@@ -389,12 +378,9 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         }
     }
 
-
-    
     /*
      * Idea representation
-     */    
-    
+     */
     public boolean isMainIdea() {
         return mainIdea;
     }
@@ -402,7 +388,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     public void setMainIdea(boolean isMain) {
         this.mainIdea = isMain;
     }
-    
+
     public boolean isNeedIlustracion() {
         return needIlustration;
     }
@@ -410,54 +396,47 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
     public void setNeedIlustration(boolean needIlustration) {
         this.needIlustration = needIlustration;
     }
-    
+
     private void paintIdeaSpecific(Graphics g) {
         Color oldColor = g.getColor();
         int arc = Math.min(this.getWidth(), this.getHeight()) / 4;
         if (isMainIdea()) {
             g.setColor(new Color(32, 128, 32));
-            g.fillRoundRect(0, 0, this.getWidth()-1, this.getHeight()-1, arc, arc);
+            g.fillRoundRect(0, 0, this.getWidth() - 1, this.getHeight() - 1, arc, arc);
         }
         if (isNeedIlustracion()) {
             g.setColor(new Color(255, 32, 32));
-            g.drawRoundRect(0, 0, this.getWidth()-1, this.getHeight()-1, arc, arc);
+            g.drawRoundRect(0, 0, this.getWidth() - 1, this.getHeight() - 1, arc, arc);
         }
         g.setColor(oldColor);
     }
-    
-    public List<BasicVisualization.Operation> getOperations(final ZoomPanel panel) {
-        List<BasicVisualization.Operation> operations = Arrays.asList(
-            new BasicVisualization.Operation("Edit element", BasicVisualization.editKey) {
-                @Override
-                public void perform() {
-                    if (!ZoomableLabel.this.isEditMode()) {
-                        ZoomableLabel.this.switchEditable();
-                    }
-                }
-            },
-           new BasicVisualization.Operation("Toggle need ilustration", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_I)) {
-                @Override
-                public void perform() {
-                    ZoomableLabel.this.setNeedIlustration(!ZoomableLabel.this.isNeedIlustracion());
-                    ZoomableLabel.this.repaint();
-                }
-            },
-            new BasicVisualization.Operation("Toggle main idea", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_M)) {
-                @Override
-                public void perform() {
-                    ZoomableLabel.this.setMainIdea(!ZoomableLabel.this.isMainIdea());
-                    ZoomableLabel.this.repaint();
-                }
-            }   
-        );
-        return operations;
-    }
+    private List<Operation> operations = Arrays.asList(
+        new Operation(getPanel(), "Edit element", Common.getEditKey()) {
+        @Override
+        public void perform() {
+            if (!ZoomableLabel.this.isEditMode()) {
+                ZoomableLabel.this.switchEditable();
+            }
+        }
+    },
+        new Operation(getPanel(), "Toggle need ilustration", new Key(KeyModifier.CTRL_SHIFT, KeyEvent.VK_I)) {
+        @Override
+        public void perform() {
+            ZoomableLabel.this.setNeedIlustration(!ZoomableLabel.this.isNeedIlustracion());
+            ZoomableLabel.this.repaint();
+        }
+    },
+        new Operation(getPanel(), "Toggle main idea", new Key(KeyModifier.CTRL_SHIFT, KeyEvent.VK_M)) {
+        @Override
+        public void perform() {
+            ZoomableLabel.this.setMainIdea(!ZoomableLabel.this.isMainIdea());
+            ZoomableLabel.this.repaint();
+        }
+    });
 
-    
     /*
      * Connecting
      */
-    
     public ConnectionState getConnectionState() {
         return connectionState;
     }
@@ -469,7 +448,6 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         }
     }
 
-    
     public void paintConnectionState(Graphics g) {
         Color oldColor = g.getColor();
         final int r = 5;
@@ -484,5 +462,17 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
                 break;
         }
         g.setColor(oldColor);
+    }
+
+    private ZoomPanel getPanel() {
+        if (panel == null) {
+            panel = Common.getPanel(getParent());
+        }
+        return panel;
+    }
+
+    public List<Operation> getOperations(ZoomPanel panel) {
+        this.panel = panel;
+        return operations;
     }
 }

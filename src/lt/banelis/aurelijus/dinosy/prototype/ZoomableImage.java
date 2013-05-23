@@ -20,8 +20,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
-import lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.Operation;
-import static lt.banelis.aurelijus.dinosy.prototype.BasicVisualization.getSelf;
+import static lt.banelis.aurelijus.dinosy.prototype.helpers.RepresentationsHelper.createRepresentation;
+import static lt.banelis.aurelijus.dinosy.prototype.helpers.RepresentationsHelper.getSelf;
+import static lt.banelis.aurelijus.dinosy.prototype.helpers.RepresentationsHelper.setRepresentation;
+import lt.banelis.aurelijus.dinosy.prototype.helpers.RunHelper;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Common;
+import lt.banelis.aurelijus.dinosy.prototype.operations.HavingOperations;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Key;
+import lt.banelis.aurelijus.dinosy.prototype.operations.KeyModifier;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Operation;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Data.Image;
 import lt.dinosy.datalib.Representation;
@@ -50,6 +57,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     private ImageLoader imageLoader = ImageLoader.getInstance();    //TODO: change using contruktor or etc
     private static boolean imageLoaded = false;
     private long lastModified = 0;
+    private ZoomPanel panel;
 
     private enum Optimization {
 
@@ -209,13 +217,13 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
 
     public void updateData(ZoomableComponent component) {
         if (!inicializeRepresentation(component)) {
-            BasicVisualization.setRepresentation((Representation.Element) getSelf(this), component);
+            setRepresentation((Representation.Element) getSelf(this), component);
         }
     }
 
     public boolean inicializeRepresentation(ZoomableComponent component) {
         if (getSelf(this) == null) {
-            getData().addRepresentation(BasicVisualization.createRepresentation(data, component, this));
+            getData().addRepresentation(createRepresentation(data, component, this));
             return true;
         } else {
             return false;
@@ -284,58 +292,69 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     /*
      * Operations
      */
-    public List<Operation> getOperations(ZoomPanel panel) {
-        return Arrays.asList((Operation) new Operation("Edit externally", BasicVisualization.editKey) {
-            @Override
-            public void perform() {
-                if (externalProgram != null) {
-                    Thread editingThread = new Thread() {
-                        @Override
-                        public void run() {
-                            String externalEdditor = externalProgram;
-                            String file = getData().getData();
-                            if (file.contains("/sketch-")) {
-                                externalEdditor = BasicVisualization.externalSketching;
-                            }
-                            try {
-                                Process proc = Runtime.getRuntime().exec(new String[]{externalEdditor, file});
-                                consumeAll(proc.getInputStream());
-                                consumeAll(proc.getErrorStream());
-                                proc.waitFor();
-                                loadImage();
-                            } catch (InterruptedException ex) {
-                                Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "External image editing interupted", ex);
-                            } catch (IOException ex) {
-                                Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalEdditor, ex);
-                            }
+    private List<Operation> operations = Arrays.asList(
+        (Operation) new Operation(getPanel(), "Edit externally", Common.getEditKey()) {
+        @Override
+        public void perform() {
+            if (externalProgram != null) {
+                Thread editingThread = new Thread() {
+                    @Override
+                    public void run() {
+                        String externalEdditor = externalProgram;
+                        String file = getData().getData();
+                        if (file.contains("/sketch-")) {
+                            externalEdditor = Settings.getInstance().getSketchingProgram();
                         }
-                    };
-                    editingThread.start();
-                }
-            }
-        },
-                new Operation("Show file", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_ALT, KeyEvent.VK_F)) {
-            @Override
-            public void perform() {
-                if (externalFileManager != null) {
-                    final Runnable viewing = BasicVisualization.runExternal(new String[]{externalFileManager, getData().getData()}, false);
-                    Thread updating = new Thread() {
-                        @Override
-                        public void run() {
-                            viewing.run();
+                        try {
+                            Process proc = Runtime.getRuntime().exec(new String[]{externalEdditor, file});
+                            consumeAll(proc.getInputStream());
+                            consumeAll(proc.getErrorStream());
+                            proc.waitFor();
                             loadImage();
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "External image editing interupted", ex);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ZoomableImage.class.getName()).log(Level.SEVERE, "Error launching external image editor: " + externalEdditor, ex);
                         }
-                    };
-                    updating.start();
-                }
+                    }
+                };
+                editingThread.start();
             }
-        },
-                new Operation("Update", new BasicVisualization.Key(BasicVisualization.Key.Modifier.CTRL_SHIFT, KeyEvent.VK_U)) {
-            @Override
-            public void perform() {
-                loadImage();
+        }
+    },
+        new Operation(getPanel(), "Show file", new Key(KeyModifier.CTRL_ALT, KeyEvent.VK_F)) {
+        @Override
+        public void perform() {
+            if (externalFileManager != null) {
+                final Runnable viewing = RunHelper.runExternal(new String[]{externalFileManager, getData().getData()}, false);
+                Thread updating = new Thread() {
+                    @Override
+                    public void run() {
+                        viewing.run();
+                        loadImage();
+                    }
+                };
+                updating.start();
             }
-        });
+        }
+    },
+        new Operation(getPanel(), "Update", new Key(KeyModifier.CTRL_SHIFT, KeyEvent.VK_U)) {
+        @Override
+        public void perform() {
+            loadImage();
+        }
+    });
+
+    public List<Operation> getOperations(ZoomPanel panel) {
+        this.panel = panel;
+        return operations;
+    }
+
+    private ZoomPanel getPanel() {
+        if (panel == null) {
+            panel = Common.getPanel(getParent());
+        }
+        return panel;
     }
 
     private static void consumeAll(InputStream stream) {
@@ -352,7 +371,7 @@ public class ZoomableImage extends JLabel implements DataRepresentation, Zoomabl
     }
 
     @Override
-    protected ZoomableImage clone() throws CloneNotSupportedException {
+    public ZoomableImage clone() throws CloneNotSupportedException {
         //FIXME: update after clonning, cloning optimization
         ZoomableImage image = new ZoomableImage(data, scaleFactor);
         imageLoader.addImage(image, imageLoader.getImage(this));

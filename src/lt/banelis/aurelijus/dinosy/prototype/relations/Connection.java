@@ -1,5 +1,6 @@
-package lt.banelis.aurelijus.dinosy.prototype;
+package lt.banelis.aurelijus.dinosy.prototype.relations;
 
+import lt.banelis.aurelijus.dinosy.prototype.relations.Arrow;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;

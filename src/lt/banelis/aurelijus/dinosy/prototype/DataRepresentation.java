@@ -37,7 +37,7 @@ public interface DataRepresentation extends Serializable {
      * @return  <code>true</code> - was newly inicialized
      *          <code>fale</code> - was already inicialized
      *
-     * @see BasicVisualization#getSelf(lt.banelis.aurelijus.dinosy.prototype.DataRepresentation)
+     * @see VisualizationHelper#getSelf(lt.banelis.aurelijus.dinosy.prototype.DataRepresentation)
      * @see Representation#getAssigned() 
      */
     public boolean inicializeRepresentation(ZoomableComponent component);    

@@ -1,8 +1,9 @@
-package lt.banelis.aurelijus.dinosy.prototype;
+package lt.banelis.aurelijus.dinosy.prototype.relations;
 
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Polygon;
+import lt.banelis.aurelijus.dinosy.prototype.ZoomableLabel;
 
 /**
  * Arrow at connection end

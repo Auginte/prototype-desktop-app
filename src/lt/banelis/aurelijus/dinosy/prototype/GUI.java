@@ -5,6 +5,7 @@
  */
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import lt.banelis.aurelijus.dinosy.prototype.helpers.VisualizationHelper;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -31,18 +32,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.TimerTask;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
-import lt.banelis.parser.Class;
+import lt.banelis.aurelijus.dinosy.prototype.helpers.AddingHelper;
+import lt.banelis.aurelijus.dinosy.prototype.helpers.StorageHelper;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Common;
+import lt.banelis.aurelijus.dinosy.prototype.operations.Progress;
 import lt.dinosy.datalib.Data;
 import lt.dinosy.datalib.Source;
 import lt.dinosy.datalib.Source.Book;
@@ -51,39 +51,45 @@ import lt.dinosy.datalib.Source.Internet;
 import lt.dinosy.datalib.Source.Okular;
 
 /**
+ * Graphical user interface.
  *
  * @author Aurelijus Banelis
  */
-public class mainTest extends javax.swing.JFrame {
+public class GUI extends javax.swing.JFrame {
 
-    private PhpUml phpUml;
-    private BasicVisualization visualization;
+    private VisualizationHelper visualization;
+    private Common commonOperations;
+    private StorageHelper storageHelper;
+    private AddingHelper addingHelper;
     private JPopupMenu contextMenu;
     private Date sourceTypeDate = null;
     private DefaultComboBoxModel booksSourcesModel = null;
     private boolean booksModelChaning = false;
     private DefaultComboBoxModel booksNamesModel = null;
     private static final int AUTO_SAVE_INTERVAL = 60000;
-    BasicVisualization.Progress progress = new BasicVisualization.Progress() {
-        public void update(double percent, String operaion) {
-            setTitle(Math.round(percent * 100) + "%: " + operaion);
-        }
-    };
+    private Progress progress;
 
     /**
      * Creates new form mainTest
      */
-    public mainTest() {
+    public GUI() {
         initComponents();
-        phpUml = new PhpUml(zoomPanel1);
-        visualization = new BasicVisualization(zoomPanel1, progress);
+        this.progress = new Progress() {
+            public void update(double percent, String operaion) {
+                setTitle(Math.round(percent * 100) + "%: " + operaion);
+            }
+        };
+        visualization = new VisualizationHelper(zoomPanel1, progress);
+        commonOperations = new Common(visualization, zoomPanel1);
+        storageHelper = commonOperations.getStorageHelper();
+        addingHelper = commonOperations.getAddingHelper();
         visualization.initAll();
         initPopups();
         initSources();
         initKeyShortcuts(getContentPane());
         initMemoryMonitor();
         initAutoSave();
-        hideUnnecessary();
+//        hideUnnecessary();
     }
     private MouseListener contextMenuListener = new MouseAdapter() {
         @Override
@@ -98,8 +104,8 @@ public class mainTest extends javax.swing.JFrame {
     private void initAutoSave() {
         javax.swing.Timer timer = new javax.swing.Timer(AUTO_SAVE_INTERVAL, new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                if (autosaveCheckbox.isSelected() && visualization.getSavedTo() != null && !zoomPanel1.isLoading()) {
-                    visualization.save();
+                if (autosaveCheckbox.isSelected() && storageHelper.getSavedTo() != null && !zoomPanel1.isLoading()) {
+                    storageHelper.save(zoomPanel1);
                     setTitle("Autosaved: " + getTime());
                 }
             }
@@ -165,20 +171,6 @@ public class mainTest extends javax.swing.JFrame {
         });
         timer.start();
     }
-
-    private void hideUnnecessary() {
-        jButton2.setVisible(false);
-        ciscoCourse.setVisible(false);
-        ccna1.setVisible(false);
-        ccna2.setVisible(false);
-        ccna3.setVisible(false);
-        ccna4.setVisible(false);
-        jButton9.setVisible(false);
-        jButton12.setVisible(false);
-        jButton7.setVisible(false);
-        jProgressBar1.setVisible(false);
-        jCheckBox1.setVisible(false);
-    }
     private FocusListener focusListener = new FocusListener() {
         public void focusGained(FocusEvent event) {
             selectedBook.setText("");
@@ -187,27 +179,6 @@ public class mainTest extends javax.swing.JFrame {
                 if (source instanceof Source.Book) {
                     Source.Book book = (Source.Book) source;
                     selectedBook.setText(book.getSource() + ": " + book.getPage());
-                } else if (source instanceof Source.Internet) {
-                    Source.Internet internet = (Source.Internet) source;
-                    String chaptersPattern = "(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)\\.?";
-                    Matcher mather = Pattern.compile(chaptersPattern).matcher(internet.getXpaht());
-                    if (mather.find()) {
-                        ccna1.setText(mather.group(1));
-                        ccna2.setText(mather.group(2));
-                        ccna3.setText(mather.group(3));
-                        ccna4.setText(mather.group(4));
-                        sourceinternetUrl.setText(internet.getSource());
-                        int cource = BasicVisualization.getCCNA(internet.getSource());
-                        if (cource > 0 && cource <= ciscoCourse.getItemCount()) {
-                            ciscoCourse.setSelectedIndex(cource - 1);
-                        }
-                        updateCiscoSource();
-                    } else {
-                        ccna1.setText("");
-                        ccna2.setText("");
-                        ccna3.setText("");
-                        ccna4.setText("");
-                    }
                 }
             }
         }
@@ -217,8 +188,6 @@ public class mainTest extends javax.swing.JFrame {
     };
 
     private void initPopups() {
-        contextMenu = phpUml.getPopup();
-        contextMenu.addSeparator();
         for (Component component : zoomPanel1.getComponents()) {
             component.addMouseListener(contextMenuListener);
         }
@@ -243,7 +212,7 @@ public class mainTest extends javax.swing.JFrame {
     private void initKeyShortcuts(Container component) {
         for (Component subComponent : component.getComponents()) {
             if (subComponent.isFocusable()) {
-                subComponent.addKeyListener(visualization.defaultKeyShortCuts);
+                subComponent.addKeyListener(commonOperations.getDefaultKeyShortCuts());
                 if (subComponent instanceof Container) {
                     initKeyShortcuts((Container) subComponent);
                 }
@@ -261,11 +230,15 @@ public class mainTest extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        topPanel = new javax.swing.JPanel();
+        topPanel = new javax.swing.JTabbedPane();
+        buttonsPanel = new javax.swing.JPanel();
+        jButton9 = new javax.swing.JButton();
+        memoryMonitor = new javax.swing.JPanel();
+        autosaveCheckbox = new javax.swing.JCheckBox();
+        jButton2 = new javax.swing.JButton();
         sourcePanel = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         sourceEventDate = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -280,12 +253,6 @@ public class mainTest extends javax.swing.JFrame {
         sourceinternetXpath = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         sourceinternetTitle = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
-        ciscoCourse = new javax.swing.JComboBox();
-        ccna1 = new javax.swing.JTextField();
-        ccna2 = new javax.swing.JTextField();
-        ccna3 = new javax.swing.JTextField();
-        ccna4 = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         sourceBookName = new javax.swing.JTextField();
@@ -299,16 +266,8 @@ public class mainTest extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         sourceOkularAuto = new javax.swing.JCheckBox();
         sourceOkularClipboard = new javax.swing.JLabel();
-        sourceLastUpdated = new javax.swing.JLabel();
-        buttonsPanel = new javax.swing.JPanel();
-        jButton9 = new javax.swing.JButton();
-        jProgressBar1 = new javax.swing.JProgressBar();
-        jButton7 = new javax.swing.JButton();
-        jCheckBox1 = new javax.swing.JCheckBox();
-        jButton12 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        memoryMonitor = new javax.swing.JPanel();
-        autosaveCheckbox = new javax.swing.JCheckBox();
+        topPanel2 = new javax.swing.JPanel();
         zoomPanel1 = new lt.banelis.aurelijus.dinosy.prototype.ZoomPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -318,22 +277,75 @@ public class mainTest extends javax.swing.JFrame {
             }
         });
 
-        topPanel.setLayout(new java.awt.BorderLayout());
+        topPanel.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        topPanel.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
+        topPanel.setTabPlacement(javax.swing.JTabbedPane.LEFT);
 
-        sourcePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Source"));
+        buttonsPanel.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+
+        jButton9.setText("Example");
+        jButton9.setToolTipText("Load DiNOSy project");
+        jButton9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton9ActionPerformed(evt);
+            }
+        });
+
+        memoryMonitor.setBackground(new java.awt.Color(255, 217, 180));
+
+        javax.swing.GroupLayout memoryMonitorLayout = new javax.swing.GroupLayout(memoryMonitor);
+        memoryMonitor.setLayout(memoryMonitorLayout);
+        memoryMonitorLayout.setHorizontalGroup(
+            memoryMonitorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        memoryMonitorLayout.setVerticalGroup(
+            memoryMonitorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 70, Short.MAX_VALUE)
+        );
+
+        autosaveCheckbox.setSelected(true);
+        autosaveCheckbox.setText("Autosave");
+
+        jButton2.setText("Operations");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout buttonsPanelLayout = new javax.swing.GroupLayout(buttonsPanel);
+        buttonsPanel.setLayout(buttonsPanelLayout);
+        buttonsPanelLayout.setHorizontalGroup(
+            buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(buttonsPanelLayout.createSequentialGroup()
+                .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 972, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(autosaveCheckbox))
+            .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        buttonsPanelLayout.setVerticalGroup(
+            buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(buttonsPanelLayout.createSequentialGroup()
+                .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton9)
+                    .addComponent(autosaveCheckbox)
+                    .addComponent(jButton2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        topPanel.addTab("Controlls", buttonsPanel);
+
+        sourcePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
         jLabel3.setText("Source time:");
 
         sourceEventDate.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 sourceEventDateKeyTyped(evt);
-            }
-        });
-
-        jButton1.setText("Update source");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
             }
         });
 
@@ -348,7 +360,7 @@ public class mainTest extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 578, Short.MAX_VALUE)
+            .addGap(0, 1059, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -381,7 +393,7 @@ public class mainTest extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(4, 4, 4)
-                .addComponent(sourceEventName, javax.swing.GroupLayout.DEFAULT_SIZE, 275, Short.MAX_VALUE)
+                .addComponent(sourceEventName, javax.swing.GroupLayout.DEFAULT_SIZE, 756, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -431,45 +443,6 @@ public class mainTest extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setText("Cisco");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        ciscoCourse.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "CCNA 1", "CCNA 2", "CCNA 3", "CCNA 4" }));
-        ciscoCourse.setSelectedIndex(3);
-
-        ccna1.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
-            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
-                ccna1MouseWheelMoved(evt);
-            }
-        });
-        ccna1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ccna1ActionPerformed(evt);
-            }
-        });
-
-        ccna2.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
-            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
-                ccna2MouseWheelMoved(evt);
-            }
-        });
-
-        ccna3.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
-            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
-                ccna3MouseWheelMoved(evt);
-            }
-        });
-
-        ccna4.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
-            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
-                ccna4MouseWheelMoved(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -481,49 +454,28 @@ public class mainTest extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(sourceinternetUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel8))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jButton2)
+                        .addComponent(jLabel8)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(ciscoCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(sourceinternetXpath))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(sourceinternetXpath, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel9)
                         .addGap(2, 2, 2)
-                        .addComponent(sourceinternetTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(ccna1, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(ccna2, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(ccna3, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(ccna4, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addComponent(sourceinternetTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 1010, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton2)
-                    .addComponent(ciscoCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ccna1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ccna2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ccna3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ccna4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(sourceinternetUrl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8)
-                    .addComponent(sourceinternetXpath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(sourceinternetXpath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(sourceinternetTitle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addGap(0, 14, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Internet", jPanel3);
@@ -581,8 +533,8 @@ public class mainTest extends javax.swing.JFrame {
                     .addComponent(booksLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(booksNamesCombo, javax.swing.GroupLayout.Alignment.LEADING, 0, 207, Short.MAX_VALUE)
-                    .addComponent(sourceBookName, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE))
+                    .addComponent(booksNamesCombo, javax.swing.GroupLayout.Alignment.LEADING, 0, 421, Short.MAX_VALUE)
+                    .addComponent(sourceBookName, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createSequentialGroup()
@@ -593,7 +545,7 @@ public class mainTest extends javax.swing.JFrame {
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(sourceBookIsbn, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(selectedBook, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE))
+                    .addComponent(selectedBook, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
@@ -642,22 +594,26 @@ public class mainTest extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Clipboard", jPanel4);
 
-        sourceLastUpdated.setFont(new java.awt.Font("Ubuntu", 0, 10)); // NOI18N
-        sourceLastUpdated.setText("Not updated yet");
+        jButton3.setText("Copy-screen");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout sourcePanelLayout = new javax.swing.GroupLayout(sourcePanel);
         sourcePanel.setLayout(sourcePanelLayout);
         sourcePanelLayout.setHorizontalGroup(
             sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(sourcePanelLayout.createSequentialGroup()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 582, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jTabbedPane1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 109, Short.MAX_VALUE)
-                    .addComponent(sourceLastUpdated, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(sourceEventDate, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE))))
+                .addGroup(sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(sourceEventDate, javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE))
+                    .addComponent(jButton3))
+                .addGap(1, 1, 1))
         );
         sourcePanelLayout.setVerticalGroup(
             sourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -666,118 +622,18 @@ public class mainTest extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(sourceEventDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sourceLastUpdated)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1))
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(sourcePanelLayout.createSequentialGroup()
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        topPanel.add(sourcePanel, java.awt.BorderLayout.WEST);
+        topPanel.addTab("Source", sourcePanel);
 
-        buttonsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Controll section"));
+        getContentPane().add(topPanel, java.awt.BorderLayout.PAGE_START);
 
-        jButton9.setText("Test DP");
-        jButton9.setToolTipText("Load DiNOSy project");
-        jButton9.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton9ActionPerformed(evt);
-            }
-        });
-
-        jProgressBar1.setStringPainted(true);
-        jProgressBar1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jProgressBar1MouseClicked(evt);
-            }
-        });
-
-        jButton7.setText("Load PHP project");
-        jButton7.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton7ActionPerformed(evt);
-            }
-        });
-
-        jCheckBox1.setText("Generalizations");
-        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox1ActionPerformed(evt);
-            }
-        });
-
-        jButton12.setText("Test CISCO");
-        jButton12.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton12ActionPerformed(evt);
-            }
-        });
-
-        jButton3.setText("Copy-screen");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
-            }
-        });
-
-        memoryMonitor.setBackground(new java.awt.Color(255, 217, 180));
-
-        javax.swing.GroupLayout memoryMonitorLayout = new javax.swing.GroupLayout(memoryMonitor);
-        memoryMonitor.setLayout(memoryMonitorLayout);
-        memoryMonitorLayout.setHorizontalGroup(
-            memoryMonitorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        memoryMonitorLayout.setVerticalGroup(
-            memoryMonitorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 61, Short.MAX_VALUE)
-        );
-
-        autosaveCheckbox.setSelected(true);
-        autosaveCheckbox.setText("Autosave");
-
-        javax.swing.GroupLayout buttonsPanelLayout = new javax.swing.GroupLayout(buttonsPanel);
-        buttonsPanel.setLayout(buttonsPanelLayout);
-        buttonsPanelLayout.setHorizontalGroup(
-            buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(buttonsPanelLayout.createSequentialGroup()
-                .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(buttonsPanelLayout.createSequentialGroup()
-                        .addComponent(jCheckBox1)
-                        .addGap(46, 46, 46)
-                        .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(autosaveCheckbox))
-                    .addGroup(buttonsPanelLayout.createSequentialGroup()
-                        .addComponent(jButton3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton7)))
-                .addGap(229, 229, 229))
-        );
-        buttonsPanelLayout.setVerticalGroup(
-            buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(buttonsPanelLayout.createSequentialGroup()
-                .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3)
-                    .addComponent(jButton9)
-                    .addComponent(jButton12)
-                    .addComponent(jButton7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCheckBox1)
-                    .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(autosaveCheckbox))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(memoryMonitor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-
-        topPanel.add(buttonsPanel, java.awt.BorderLayout.CENTER);
-
-        getContentPane().add(topPanel, java.awt.BorderLayout.NORTH);
+        topPanel2.setLayout(new java.awt.BorderLayout());
+        getContentPane().add(topPanel2, java.awt.BorderLayout.NORTH);
 
         zoomPanel1.setBackground(java.awt.Color.black);
         zoomPanel1.setFocusCycleRoot(true);
@@ -794,11 +650,11 @@ public class mainTest extends javax.swing.JFrame {
         zoomPanel1.setLayout(zoomPanel1Layout);
         zoomPanel1Layout.setHorizontalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1448, Short.MAX_VALUE)
+            .addGap(0, 1264, Short.MAX_VALUE)
         );
         zoomPanel1Layout.setVerticalGroup(
             zoomPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 761, Short.MAX_VALUE)
+            .addGap(0, 793, Short.MAX_VALUE)
         );
 
         getContentPane().add(zoomPanel1, java.awt.BorderLayout.CENTER);
@@ -825,21 +681,6 @@ public class mainTest extends javax.swing.JFrame {
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
     }//GEN-LAST:event_formKeyPressed
 
-    private ClassRepresentation getRepresentation(Class classObject) {
-        if (classObject == null) {
-            return null;
-        }
-        for (Component component : zoomPanel1.getComponents()) {
-            if (component instanceof ClassRepresentation) {
-                ClassRepresentation cr = (ClassRepresentation) component;
-                if (cr.getClassName().equals(classObject.getName())) {
-                    return cr;
-                }
-            }
-        }
-        return null;
-    }
-
 private void sourceEventDateKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceEventDateKeyTyped
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
@@ -854,9 +695,6 @@ private void sourceEventDateKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:e
 private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
         updateParentSource();
 }//GEN-LAST:event_jTabbedPane1StateChanged
-
-private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-}//GEN-LAST:event_jButton1ActionPerformed
 
 private void sourceOkularAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceOkularAutoActionPerformed
 }//GEN-LAST:event_sourceOkularAutoActionPerformed
@@ -895,9 +733,6 @@ private void zoomPanel1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:
 private void sourceinternetXpathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sourceinternetXpathActionPerformed
         updateParentSource();
 }//GEN-LAST:event_sourceinternetXpathActionPerformed
-
-private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-}//GEN-LAST:event_jButton2ActionPerformed
 
 private void sourceinternetXpathKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_sourceinternetXpathKeyReleased
         updateParentSource();
@@ -944,67 +779,14 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         visualization.execOperation("Add screenShot");
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton12ActionPerformed
-    }//GEN-LAST:event_jButton12ActionPerformed
-
-    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
-        if (jCheckBox1.isSelected()) {
-            phpUml.addGeneralizations();
-        } else {
-            zoomPanel1.removeConnections(Arrow.Generalization.class);
-            zoomPanel1.repaint();
-        }
-    }//GEN-LAST:event_jCheckBox1ActionPerformed
-
-    private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
-        phpUml.clear();
-        JFileChooser fc = new JFileChooser();
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            phpUml.loadPhpProject(fc.getSelectedFile().getPath(), jProgressBar1, new TimerTask() {
-                @Override
-                public void run() {
-                    jProgressBar1.setString("Arranging");
-                    phpUml.generalizationGrid.arrange();
-                    jProgressBar1.setString("Ready");
-
-                }
-            });
-        }
-    }//GEN-LAST:event_jButton7ActionPerformed
-
-    private void jProgressBar1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jProgressBar1MouseClicked
-        if (evt.getClickCount() > 1) {
-            PhpUml.cancel();
-        }
-    }//GEN-LAST:event_jProgressBar1MouseClicked
-
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
+        zoomPanel1.removeAll();
+        storageHelper.loadData("/home/aurelijus/Dropbox/Dinosy/projecting.xml", zoomPanel1);
     }//GEN-LAST:event_jButton9ActionPerformed
 
-    private void ccna1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ccna1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_ccna1ActionPerformed
-
-    private void ccna1MouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_ccna1MouseWheelMoved
-        scroll(ccna1, -evt.getWheelRotation());
-        updateCiscoSource();
-    }//GEN-LAST:event_ccna1MouseWheelMoved
-
-    private void ccna2MouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_ccna2MouseWheelMoved
-        scroll(ccna2, -evt.getWheelRotation());
-        updateCiscoSource();
-    }//GEN-LAST:event_ccna2MouseWheelMoved
-
-    private void ccna3MouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_ccna3MouseWheelMoved
-        scroll(ccna3, -evt.getWheelRotation());
-        updateCiscoSource();
-    }//GEN-LAST:event_ccna3MouseWheelMoved
-
-    private void ccna4MouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_ccna4MouseWheelMoved
-        scroll(ccna4, -evt.getWheelRotation());
-        updateCiscoSource();
-    }//GEN-LAST:event_ccna4MouseWheelMoved
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        visualization.getOperationsPopup().show(jButton2, 0, 0);
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     private static void scroll(JTextField field, int addition) {
         try {
@@ -1023,10 +805,6 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         }
         sourceBookPage.setBackground(Color.white);
         sourceBookPage.setText(Integer.toString(value));
-    }
-
-    private void updateCiscoSource() {
-        sourceinternetXpath.setText(ccna1.getText() + "." + ccna2.getText() + "." + ccna3.getText() + "." + ccna4.getText());
     }
 
     private void initSources() {
@@ -1065,11 +843,10 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
                     visualization.defaultSource = null;
             }
         }
-        sourceLastUpdated.setText("Updated: " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
     }
 
     public void loadProject(String file) {
-        visualization.loadData(file);
+        storageHelper.loadData(file, zoomPanel1);
     }
 
     public Set<Source> getUniqueSources(java.lang.Class<? extends Source> restriction) {
@@ -1125,15 +902,15 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         booksLabel.setText("Used (" + booksNamesModel.getSize() + "):");
         booksModelChaning = false;
     }
-    BasicVisualization.ClipboardSourceListener clipboardSourceListener = new BasicVisualization.ClipboardSourceListener() {
+    VisualizationHelper.ClipboardSourceListener clipboardSourceListener = new VisualizationHelper.ClipboardSourceListener() {
         public void newOkular(Okular source, String file, BufferedImage image) {
             sourceOkularClipboard.setText("<HTML><B>Page:</B> " + source.getPage() + "<BR/>"
-                    + "<B>URL:</B> " + source.getSource() + "<BR/>"
-                    + "<B>Rect:</B> " + source.getPosition().l + "x" + source.getPosition().t + " | " + source.getPosition().r + "x" + source.getPosition().b + "<BR/>"
-                    + "<B>Date:</B> " + source.getDateSting()
-                    + "<HTML>");
+                                          + "<B>URL:</B> " + source.getSource() + "<BR/>"
+                                          + "<B>Rect:</B> " + source.getPosition().l + "x" + source.getPosition().t + " | " + source.getPosition().r + "x" + source.getPosition().b + "<BR/>"
+                                          + "<B>Date:</B> " + source.getDateSting()
+                                          + "<HTML>");
             if (sourceOkularAuto.isSelected()) {
-                visualization.addImage(source, file, image);
+                addingHelper.addImage(source, file, image, GUI.this.zoomPanel1);
             }
         }
 
@@ -1143,8 +920,8 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
 
         public void otherData(String data) {
             sourceOkularClipboard.setText("<HTML><B>Not okular data in clipboard:</B><BR/>"
-                    + data + "<BR/>"
-                    + "<B>Date</B>:" + Source.parseDate(new Date()) + "</HTML>");
+                                          + data + "<BR/>"
+                                          + "<B>Date</B>:" + Source.parseDate(new Date()) + "</HTML>");
         }
 
         public void checking() {
@@ -1192,7 +969,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
                         e.printStackTrace(System.err);
                     }
                 });
-                mainTest mainTest = new mainTest();
+                GUI mainTest = new GUI();
                 mainTest.setVisible(true);
                 mainTest.repaint();
                 if (args.length >= 1) {
@@ -1205,25 +982,16 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     }
 
     static File openResource(String name) throws URISyntaxException {
-        return new File(new URI(mainTest.class.getResource(name).toString()));
+        return new File(new URI(GUI.class.getResource(name).toString()));
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox autosaveCheckbox;
     private javax.swing.JLabel booksLabel;
     private javax.swing.JComboBox booksNamesCombo;
     private javax.swing.JPanel buttonsPanel;
-    private javax.swing.JTextField ccna1;
-    private javax.swing.JTextField ccna2;
-    private javax.swing.JTextField ccna3;
-    private javax.swing.JTextField ccna4;
-    private javax.swing.JComboBox ciscoCourse;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton9;
-    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -1238,7 +1006,6 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
-    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JPanel memoryMonitor;
     private javax.swing.JTextField selectedBook;
@@ -1248,14 +1015,14 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     private javax.swing.JTextField sourceEventDate;
     private javax.swing.JTextField sourceEventName;
     private javax.swing.JTextField sourceEventPlace;
-    private javax.swing.JLabel sourceLastUpdated;
     private javax.swing.JCheckBox sourceOkularAuto;
     private javax.swing.JLabel sourceOkularClipboard;
     private javax.swing.JPanel sourcePanel;
     private javax.swing.JTextField sourceinternetTitle;
     private javax.swing.JTextField sourceinternetUrl;
     private javax.swing.JTextField sourceinternetXpath;
-    private javax.swing.JPanel topPanel;
+    private javax.swing.JTabbedPane topPanel;
+    private javax.swing.JPanel topPanel2;
     private lt.banelis.aurelijus.dinosy.prototype.ZoomPanel zoomPanel1;
     // End of variables declaration//GEN-END:variables
 }

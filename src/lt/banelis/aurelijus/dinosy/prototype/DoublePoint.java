@@ -9,7 +9,8 @@ import java.io.Serializable;
  *
  * @author Aurelijus Banelis
  */
-class DoublePoint extends Point2D implements Serializable {
+public class DoublePoint extends Point2D implements Serializable {
+
     private double x;
     private double y;
 
