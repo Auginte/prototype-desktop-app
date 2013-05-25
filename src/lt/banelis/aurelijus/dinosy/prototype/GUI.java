@@ -106,7 +106,7 @@ public class GUI extends javax.swing.JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 if (autosaveCheckbox.isSelected() && storageHelper.getSavedTo() != null && !zoomPanel1.isLoading()) {
                     storageHelper.save(zoomPanel1);
-                    setTitle("Autosaved: " + getTime());
+                    setTitle("Autosaved: " + getTime() + " " + storageHelper.getSavedTo());
                 }
             }
         });

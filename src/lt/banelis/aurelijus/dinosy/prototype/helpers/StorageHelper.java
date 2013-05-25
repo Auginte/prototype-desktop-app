@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -57,7 +58,7 @@ public class StorageHelper {
 
     public void open(ZoomPanel panel) {
         JFileChooser jfc = new JFileChooser();
-        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        updateFileTypes(jfc);
         if (jfc.showOpenDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
             loadData(jfc.getSelectedFile().getPath(), panel);
             setSavedTo(jfc.getSelectedFile().getPath());
@@ -195,7 +196,7 @@ public class StorageHelper {
             }
             progress.update(0.8, "Saving to file system");
             storage.save(data, representations, file);
-            savedTo = file;
+            setSavedTo(file);
         } catch (NotUniqueIdsException ex) {
             Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
         } catch (TransformerConfigurationException ex) {
@@ -204,6 +205,8 @@ public class StorageHelper {
             Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(StorageHelper.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             panel.setLoading(false);
             progress.update(1, "Saved");
@@ -228,12 +231,21 @@ public class StorageHelper {
 
     public void saveAs(ZoomPanel panel) {
         JFileChooser jfc = new JFileChooser();
-        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        updateFileTypes(jfc);
+        jfc.setSelectedFile(new File("projektas.zip"));
         if (jfc.showSaveDialog(panel.getParent()) == JFileChooser.APPROVE_OPTION) {
             List<Component> components = Arrays.asList(panel.getComponents());
             save(components, jfc.getSelectedFile().getPath(), panel);
             savedTo = jfc.getSelectedFile().getPath();
         }
+    }
+
+    private void updateFileTypes(JFileChooser jfc) {
+        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        FileNameExtensionFilter zipFilter = new FileNameExtensionFilter("Archive with images", "zip");
+        jfc.addChoosableFileFilter(new FileNameExtensionFilter("Local DiNoSy xml", "xml"));
+        jfc.addChoosableFileFilter(zipFilter);
+        jfc.setFileFilter(zipFilter);
     }
 
     private Component getComponent(Data data, List<Representation> representations) {
