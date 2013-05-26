@@ -89,7 +89,7 @@ public class GUI extends javax.swing.JFrame {
         initKeyShortcuts(getContentPane());
         initMemoryMonitor();
         initAutoSave();
-//        hideUnnecessary();
+        initExmaples();
     }
     private MouseListener contextMenuListener = new MouseAdapter() {
         @Override
@@ -105,7 +105,7 @@ public class GUI extends javax.swing.JFrame {
         javax.swing.Timer timer = new javax.swing.Timer(AUTO_SAVE_INTERVAL, new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 if (autosaveCheckbox.isSelected() && storageHelper.getSavedTo() != null && !zoomPanel1.isLoading()) {
-                    storageHelper.save(zoomPanel1);
+                    storageHelper.save(zoomPanel1, progress);
                     setTitle("Autosaved: " + getTime() + " " + storageHelper.getSavedTo());
                 }
             }
@@ -130,6 +130,9 @@ public class GUI extends javax.swing.JFrame {
             protected void paintComponent(Graphics g) {
                 g.setColor(Color.BLACK);
                 g.fillRect(0, 0, g.getClipBounds().width, g.getClipBounds().height);
+
+                g.setColor(Color.GRAY);
+                g.drawString("Image loading stats", getWidth() - 140, getHeight() - 10);
 
                 g.setColor(memoryColor);
                 int h = 0;
@@ -226,13 +229,21 @@ public class GUI extends javax.swing.JFrame {
         });
     }
 
+    private void initExmaples() {
+        exampleButton.setVisible(new File(getPathToExample()).exists());
+    }
+
+    private String getPathToExample() {
+        return "../Examples/projecting.zip";
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         topPanel = new javax.swing.JTabbedPane();
         buttonsPanel = new javax.swing.JPanel();
-        jButton9 = new javax.swing.JButton();
+        exampleButton = new javax.swing.JButton();
         memoryMonitor = new javax.swing.JPanel();
         autosaveCheckbox = new javax.swing.JCheckBox();
         jButton2 = new javax.swing.JButton();
@@ -283,11 +294,11 @@ public class GUI extends javax.swing.JFrame {
 
         buttonsPanel.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        jButton9.setText("Example");
-        jButton9.setToolTipText("Load DiNOSy project");
-        jButton9.addActionListener(new java.awt.event.ActionListener() {
+        exampleButton.setText("Example");
+        exampleButton.setToolTipText("Load DiNOSy project");
+        exampleButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton9ActionPerformed(evt);
+                exampleButtonActionPerformed(evt);
             }
         });
 
@@ -319,7 +330,7 @@ public class GUI extends javax.swing.JFrame {
         buttonsPanelLayout.setHorizontalGroup(
             buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(buttonsPanelLayout.createSequentialGroup()
-                .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(exampleButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 972, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -330,7 +341,7 @@ public class GUI extends javax.swing.JFrame {
             buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(buttonsPanelLayout.createSequentialGroup()
                 .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton9)
+                    .addComponent(exampleButton)
                     .addComponent(autosaveCheckbox)
                     .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -779,10 +790,10 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         visualization.execOperation("Add screenShot");
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
+    private void exampleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exampleButtonActionPerformed
         zoomPanel1.removeAll();
-        storageHelper.loadData("/home/aurelijus/Dropbox/Dinosy/projecting.xml", zoomPanel1);
-    }//GEN-LAST:event_jButton9ActionPerformed
+        storageHelper.loadData(getPathToExample(), zoomPanel1);
+    }//GEN-LAST:event_exampleButtonActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         visualization.getOperationsPopup().show(jButton2, 0, 0);
@@ -989,9 +1000,9 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     private javax.swing.JLabel booksLabel;
     private javax.swing.JComboBox booksNamesCombo;
     private javax.swing.JPanel buttonsPanel;
+    private javax.swing.JButton exampleButton;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton9;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

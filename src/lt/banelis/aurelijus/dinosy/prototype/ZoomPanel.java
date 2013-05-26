@@ -478,10 +478,12 @@ public class ZoomPanel extends JPanel implements Serializable {
         connections.removeAll(toDelete);
     }
 
-    //TODO: why concurent modification?
+    //TODO: why concurent modification? Why null?
     private synchronized void paintConnections(Graphics g) {
-        for (Connection connection : connections) {
-            connection.paint(g);
+        if (connections != null) {
+            for (Connection connection : connections) {
+                connection.paint(g);
+            }
         }
     }
 

@@ -158,7 +158,7 @@ public class Common implements HavingOperations {
         new PanelOperation(panel, "Save", new Key(KeyModifier.CTRL_SHIFT, KeyEvent.VK_S)) {
         @Override
         protected void perform(ZoomPanel panel) {
-            storageHelper.save(panel);
+            storageHelper.save(panel, storageHelper.getProgress());
         }
     },
         new PanelOperation(panel, "Save as ...", new Key(KeyModifier.CTRL_ALT_SHIFT, KeyEvent.VK_S)) {

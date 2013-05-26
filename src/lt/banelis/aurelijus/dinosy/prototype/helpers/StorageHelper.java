@@ -164,53 +164,59 @@ public class StorageHelper {
         save(components, file, progress, panel);
     }
 
-    public void save(List<Component> components, String file, Progress progress, ZoomPanel panel) {
-        try {
-            panel.setLoading(true);
-            progress.update(0, "Saving elements");
-            List<Data> data = new LinkedList<Data>();
-            Set<Representation> representations = new HashSet<Representation>();
-            int n = components.size();
-            int i = 0;
-            for (Component component : components) {
-                if (component instanceof DataRepresentation) {
-                    DataRepresentation object = (DataRepresentation) component;
-                    ZoomableComponent zoomableComponent = panel.getZoomableComponent(component);
-                    object.updateData(zoomableComponent);
-                    data.add(object.getData());
-                    for (Representation representation : object.getData().getRepresentations()) {
-                        if (representation instanceof Representation.Element) {
-                            Representation.Element element = (Representation.Element) representation;
-                            element.setZIndex(panel.getComponentZOrder(component));
-                            element.setForeground(component.getForeground(), defaultForeground);
-                            if (component instanceof JComponent) {
-                                JComponent jComponent = (JComponent) component;
-                                element.setBackground(jComponent.getBackground(), jComponent.isOpaque());
+    public void save(final List<Component> components, final String file, final Progress progress, final ZoomPanel panel) {
+        Thread saving = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    panel.setLoading(true);
+                    progress.update(0, "Saving elements");
+                    List<Data> data = new LinkedList<Data>();
+                    Set<Representation> representations = new HashSet<Representation>();
+                    int n = components.size();
+                    int i = 0;
+                    for (Component component : components) {
+                        if (component instanceof DataRepresentation) {
+                            DataRepresentation object = (DataRepresentation) component;
+                            ZoomableComponent zoomableComponent = panel.getZoomableComponent(component);
+                            object.updateData(zoomableComponent);
+                            data.add(object.getData());
+                            for (Representation representation : object.getData().getRepresentations()) {
+                                if (representation instanceof Representation.Element) {
+                                    Representation.Element element = (Representation.Element) representation;
+                                    element.setZIndex(panel.getComponentZOrder(component));
+                                    element.setForeground(component.getForeground(), defaultForeground);
+                                    if (component instanceof JComponent) {
+                                        JComponent jComponent = (JComponent) component;
+                                        element.setBackground(jComponent.getBackground(), jComponent.isOpaque());
+                                    }
+                                }
+                                representations.add(representation);
                             }
                         }
-                        representations.add(representation);
+                        progress.update(i / n * 0.8, "Converting to XML");
+                        i++;
                     }
+                    progress.update(0.8, "Saving to file system");
+                    storage.save(data, representations, file);
+                    setSavedTo(file);
+                } catch (NotUniqueIdsException ex) {
+                    Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (TransformerConfigurationException ex) {
+                    Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (TransformerException ex) {
+                    Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ParserConfigurationException ex) {
+                    Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(StorageHelper.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    panel.setLoading(false);
+                    progress.update(1, "Saved");
                 }
-                progress.update(i / n * 0.8, "Converting to XML");
-                i++;
             }
-            progress.update(0.8, "Saving to file system");
-            storage.save(data, representations, file);
-            setSavedTo(file);
-        } catch (NotUniqueIdsException ex) {
-            Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TransformerConfigurationException ex) {
-            Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TransformerException ex) {
-            Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParserConfigurationException ex) {
-            Logger.getLogger(VisualizationHelper.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(StorageHelper.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            panel.setLoading(false);
-            progress.update(1, "Saved");
-        }
+        };
+        saving.start();
     }
 
     public void setSavedTo(String savedTo) {
@@ -221,9 +227,9 @@ public class StorageHelper {
         return savedTo;
     }
 
-    public void save(ZoomPanel panel) {
+    public void save(ZoomPanel panel, Progress progress) {
         if (savedTo != null) {
-            save(Arrays.asList(panel.getComponents()), savedTo, panel);
+            save(Arrays.asList(panel.getComponents()), savedTo, progress, panel);
         } else {
             saveAs(panel);
         }
@@ -262,10 +268,17 @@ public class StorageHelper {
     private static Progress emptyProgress = new Progress() {
         public void update(double percent, String operaion) {
         }
+
+        @Override
+        public String toString() {
+            return "EMPTY PROGRESS";
+        }
     };
 
     public void setProgress(Progress progress) {
         this.progress = progress;
+        //TODO: where progress in not changed?
+        emptyProgress = progress;
     }
 
     public static String getTimeForFile() {
@@ -368,5 +381,9 @@ public class StorageHelper {
         } catch (UnsupportedEncodingException ex) {
             return text;
         }
+    }
+
+    public Progress getProgress() {
+        return progress;
     }
 }

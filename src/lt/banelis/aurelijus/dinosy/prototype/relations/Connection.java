@@ -11,12 +11,14 @@ import java.awt.Point;
  * @author Aurelijus Banelis
  */
 public class Connection {
+
     private Component from;
     private Component to;
     private Arrow arrowFrom;
     private Arrow arrowTo;
     private Box boxFrom;
-    private Box boxTo;;
+    private Box boxTo;
+    ;
     private String name;
     private int arrowSize = Arrow.defaultSize;
 
@@ -43,7 +45,6 @@ public class Connection {
     /*
      * Components
      */
-
     public void setFrom(Component from) {
         this.from = from;
     }
@@ -64,7 +65,6 @@ public class Connection {
     /*
      * Arrows
      */
-
     public void setArrawFrom(Arrow arrawFrom) {
         this.arrowFrom = arrawFrom;
     }
@@ -81,10 +81,11 @@ public class Connection {
         return arrowTo;
     }
 
+    //FIXME: when zooming not looks so good
     public void setArrowSize(double size) {
-        arrowSize = (int) size;
-        arrowFrom.setSize(arrowSize);
-        arrowTo.setSize(arrowSize);
+//        arrowSize = (int) size;
+//        arrowFrom.setSize(arrowSize);
+//        arrowTo.setSize(arrowSize);
     }
 
     public int getArrowSize() {
@@ -95,7 +96,6 @@ public class Connection {
     /*
      * Painting
      */
-
     public void paint(Graphics g) {
         updateNearPoints();
         paintLine(g);
@@ -114,19 +114,23 @@ public class Connection {
         arrowTo.setAnge(boxFrom.getAnge(boxTo));
         arrowFrom.setAnge(boxTo.getAnge(boxFrom));
 
-        if (boxFrom.getCenter().distance(boxTo.getCenter()) < 4) {
+        double distance = boxFrom.getCenter().distance(boxTo.getCenter());
+        if (distance < 4) {
             arrowFrom.setLocation(boxFrom.getCenter());
             arrowTo.setLocation(boxTo.getCenter());
         } else {
             boxFrom.updatePosition(arrowFrom);
             boxTo.updatePosition(arrowTo);
         }
+        arrowFrom.setDistance(distance);
+        arrowTo.setDistance(distance);
     }
 
     /*
      * Data structure for addtional geometrical component attributes
      */
     private class Box {
+
         private Component component;
         private int halfWidth;
         private int halfHeight;
@@ -141,7 +145,7 @@ public class Connection {
         public final void updateData() {
             halfWidth = component.getSize().width / 2;
             halfHeight = component.getSize().height / 2;
-            radius = Math.sqrt( halfWidth*halfWidth + halfHeight*halfHeight );
+            radius = Math.sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
             ange = Math.atan2(component.getHeight(), component.getWidth());
             int centerX = component.getLocation().x + halfWidth;
             int cenetrY = component.getLocation().y + halfHeight;
@@ -151,7 +155,7 @@ public class Connection {
         public double getRadius() {
             return radius;
         }
-        
+
         public double getAnge() {
             return ange;
         }
@@ -215,7 +219,6 @@ public class Connection {
     /*
      * Other attributes
      */
-
     public String getName() {
         return name;
     }

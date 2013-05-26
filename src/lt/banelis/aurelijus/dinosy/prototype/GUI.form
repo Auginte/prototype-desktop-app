@@ -64,7 +64,7 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="jButton9" min="-2" pref="100" max="-2" attributes="0"/>
+                      <Component id="exampleButton" min="-2" pref="100" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jButton2" pref="972" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -77,7 +77,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="jButton9" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="exampleButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="autosaveCheckbox" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -88,13 +88,13 @@
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="javax.swing.JButton" name="jButton9">
+            <Component class="javax.swing.JButton" name="exampleButton">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Example"/>
                 <Property name="toolTipText" type="java.lang.String" value="Load DiNOSy project"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton9ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="exampleButtonActionPerformed"/>
               </Events>
             </Component>
             <Container class="javax.swing.JPanel" name="memoryMonitor">

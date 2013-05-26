@@ -92,6 +92,15 @@ public class RunHelper {
         }
     }
 
+    public void openImageProgram(String file) {
+        String executable = Settings.getInstance().getPaintingProgram();
+        if (executable != null) {
+            runExternal(new String[]{executable, file});
+        } else {
+            openViewProgram(file);
+        }
+    }
+
     public void openPdfProgram(String file, int page) {
         String executable = Settings.getInstance().getPdfViewer();
         if (executable != null) {

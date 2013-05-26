@@ -927,7 +927,14 @@ public class VisualizationHelper {
             menu.add(menuSeparator("Source:"));
             final DataRepresentation representation = (DataRepresentation) focused;
             if (representation.getData() instanceof Data.Image) {
-                menu.add(((Data.Image) representation.getData()).getData());
+                final String filePath = ((Data.Image) representation.getData()).getData();
+                JMenuItem item = new JMenuItem(filePath);
+                item.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        runHelper.openImageProgram(filePath);
+                    }
+                });
+                menu.add(item);
             }
             Source source = representation.getData().getSource();
             StringBuilder tooltip = new StringBuilder(source.getDateSting());
