@@ -315,7 +315,6 @@ public class GUI extends javax.swing.JFrame {
             .addGap(0, 70, Short.MAX_VALUE)
         );
 
-        autosaveCheckbox.setSelected(true);
         autosaveCheckbox.setText("Autosave");
 
         jButton2.setText("Operations");
