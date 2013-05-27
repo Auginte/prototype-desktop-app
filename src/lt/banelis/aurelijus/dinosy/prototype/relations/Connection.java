@@ -97,17 +97,19 @@ public class Connection {
      * Painting
      */
     public void paint(Graphics g) {
-        updateNearPoints();
-        paintLine(g);
-        arrowFrom.paint(g);
-        arrowTo.paint(g);
+        double distance = updateNearPoints();
+        if (distance > 2) {
+            paintLine(g);
+            arrowFrom.paint(g);
+            arrowTo.paint(g);
+        }
     }
 
     private void paintLine(Graphics g) {
         g.drawLine(arrowFrom.getLocation().x, arrowFrom.getLocation().y, arrowTo.getLocation().x, arrowTo.getLocation().y);
     }
 
-    private void updateNearPoints() {
+    private double updateNearPoints() {
         boxFrom.updateData();
         boxTo.updateData();
 
@@ -124,6 +126,7 @@ public class Connection {
         }
         arrowFrom.setDistance(distance);
         arrowTo.setDistance(distance);
+        return distance;
     }
 
     /*

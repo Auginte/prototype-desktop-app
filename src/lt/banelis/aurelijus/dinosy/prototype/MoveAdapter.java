@@ -1,5 +1,6 @@
 package lt.banelis.aurelijus.dinosy.prototype;
 
+import java.awt.Container;
 import java.awt.event.MouseEvent;
 import javax.swing.event.MouseInputListener;
 
@@ -97,6 +98,7 @@ public class MoveAdapter implements MouseInputListener {
                 parent.repaint();
             }
         }
+        e.getComponent().getParent().repaint();
     }
 
     public void mouseClicked(MouseEvent e) {

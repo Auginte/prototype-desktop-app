@@ -107,10 +107,10 @@ public abstract class Arrow {
         }
 
         public void paint(Graphics g) {
-            g.drawLine(getX(ange - Math.PI / 2), getY(ange - Math.PI / 2), getX(ange), getY(ange));
-            g.drawLine(getX(ange + Math.PI), getY(ange + Math.PI), getX(ange), getY(ange));
-            g.drawLine(getX(ange + Math.PI / 2), getY(ange + Math.PI / 2), getX(ange), getY(ange));
             if (getDistance() > 40) {
+                g.drawLine(getX(ange - Math.PI / 2), getY(ange - Math.PI / 2), getX(ange), getY(ange));
+                g.drawLine(getX(ange + Math.PI), getY(ange + Math.PI), getX(ange), getY(ange));
+                g.drawLine(getX(ange + Math.PI / 2), getY(ange + Math.PI / 2), getX(ange), getY(ange));
                 drawTitle(name, g);
             }
         }

@@ -73,6 +73,7 @@ import lt.banelis.aurelijus.dinosy.prototype.operations.HavingOperations;
 import lt.banelis.aurelijus.dinosy.prototype.operations.Operation;
 import lt.banelis.aurelijus.dinosy.prototype.operations.Progress;
 import lt.banelis.aurelijus.dinosy.prototype.operations.SelectionOperation;
+import lt.banelis.aurelijus.dinosy.prototype.operations.VisualGroupOperation;
 import lt.banelis.aurelijus.dinosy.prototype.relations.Arrow;
 import lt.banelis.aurelijus.dinosy.prototype.relations.Connectable;
 import lt.banelis.aurelijus.dinosy.prototype.relations.Connectable.ConnectionState;
@@ -874,6 +875,17 @@ public class VisualizationHelper {
                 }
                 result.addSeparator();
             }
+        }
+
+        /* Visual grouping operations */
+        if (panel.getFocusOwner() != null) {
+            result.add(menuSeparator("Visual grouping:"));
+            for (Operation operation : operations) {
+                if (operation instanceof VisualGroupOperation) {
+                    addMenuItem(operation, result, performOne(operation));
+                }
+            }
+            result.addSeparator();
         }
 
         /* Common operations for focused elements */

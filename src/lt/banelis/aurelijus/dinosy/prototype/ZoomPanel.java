@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.swing.JPanel;
 import lt.banelis.aurelijus.dinosy.prototype.relations.Arrow;
 import lt.banelis.aurelijus.dinosy.prototype.relations.Connection;
+import lt.banelis.aurelijus.dinosy.prototype.relations.VisualGrouping;
 
 /**
  * Panel with zooming capabilities.
@@ -42,6 +43,8 @@ public class ZoomPanel extends JPanel implements Serializable {
     private static int loadingRing = 1;
     private Thread loadingThread = null;
     private static Color loadingColor = new Color(40, 40, 40);
+    private VisualGrouping visualGrouping = new VisualGrouping(this);
+    private boolean outlineGroups = false;
 
     private static Color addColor(Color color, int delta) {
         int c[] = new int[3];
@@ -108,6 +111,9 @@ public class ZoomPanel extends JPanel implements Serializable {
     protected void paintChildren(Graphics g) {
         if (grid) {
             printGrid(g);
+        }
+        if (outlineGroups) {
+            visualGrouping.paintComponent(g);
         }
         if (loading) {
             paintLoading(g, getSize().width, getSize().height);
@@ -611,5 +617,16 @@ public class ZoomPanel extends JPanel implements Serializable {
         g.fillArc(x - size / 2, y - size / 2, size, size, loadingRing * 10 + 180, 60);
         g.setColor(loadingColor);
         g.fillOval(x - size / 4, y - size / 4, size / 2, size / 2);
+    }
+
+    /*
+     * Visual grouping
+     */
+    public void setOutlineGroups(boolean outlineGroups) {
+        this.outlineGroups = outlineGroups;
+    }
+
+    public VisualGrouping getVisualGrouping() {
+        return visualGrouping;
     }
 }

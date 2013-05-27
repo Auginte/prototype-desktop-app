@@ -247,6 +247,7 @@ public class GUI extends javax.swing.JFrame {
         memoryMonitor = new javax.swing.JPanel();
         autosaveCheckbox = new javax.swing.JCheckBox();
         jButton2 = new javax.swing.JButton();
+        outlineGroupsCheckbox = new javax.swing.JCheckBox();
         sourcePanel = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         sourceEventDate = new javax.swing.JTextField();
@@ -324,6 +325,13 @@ public class GUI extends javax.swing.JFrame {
             }
         });
 
+        outlineGroupsCheckbox.setText("Outline groups");
+        outlineGroupsCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                outlineGroupsCheckboxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout buttonsPanelLayout = new javax.swing.GroupLayout(buttonsPanel);
         buttonsPanel.setLayout(buttonsPanelLayout);
         buttonsPanelLayout.setHorizontalGroup(
@@ -331,7 +339,9 @@ public class GUI extends javax.swing.JFrame {
             .addGroup(buttonsPanelLayout.createSequentialGroup()
                 .addComponent(exampleButton, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 972, Short.MAX_VALUE)
+                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 836, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(outlineGroupsCheckbox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(autosaveCheckbox))
             .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -342,7 +352,8 @@ public class GUI extends javax.swing.JFrame {
                 .addGroup(buttonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(exampleButton)
                     .addComponent(autosaveCheckbox)
-                    .addComponent(jButton2))
+                    .addComponent(jButton2)
+                    .addComponent(outlineGroupsCheckbox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(memoryMonitor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -798,6 +809,11 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         visualization.getOperationsPopup().show(jButton2, 0, 0);
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    private void outlineGroupsCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_outlineGroupsCheckboxActionPerformed
+        zoomPanel1.setOutlineGroups(outlineGroupsCheckbox.isSelected());
+        zoomPanel1.repaint();
+    }//GEN-LAST:event_outlineGroupsCheckboxActionPerformed
+
     private static void scroll(JTextField field, int addition) {
         try {
             int current = Integer.valueOf(field.getText());
@@ -1018,6 +1034,7 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JPanel memoryMonitor;
+    private javax.swing.JCheckBox outlineGroupsCheckbox;
     private javax.swing.JTextField selectedBook;
     private javax.swing.JTextField sourceBookIsbn;
     private javax.swing.JTextField sourceBookName;

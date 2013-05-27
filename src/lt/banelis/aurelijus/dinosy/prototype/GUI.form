@@ -66,7 +66,9 @@
                   <Group type="102" attributes="0">
                       <Component id="exampleButton" min="-2" pref="100" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jButton2" pref="972" max="32767" attributes="0"/>
+                      <Component id="jButton2" pref="836" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="outlineGroupsCheckbox" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="autosaveCheckbox" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -80,6 +82,7 @@
                           <Component id="exampleButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="autosaveCheckbox" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="outlineGroupsCheckbox" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="memoryMonitor" max="32767" attributes="0"/>
@@ -128,6 +131,14 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="outlineGroupsCheckbox">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Outline groups"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="outlineGroupsCheckboxActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

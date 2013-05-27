@@ -115,6 +115,21 @@ public class Common implements HavingOperations {
             }
         });
     }
+
+    /*
+     * utitlites
+     */
+    /**
+     * Casts object to type provided or return null.
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T cast(Object object, Class<T> type) {
+        if (type.isInstance(object)) {
+            return (T) object;
+        } else {
+            return null;
+        }
+    }
     /*
      * List of commonly used functions of ZoomPanel and its elements
      */
@@ -386,6 +401,29 @@ public class Common implements HavingOperations {
         @Override
         protected void perform(ZoomPanel panel) {
             visualization.pasteFromClipboad(panel);
+        }
+    },
+        new VisualGroupOperation(panel, "Select group", new Key(KeyModifier.CTRL, KeyEvent.VK_G, true)) {
+        @Override
+        protected void perform(List<Component> component, ZoomPanel panel) {
+            boolean wasUnselected = false;
+            for (Component element : component) {
+                Selectable selectable = cast(element, Selectable.class);
+                if (selectable != null && selectable.isSelectable()) {
+                    if (!selectable.isSelected()) {
+                        wasUnselected = true;
+                    }
+                    selectable.setSelected(true);
+                }
+            }
+            if (!wasUnselected) {
+                for (Component element : component) {
+                    Selectable selectable = cast(element, Selectable.class);
+                    if (selectable != null && selectable.isSelectable()) {
+                        selectable.setSelected(false);
+                    }
+                }
+            }
         }
     });
 }
