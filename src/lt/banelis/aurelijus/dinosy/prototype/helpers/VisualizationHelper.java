@@ -112,8 +112,6 @@ public class VisualizationHelper {
     private StorageHelper storageHelper;
     private List<Operation> operations;
     private Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    //FIXME: normal source implemntation
-    public Source defaultSource = null;
 
     /*
      * Initiation
@@ -153,6 +151,10 @@ public class VisualizationHelper {
 
     public ZoomPanel getPanel() {
         return panel;
+    }
+
+    public Common getCommonOperations() {
+        return commonOperations;
     }
 
     /*
@@ -468,10 +470,7 @@ public class VisualizationHelper {
                 if (image instanceof BufferedImage) {
                     String directory = Settings.getInstance().getDateCacheDirecotry().getPath();
                     final String clipboardFile = directory + "/pasted-" + storageHelper.getTimeForFile() + ".png";
-                    if (defaultSource == null) {
-                        defaultSource = new Source.Event();
-                    }
-                    addingHelper.addImage(defaultSource, clipboardFile, (BufferedImage) image, panel);
+                    addingHelper.addImage(commonOperations.getSourceHelper().getDefaultSource(), clipboardFile, (BufferedImage) image, panel);
                 }
             }
         } catch (Exception ex) {
@@ -621,7 +620,8 @@ public class VisualizationHelper {
         for (Map<String, String> map : fromClipboard) {
             if (map.containsKey("xpath") && map.containsKey("url") && map.containsKey("title") && map.containsKey("data") && map.containsKey("date") && map.containsKey("saved")) {
                 Date date = Source.parseDate(map.get("date"));
-                defaultSource = new Source.Internet(date, map.get("url"), map.get("xpath"), map.get("title"), map.get("saved"), null);
+                Source source = new Source.Internet(date, map.get("url"), map.get("xpath"), map.get("title"), map.get("saved"), null);
+                commonOperations.getSourceHelper().setDefaultSource(source);
                 String data = "[]";
                 try {
                     data = new String(Base64.decode(map.get("data")));

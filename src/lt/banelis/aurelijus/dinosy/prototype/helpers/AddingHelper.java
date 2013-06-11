@@ -36,7 +36,6 @@ public class AddingHelper {
     }
 
     public ZoomableLabel addText(String text, ZoomPanel panel, int x, int y, int widh, int height, boolean edit) {
-        ZoomableLabel label = new ZoomableLabel();
         return addText(new Data.Plain(text, getSource()), panel, x, y, widh, height, edit);
     }
 
@@ -108,9 +107,6 @@ public class AddingHelper {
     }
 
     private Source getSource() {
-        if (sourceHelper.getDefaultSource() == null) {
-            sourceHelper.setDefaultSource(new Source.Event());
-        }
         return sourceHelper.getDefaultSource();
     }
 

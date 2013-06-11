@@ -9,7 +9,7 @@ import lt.dinosy.datalib.Source;
  */
 public class SourceHelper {
 
-    private Source defaultSource = null;
+    private Source defaultSource = new Source.Event();
 
     public void setDefaultSource(Source defaultSource) {
         this.defaultSource = defaultSource;

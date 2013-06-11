@@ -64,6 +64,10 @@ public class Common implements HavingOperations {
         return addingHelper;
     }
 
+    public SourceHelper getSourceHelper() {
+        return sourceHelper;
+    }
+
     public void performOperation(String operationName) {
         for (Operation operation : operations) {
             if (operation.getName().equalsIgnoreCase(operationName)) {
@@ -238,7 +242,8 @@ public class Common implements HavingOperations {
         new FocusedOperation(panel, "Add text near", new Key(KeyModifier.SHIFT, KeyEvent.VK_D, true)) {
         @Override
         public void perform(ZoomableComponent focused, ZoomPanel panel) {
-            ZoomableLabel label = addingHelper.addText("", panel, (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
+            Data.Plain data = new Data.Plain("", sourceHelper.getDefaultSource());
+            ZoomableLabel label = addingHelper.addText(data, panel, (int) focused.getLocation().getX(), (int) (focused.getLocation().getY() + focused.getSize().getHeight()), 100, (int) focused.getSize().getHeight(), true);
             label.setForeground(focused.getComponent().getForeground());
             label.setBackground(focused.getComponent().getBackground());
             if (focused.getComponent() instanceof JComponent) {

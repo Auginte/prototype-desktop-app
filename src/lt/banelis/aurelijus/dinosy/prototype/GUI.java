@@ -80,7 +80,7 @@ public class GUI extends javax.swing.JFrame {
             }
         };
         visualization = new VisualizationHelper(zoomPanel1, progress);
-        commonOperations = new Common(visualization, zoomPanel1);
+        commonOperations = visualization.getCommonOperations();
         storageHelper = commonOperations.getStorageHelper();
         addingHelper = commonOperations.getAddingHelper();
         visualization.initAll();
@@ -685,10 +685,7 @@ public class GUI extends javax.swing.JFrame {
 
     private void zoomPanel1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_zoomPanel1MouseClicked
         if (evt.getClickCount() > 1) {
-            if (visualization.defaultSource == null) {
-                visualization.defaultSource = new Source.Event();
-            }
-            ZoomableLabel label = new ZoomableLabel(new Data.Plain("", visualization.defaultSource));
+            ZoomableLabel label = new ZoomableLabel(new Data.Plain("", commonOperations.getSourceHelper().getDefaultSource()));
             label.switchEditable();
             ZoomableComponent component = zoomPanel1.addComponent(label);
             component.setLocation(evt.getX(), evt.getY());
@@ -852,22 +849,24 @@ private void sourceBookPageMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
         if (visualization != null) {
             SourceType sourceType = SourceType.values()[jTabbedPane1.getSelectedIndex()];
             assert sourceType.name().equals(jTabbedPane1.getTitleAt(jTabbedPane1.getSelectedIndex()));
+            Source source;
             if (sourceTypeDate == null) {
                 sourceTypeDate = new Date();
             }
             switch (sourceType) {
                 case Event:
-                    visualization.defaultSource = new Event(sourceTypeDate, sourceEventName.getText(), sourceEventPlace.getText());
+                    source = new Event(sourceTypeDate, sourceEventName.getText(), sourceEventPlace.getText());
                     break;
                 case Internet:
-                    visualization.defaultSource = new Internet(sourceTypeDate, sourceinternetUrl.getText(), sourceinternetXpath.getText(), sourceinternetTitle.getText(), null, null);
+                    source = new Internet(sourceTypeDate, sourceinternetUrl.getText(), sourceinternetXpath.getText(), sourceinternetTitle.getText(), null, null);
                     break;
                 case Book:
-                    visualization.defaultSource = new Book(sourceTypeDate, sourceBookName.getText(), Integer.parseInt(sourceBookPage.getText()), sourceBookIsbn.getText(), null);
+                    source = new Book(sourceTypeDate, sourceBookName.getText(), Integer.parseInt(sourceBookPage.getText()), sourceBookIsbn.getText(), null);
                     break;
                 default:
-                    visualization.defaultSource = null;
+                    source = null;
             }
+            commonOperations.getSourceHelper().setDefaultSource(source);
         }
     }
 

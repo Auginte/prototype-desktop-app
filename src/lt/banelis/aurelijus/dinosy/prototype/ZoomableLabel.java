@@ -64,6 +64,7 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
 
     public ZoomableLabel(Data data) {
         this((String) data.getData());
+        iniciateData(data);
         initFocusability();
         iniciateData(data);
     }
@@ -78,7 +79,6 @@ public class ZoomableLabel extends JPanel implements DataRepresentation, Editabl
         constructLabel();
         prepareEditable();
     }
-
 
     /*
      * Label
